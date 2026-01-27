@@ -115,7 +115,7 @@ export default function ShareButton({ item }: ShareButtonProps) {
             </button>
 
             {/* Native share (mobile) */}
-            {typeof navigator !== 'undefined' && navigator.share && (
+            {'share' in navigator && (
               <button
                 onClick={handleNativeShare}
                 className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3"
