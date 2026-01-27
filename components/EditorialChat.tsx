@@ -434,10 +434,17 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
   const [showMentions, setShowMentions] = useState(false)
   const [mentionQuery, setMentionQuery] = useState('')
   const [cursorPosition, setCursorPosition] = useState(0)
+  const [isTyping, setIsTyping] = useState(false)
+  const [lastActivity, setLastActivity] = useState<Date | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
   const pollInterval = useRef<NodeJS.Timeout | null>(null)
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  // Polling intervals
+  const POLL_INTERVAL_ACTIVE = 3000 // 3 seconds when chat is open
+  const POLL_INTERVAL_BACKGROUND = 15000 // 15 seconds when chat is closed
 
   // Handle input changes and detect @ mentions
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -445,6 +452,21 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
     const cursor = e.target.selectionStart || 0
     setNewMessage(value)
     setCursorPosition(cursor)
+
+    // Show typing indicator
+    if (value.trim().length > 0) {
+      setIsTyping(true)
+      // Clear previous timeout
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current)
+      }
+      // Stop typing indicator after 2 seconds of no input
+      typingTimeout.current = setTimeout(() => {
+        setIsTyping(false)
+      }, 2000)
+    } else {
+      setIsTyping(false)
+    }
 
     // Check for @ mention
     const textBeforeCursor = value.substring(0, cursor)
@@ -579,12 +601,19 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
     }
   }, [isOpen, fetchMessages])
 
-  // Poll for new messages
+  // Poll for new messages with adaptive interval
   useEffect(() => {
-    // Start polling when component mounts
+    // Clear any existing interval
+    if (pollInterval.current) {
+      clearInterval(pollInterval.current)
+    }
+
+    // Use faster polling when chat is open
+    const interval = isOpen ? POLL_INTERVAL_ACTIVE : POLL_INTERVAL_BACKGROUND
+
     pollInterval.current = setInterval(() => {
       fetchMessages(true)
-    }, 10000) // Poll every 10 seconds
+    }, interval)
 
     // Initial fetch
     fetchMessages(true)
@@ -594,7 +623,16 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
         clearInterval(pollInterval.current)
       }
     }
-  }, [fetchMessages])
+  }, [fetchMessages, isOpen])
+
+  // Track last activity for "last seen" indicator
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      const messageDate = new Date(parseFloat(lastMessage.timestamp) * 1000)
+      setLastActivity(messageDate)
+    }
+  }, [messages])
 
   // Update last read timestamp when viewing messages
   useEffect(() => {
@@ -613,10 +651,27 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
         <div className="absolute bottom-16 right-0 w-96 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in flex flex-col max-h-[70vh]">
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <h3 className="font-semibold text-white">Redaktionen</h3>
-              <span className="text-xs text-white/70">#{messages.length}</span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <h3 className="font-semibold text-white">Redaktionen</h3>
+                <span className="text-xs text-white/70">#{messages.length}</span>
+              </div>
+              {/* Typing indicator or last activity */}
+              <div className="text-xs text-white/60 h-3.5">
+                {isTyping ? (
+                  <span className="flex items-center gap-1">
+                    <span className="flex gap-0.5">
+                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                    <span>Skriver...</span>
+                  </span>
+                ) : lastActivity ? (
+                  <span>Senaste aktivitet: {lastActivity.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
+                ) : null}
+              </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
