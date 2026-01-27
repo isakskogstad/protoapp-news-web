@@ -13,16 +13,17 @@ export default withAuth(
   }
 )
 
-// Protect all routes except login and API auth
+// Protect all routes except login, API auth, and public API routes
 export const config = {
   matcher: [
     /*
      * Match all paths except:
      * - /login
      * - /api/auth (NextAuth routes)
+     * - /api/company (public company data)
      * - /_next (Next.js internals)
      * - /favicon.ico, etc.
      */
-    '/((?!login|api/auth|_next|favicon.ico).*)',
+    '/((?!login|api/auth|api/company|_next|favicon.ico).*)',
   ],
 }
