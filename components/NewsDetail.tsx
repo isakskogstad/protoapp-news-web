@@ -10,6 +10,7 @@ import KonkursFaktaruta from './KonkursFaktaruta'
 import StyrelseFaktaruta from './StyrelseFaktaruta'
 import KallelseFaktaruta from './KallelseFaktaruta'
 import BolagsfaktaModule from './BolagsfaktaModule'
+import ArsredovisningarModule from './ArsredovisningarModule'
 import ShareToChat from './ShareToChat'
 import NewsSidebar from './NewsSidebar'
 
@@ -262,6 +263,14 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                   omsattningAr: item.bolagsInfo.omsattningAr,
                   startat: item.bolagsInfo.startat,
                 } : undefined}
+              />
+            )}
+
+            {/* Årsredovisningar - show when no other faktaruta (to ensure at least 2 modules) */}
+            {!hasSpecificLeftContent && (
+              <ArsredovisningarModule
+                orgNumber={item.orgNumber}
+                companyName={item.companyName}
               />
             )}
           </div>

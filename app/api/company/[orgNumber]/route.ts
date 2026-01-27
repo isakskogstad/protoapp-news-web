@@ -8,20 +8,23 @@ export async function GET(
   const { orgNumber } = await params
   const supabase = createServerClient()
 
+  // Clean org number - remove dashes for query
+  const cleanOrgNumber = orgNumber.replace(/-/g, '')
+
   // Try to find company data from LoopBrowse_Protokoll table
+  // Column is 'orgnummer' (not 'org_number')
   const { data: company, error } = await supabase
     .from('LoopBrowse_Protokoll')
     .select('*')
-    .eq('org_number', orgNumber)
+    .eq('orgnummer', cleanOrgNumber)
     .single()
 
   if (error || !company) {
-    // Try without dashes
-    const cleanOrgNumber = orgNumber.replace(/-/g, '')
+    // Also try with dashes
     const { data: company2 } = await supabase
       .from('LoopBrowse_Protokoll')
       .select('*')
-      .eq('org_number', cleanOrgNumber)
+      .eq('orgnummer', orgNumber)
       .single()
 
     if (!company2) {
@@ -36,12 +39,16 @@ export async function GET(
 
 function formatCompanyData(company: Record<string, unknown>) {
   return {
-    vd: company.vd || company.ceo || null,
-    ordforande: company.ordforande || company.chairman || null,
-    anstallda: company.anstallda || company.employees || null,
-    omsattning: company.omsattning || company.revenue || null,
-    omsattningAr: company.omsattning_ar || company.revenue_year || null,
-    startat: company.grundat || company.founded || company.startat || null,
-    bransch: company.bransch || company.industry || null,
+    vd: company.vd || null,
+    ordforande: company.ordforande || null,
+    anstallda: company.anstallda ? Number(company.anstallda) : null,
+    omsattning: null, // Not in this table
+    omsattningAr: null,
+    startat: company.registreringsdatum || null,
+    bransch: null, // Not in this table
+    stad: company.stad || null,
+    adress: company.adress || null,
+    postnummer: company.postnummer || null,
+    storstAgare: company.storsta_agare || null,
   }
 }
