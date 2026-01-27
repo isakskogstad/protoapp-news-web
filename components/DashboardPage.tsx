@@ -784,7 +784,15 @@ function getCategory(item: NewsItem): string {
   return 'Händelse'
 }
 
-// News Item Component - Compact horizontal layout with left-aligned metadata
+// Format category for display (handle snake_case and make readable)
+function formatCategory(category: string): string {
+  // Convert snake_case to readable format
+  return category
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// News Item Component - Clean vertical layout in left column
 interface NewsItemCardProps {
   item: NewsItem
   onBookmarkChange?: () => void
@@ -800,16 +808,17 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   const category = getCategory(item)
   const categoryColors: Record<string, string> = {
-    'Nyemission': 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
-    'Konkurs': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-    'Kallelse till stämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-    'Årsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-    'Extra bolagsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-    'Styrelsemöte': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
-    'Styrelseändring': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
-    'VD-byte': 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
+    'Nyemission': 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30',
+    'Konkurs': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
+    'Kallelse till stämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    'Årsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    'Extra Bolagsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    'Styrelsemöte': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30',
+    'Styrelseändring': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30',
+    'VD-byte': 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30',
   }
-  const categoryColor = categoryColors[category] || 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800'
+  const formattedCategory = formatCategory(category)
+  const categoryColor = categoryColors[formattedCategory] || categoryColors[category] || 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
   // Get time with recency info for visual hierarchy
@@ -832,87 +841,84 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   return (
     <Link href={`/news/${item.id}`} className="block group">
       <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-4">
-        <div className="flex gap-4">
-          {/* Left column: Logo + Company info + Time + Category + Actions */}
-          <div className="w-40 shrink-0 flex flex-col">
-            {/* Top: Logo + Company */}
-            <div className="flex items-start gap-2.5">
-              <CompanyLogo
-                orgNumber={item.orgNumber}
-                companyName={item.companyName}
-                logoUrl={item.logoUrl}
-                size="md"
+        {/* Action buttons - top right, always visible */}
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          <button
+            onClick={handleBookmark}
+            className={`p-1.5 rounded-md transition-all ${
+              isBookmarked
+                ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+          >
+            {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={handleShare}
+              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              title="Dela"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+
+            {showShareMenu && (
+              <ShareMenu
+                url={newsUrl}
+                title={item.headline || item.companyName}
+                onClose={() => setShowShareMenu(false)}
               />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-bold text-black dark:text-white truncate leading-tight">
-                  {item.companyName}
-                </h4>
-                <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
-                  {formatOrgNumber(item.orgNumber)}
-                </p>
-              </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            {/* Middle: Time + Category */}
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {/* Time with visual hierarchy */}
-              <span className={`font-mono ${
-                timeInfo.isRecent
-                  ? 'text-xs font-bold text-black dark:text-white'
-                  : timeInfo.isToday
-                    ? 'text-xs font-medium text-gray-600 dark:text-gray-300'
-                    : 'text-[11px] text-gray-400 dark:text-gray-500'
-              }`}>
-                {timeInfo.text}
-              </span>
-              <span className="text-gray-300 dark:text-gray-600">·</span>
-              {/* Category badge */}
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${categoryColor}`}>
-                {category}
-              </span>
-            </div>
+        <div className="flex gap-5">
+          {/* Left column: Vertical stack - Logo, Company, Org, Time, Category */}
+          <div className="w-36 shrink-0 flex flex-col">
+            {/* Logo - top, left-aligned */}
+            <CompanyLogo
+              orgNumber={item.orgNumber}
+              companyName={item.companyName}
+              logoUrl={item.logoUrl}
+              size="lg"
+            />
 
-            {/* Bottom: Action buttons */}
-            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={handleBookmark}
-                className={`p-1.5 rounded-md transition-all ${
-                  isBookmarked
-                    ? 'text-yellow-600 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-                title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
-              >
-                {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-              </button>
+            {/* Company name */}
+            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-2.5 leading-tight line-clamp-2">
+              {item.companyName}
+            </h4>
 
-              <div className="relative">
-                <button
-                  onClick={handleShare}
-                  className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                  title="Dela"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                </button>
+            {/* Org number */}
+            <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-1">
+              {formatOrgNumber(item.orgNumber)}
+            </p>
 
-                {showShareMenu && (
-                  <ShareMenu
-                    url={newsUrl}
-                    title={item.headline || item.companyName}
-                    onClose={() => setShowShareMenu(false)}
-                  />
-                )}
-              </div>
-            </div>
+            {/* Time */}
+            <p className={`mt-2 font-mono ${
+              timeInfo.isRecent
+                ? 'text-[11px] font-semibold text-gray-700 dark:text-gray-300'
+                : timeInfo.isToday
+                  ? 'text-[11px] text-gray-500 dark:text-gray-400'
+                  : 'text-[10px] text-gray-400 dark:text-gray-500'
+            }`}>
+              {timeInfo.text}
+            </p>
+
+            {/* Category badge */}
+            <span className={`mt-2 text-[10px] font-medium px-2 py-1 rounded-md w-fit ${categoryColor}`}>
+              {formattedCategory}
+            </span>
           </div>
 
           {/* Right: Headline + Notice text (expanded, takes remaining width) */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+          <div className="flex-1 min-w-0 pr-12">
+            <h3 className="text-[15px] font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-1.5">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-2">
                 {truncateWords(item.noticeText, 50)}
               </p>
             )}
