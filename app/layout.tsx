@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
 import Providers from '@/components/Providers'
+import OfflineBanner from '@/components/OfflineBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           <main className="min-h-[calc(100vh-3.5rem)]">
             {children}
           </main>
+          <OfflineBanner />
         </Providers>
       </body>
     </html>

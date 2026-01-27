@@ -12,6 +12,7 @@ interface NewsCardProps {
 
 export default function NewsCard({ item }: NewsCardProps) {
   const [logoError, setLogoError] = useState(false)
+  const [logoLoading, setLogoLoading] = useState(true)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
@@ -22,14 +23,22 @@ export default function NewsCard({ item }: NewsCardProps) {
         <div className="flex gap-5">
           {/* Left column: Logo + Company info */}
           <div className="flex flex-col items-center w-20 flex-shrink-0">
-            {/* Logo */}
+            {/* Logo with skeleton */}
             <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 mb-2 flex items-center justify-center">
+              {/* Skeleton shimmer while loading */}
+              {logoLoading && !logoError && (
+                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 skeleton-shimmer rounded-xl" />
+              )}
               {!logoError ? (
                 <img
                   src={logoUrl}
                   alt=""
-                  className="w-full h-full object-contain p-1.5"
-                  onError={() => setLogoError(true)}
+                  className={`w-full h-full object-contain p-1.5 transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setLogoLoading(false)}
+                  onError={() => {
+                    setLogoError(true)
+                    setLogoLoading(false)
+                  }}
                 />
               ) : (
                 <span className="text-gray-300 dark:text-gray-600 font-semibold text-sm">

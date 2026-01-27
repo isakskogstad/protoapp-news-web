@@ -7,6 +7,7 @@ import { showLocalNotification, isSubscribed } from '@/lib/notifications'
 import NewsCard from './NewsCard'
 import FollowCompanies from './FollowCompanies'
 import SSEStatusIndicator from './SSEStatusIndicator'
+import { NewsCardSkeleton } from './Skeleton'
 
 interface NewsFeedProps {
   initialItems: NewsItem[]
@@ -200,15 +201,17 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       </div>
 
       {/* Load more trigger for infinite scroll */}
-      <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+      <div ref={loadMoreRef}>
         {isLoading && (
-          <div className="flex items-center gap-2 text-gray-400">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
-            <span className="text-sm">Laddar fler...</span>
+          <div className="space-y-4 mt-4">
+            <NewsCardSkeleton />
+            <NewsCardSkeleton />
           </div>
         )}
-        {!hasMore && items.length > 0 && (
-          <span className="text-sm text-gray-400">Inga fler nyheter</span>
+        {!isLoading && !hasMore && items.length > 0 && (
+          <div className="h-20 flex items-center justify-center">
+            <span className="text-sm text-gray-400">Inga fler nyheter</span>
+          </div>
         )}
       </div>
 
