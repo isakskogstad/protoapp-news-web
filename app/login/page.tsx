@@ -4,62 +4,64 @@ import { useState, useEffect, useRef, useLayoutEffect, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 
+const SUPABASE_STORAGE_URL = 'https://rpjmsncjnhtnjnycabys.supabase.co/storage/v1/object/public/Profilbilder'
+
 const TEAM_MEMBERS = [
   {
     id: 'andreas',
     name: 'Andreas Jennische',
     firstName: 'Andreas',
     role: 'Nyhetschef',
-    image: '/team/Andreas.png'
+    image: `${SUPABASE_STORAGE_URL}/Andreas.png`
   },
   {
     id: 'johann',
     name: 'Johann Bernövall',
     firstName: 'Johann',
     role: 'Reporter',
-    image: '/team/Johann.png'
+    image: `${SUPABASE_STORAGE_URL}/Johann.png`
   },
   {
     id: 'jenny',
     name: 'Jenny Kjellén',
     firstName: 'Jenny',
     role: 'Reporter',
-    image: '/team/Jenny.png'
+    image: `${SUPABASE_STORAGE_URL}/Jenny.png`
   },
   {
     id: 'camilla',
     name: 'Camilla Bergman',
     firstName: 'Camilla',
     role: 'Chefredaktör',
-    image: '/team/Camilla.png'
+    image: `${SUPABASE_STORAGE_URL}/Camilla.png`
   },
   {
     id: 'diana',
     name: 'Diana Demin',
     firstName: 'Diana',
     role: 'CMO',
-    image: '/team/Diana.png'
+    image: `${SUPABASE_STORAGE_URL}/Diana.png`
   },
   {
     id: 'sandra',
     name: 'Sandra Norberg',
     firstName: 'Sandra',
     role: 'Kommersiell chef',
-    image: '/team/Sandra.png'
+    image: `${SUPABASE_STORAGE_URL}/Sandra.png`
   },
   {
     id: 'christian',
     name: 'Christian von Essen',
     firstName: 'Christian',
     role: 'Redaktör',
-    image: '/team/Christian.png'
+    image: `${SUPABASE_STORAGE_URL}/Christian.png`
   },
   {
     id: 'isak',
     name: 'Isak Skogstad',
     firstName: 'Isak',
     role: 'Produkt',
-    image: '/team/Isak.png'
+    image: `${SUPABASE_STORAGE_URL}/Isak.png`
   }
 ]
 
