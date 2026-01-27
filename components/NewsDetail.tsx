@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType, formatOrgNumber } from '@/lib/utils'
-import { FileText, ExternalLink, Clock, Building2, Download, Loader2, Maximize2, Minimize2 } from 'lucide-react'
+import { FileText, Clock, Building2, Download, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
@@ -124,12 +124,22 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
       </header>
 
-      {/* Headline */}
-      {item.headline && (
-        <h2 className="text-lg font-bold text-black dark:text-white mb-3 leading-snug">
-          {item.headline}
-        </h2>
-      )}
+      {/* Headline with Share button */}
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex-1">
+          {item.headline && (
+            <h2 className="text-lg font-bold text-black dark:text-white leading-snug">
+              {item.headline}
+            </h2>
+          )}
+        </div>
+        <ShareToChat
+          companyName={item.companyName}
+          headline={item.headline}
+          newsId={item.id}
+          className="flex-shrink-0 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors text-xs font-medium"
+        />
+      </div>
 
       {/* Notice text */}
       {item.noticeText && (
@@ -284,24 +294,6 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
       )}
 
-      {/* Actions */}
-      <section className="pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-3">
-        <ShareToChat
-          companyName={item.companyName}
-          headline={item.headline}
-          newsId={item.id}
-        />
-        <span className="text-gray-300 dark:text-gray-600">·</span>
-        <a
-          href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-        >
-          <span>Visa på Allabolag</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
-      </section>
     </article>
   )
 }
