@@ -93,15 +93,15 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
   // Generate PDF source URL
   const cleanOrg = (analysis.org_number || '').replace(/-/g, '')
   const protocolDate = analysis.protocol_date || ''
-  // Determine category based on protocol type
+  // Determine category based on protocol type (must match storage paths)
   let category = 'ovrigt'
   const pType = (analysis.protocol_type || '').toLowerCase()
   if (pType.includes('årsstämma') || pType.includes('arsstamma')) category = 'arsstamma'
-  else if (pType.includes('extra')) category = 'extra_stamma'
+  else if (pType.includes('extra')) category = 'extra_bolagsstamma'
   else if (pType.includes('styrelse')) category = 'styrelsemote'
 
   const sourceUrl = cleanOrg && protocolDate
-    ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
+    ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
     : undefined
 
   const item: NewsItem = {
