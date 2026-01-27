@@ -686,16 +686,16 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   const category = getCategory(item)
   const categoryColors: Record<string, string> = {
-    'Nyemission': 'text-emerald-600',
-    'Konkurs': 'text-red-600',
-    'Kallelse till stämma': 'text-blue-600',
-    'Årsstämma': 'text-blue-600',
-    'Extra bolagsstämma': 'text-blue-600',
-    'Styrelsemöte': 'text-purple-600',
-    'Styrelseändring': 'text-purple-600',
-    'VD-byte': 'text-orange-600',
+    'Nyemission': 'text-emerald-600 dark:text-emerald-400',
+    'Konkurs': 'text-red-600 dark:text-red-400',
+    'Kallelse till stämma': 'text-blue-600 dark:text-blue-400',
+    'Årsstämma': 'text-blue-600 dark:text-blue-400',
+    'Extra bolagsstämma': 'text-blue-600 dark:text-blue-400',
+    'Styrelsemöte': 'text-purple-600 dark:text-purple-400',
+    'Styrelseändring': 'text-purple-600 dark:text-purple-400',
+    'VD-byte': 'text-orange-600 dark:text-orange-400',
   }
-  const categoryColor = categoryColors[category] || 'text-gray-500'
+  const categoryColor = categoryColors[category] || 'text-gray-500 dark:text-gray-400'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
   // Get time with recency info for visual hierarchy
