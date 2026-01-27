@@ -5,9 +5,12 @@ import { EventType, NewsItem, ProtocolAnalysis, Kungorelse } from './types'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rpjmsncjnhtnjnycabys.supabase.co'
 
 export function getLogoUrl(orgNumber: string, logoUrl?: string): string {
-  if (logoUrl) return logoUrl
-  const cleanOrg = orgNumber.replace(/-/g, '')
-  return `${SUPABASE_URL}/storage/v1/object/public/company-assets/logos/${cleanOrg}.png`
+  // Return provided logo URL if it exists and is valid
+  if (logoUrl && !logoUrl.includes('undefined')) return logoUrl
+
+  // Return empty string - component should handle fallback to initials
+  // This avoids 404 errors from non-existent bucket/files
+  return ''
 }
 
 export function formatRelativeTime(dateString: string): string {
