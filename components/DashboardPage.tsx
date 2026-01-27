@@ -5,16 +5,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Bell, Search, Settings, Calendar, Eye,
   Clock, ArrowUpRight, Globe, FileText, Activity,
-  Bookmark, BookmarkCheck, Share2, Link2, Check, X, MessageSquare
+  Bookmark, BookmarkCheck, Share2, Link2, Check, X
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
-import Image from 'next/image'
+// Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
 import WatchList, { WatchedCompany } from './WatchList'
-import InlineEditorialChat from './InlineEditorialChat'
+import GlobalSidebar from './GlobalSidebar'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -145,6 +145,8 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
   const userName = session?.user?.name || 'Användare'
   const userEmail = session?.user?.email || ''
   const userImage = session?.user?.image
+  const [imgError, setImgError] = useState(false)
+  const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' })
@@ -157,17 +159,18 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
         {/* User info */}
         <div className="px-4 py-3 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            {userImage ? (
-              <Image
+            {userImage && !imgError ? (
+              <img
                 src={userImage}
                 alt={userName}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="w-10 h-10 rounded-full object-cover"
+                onError={() => setImgError(true)}
               />
             ) : (
               <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
-                {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                {initials}
               </div>
             )}
             <div className="flex-1 min-w-0">
@@ -216,6 +219,7 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
   const userImage = session?.user?.image
   const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200">
@@ -288,16 +292,17 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
                 <div className="text-xs font-bold leading-none text-black">{userName.split(' ')[0]}</div>
                 <div className="text-[10px] font-mono text-gray-500 leading-none mt-0.5">REDAKTÖR</div>
               </div>
-              {userImage ? (
-                <Image
+              {userImage && !imageError ? (
+                <img
                   src={userImage}
                   alt={userName}
                   width={32}
                   height={32}
-                  className="rounded-full"
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={() => setImageError(true)}
                 />
               ) : (
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
+                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
                   {initials}
                 </div>
               )}
@@ -944,18 +949,8 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </section>
           </main>
 
-          {/* Right Sidebar */}
-          <aside className="hidden lg:block w-80 shrink-0 space-y-6">
-            {/* Editorial Chat */}
-            <SidebarWidget
-              title="Redaktionschatten"
-              icon={<MessageSquare className="w-4 h-4" />}
-            >
-              <div className="p-4">
-                <InlineEditorialChat maxHeight={280} />
-              </div>
-            </SidebarWidget>
-
+          {/* Right Sidebar with Chat */}
+          <GlobalSidebar>
             {/* Upcoming Events */}
             <SidebarWidget
               title="Kommande händelser"
@@ -987,7 +982,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 </div>
               </div>
             </div>
-          </aside>
+          </GlobalSidebar>
         </div>
       </div>
     </div>

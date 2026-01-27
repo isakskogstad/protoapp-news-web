@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import NewsDetail from '@/components/NewsDetail'
 import NewsSidebar from '@/components/NewsSidebar'
+import GlobalSidebar from '@/components/GlobalSidebar'
 
 interface NewsPageProps {
   params: { id: string }
@@ -58,29 +59,26 @@ export default async function NewsPage({ params }: NewsPageProps) {
   if (protocol && !protocolError) {
     const newsItem = protocolToNewsItem(protocol)
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 mb-6 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Tillbaka till nyhetsflödet
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-8">
           {/* Main content */}
-          <div className="lg:col-span-2">
+          <main className="flex-1 min-w-0">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-black mb-6 transition-colors text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Tillbaka
+            </Link>
             <NewsDetail item={newsItem} />
-          </div>
+          </main>
 
-          {/* Impact Loop sidebar */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-8">
-              <NewsSidebar companyName={newsItem.companyName} />
-            </div>
-          </div>
+          {/* Global sidebar with chat + news */}
+          <GlobalSidebar>
+            <NewsSidebar companyName={newsItem.companyName} />
+          </GlobalSidebar>
         </div>
       </div>
     )
@@ -96,29 +94,26 @@ export default async function NewsPage({ params }: NewsPageProps) {
   if (kungorelse && !kungorelseError) {
     const newsItem = kungorelseToNewsItem(kungorelse)
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 mb-6 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Tillbaka till nyhetsflödet
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-8">
           {/* Main content */}
-          <div className="lg:col-span-2">
+          <main className="flex-1 min-w-0">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-black mb-6 transition-colors text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Tillbaka
+            </Link>
             <NewsDetail item={newsItem} />
-          </div>
+          </main>
 
-          {/* Impact Loop sidebar */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-8">
-              <NewsSidebar companyName={newsItem.companyName} />
-            </div>
-          </div>
+          {/* Global sidebar with chat + news */}
+          <GlobalSidebar>
+            <NewsSidebar companyName={newsItem.companyName} />
+          </GlobalSidebar>
         </div>
       </div>
     )

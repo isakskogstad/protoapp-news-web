@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
 import { FileText, ExternalLink, Clock, Building2, Download, Loader2, AlertCircle } from 'lucide-react'
@@ -20,9 +20,32 @@ export default function NewsDetail({ item }: NewsDetailProps) {
   const [logoLoading, setLogoLoading] = useState(true)
   const [pdfLoading, setPdfLoading] = useState(true)
   const [pdfError, setPdfError] = useState(false)
+  const [pdfExists, setPdfExists] = useState<boolean | null>(null)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
+
+  // Check if PDF exists before trying to display it
+  useEffect(() => {
+    if (item.sourceType === 'pdf' && item.sourceUrl) {
+      // Use HEAD request to check if PDF exists
+      fetch(item.sourceUrl, { method: 'HEAD' })
+        .then(res => {
+          if (res.ok) {
+            setPdfExists(true)
+          } else {
+            setPdfExists(false)
+            setPdfError(true)
+            setPdfLoading(false)
+          }
+        })
+        .catch(() => {
+          setPdfExists(false)
+          setPdfError(true)
+          setPdfLoading(false)
+        })
+    }
+  }, [item.sourceUrl, item.sourceType])
 
   // Determine if we have a viewable source
   const hasPdf = item.sourceType === 'pdf' && !!item.sourceUrl
@@ -139,8 +162,8 @@ export default function NewsDetail({ item }: NewsDetailProps) {
             </div>
 
             {/* PDF Content */}
-            <div className="relative bg-gray-100" style={{ height: '800px' }}>
-              {/* Loading state */}
+            <div className="relative bg-gray-100" style={{ height: pdfError ? '200px' : '800px' }}>
+              {/* Loading state - while checking if PDF exists */}
               {pdfLoading && !pdfError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
                   <div className="flex flex-col items-center gap-3">
@@ -150,45 +173,38 @@ export default function NewsDetail({ item }: NewsDetailProps) {
                 </div>
               )}
 
-              {/* Error state */}
+              {/* Error state - PDF not found or can't be displayed */}
               {pdfError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
                   <div className="flex flex-col items-center gap-4 text-center px-8">
-                    <div className="w-14 h-14 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-orange-500" />
+                    <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-gray-400" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-black mb-1">
-                        PDF kan inte visas i webbläsaren
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Protokollet är inte tillgängligt just nu
                       </p>
-                      <p className="text-sm text-gray-500 mb-4">
-                        Klicka nedan för att öppna dokumentet i en ny flik.
+                      <p className="text-xs text-gray-400">
+                        Dokumentet kan ännu inte ha laddats upp
                       </p>
-                      <a
-                        href={item.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Öppna PDF
-                      </a>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* PDF iframe - using embed for better compatibility */}
-              <iframe
-                src={`${item.sourceUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                className={`w-full h-full border-0 ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
-                onLoad={() => setPdfLoading(false)}
-                onError={() => {
-                  setPdfLoading(false)
-                  setPdfError(true)
-                }}
-                title="PDF-dokument"
-              />
+              {/* PDF iframe - only render if PDF exists */}
+              {pdfExists && (
+                <iframe
+                  src={`${item.sourceUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                  className={`w-full h-full border-0 ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setPdfLoading(false)}
+                  onError={() => {
+                    setPdfLoading(false)
+                    setPdfError(true)
+                  }}
+                  title="PDF-dokument"
+                />
+              )}
             </div>
           </div>
         </div>

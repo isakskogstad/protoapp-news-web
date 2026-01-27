@@ -1,7 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Providers from '@/components/Providers'
-import EditorialChat from '@/components/EditorialChat'
 
 export const metadata: Metadata = {
   title: 'LoopDesk',
@@ -25,7 +24,6 @@ export default function RootLayout({
           <div className="relative z-10 flex flex-col min-h-screen">
             {children}
           </div>
-          <EditorialChat />
         </Providers>
       </body>
     </html>
