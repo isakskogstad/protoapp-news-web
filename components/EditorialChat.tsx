@@ -27,6 +27,18 @@ interface EditorialChatProps {
   className?: string
 }
 
+// Common emoji reactions for quick picker
+const QUICK_REACTIONS = [
+  { name: 'thumbsup', emoji: '👍' },
+  { name: 'heart', emoji: '❤️' },
+  { name: 'joy', emoji: '😂' },
+  { name: 'fire', emoji: '🔥' },
+  { name: 'eyes', emoji: '👀' },
+  { name: 'tada', emoji: '🎉' },
+  { name: 'thinking_face', emoji: '🤔' },
+  { name: 'white_check_mark', emoji: '✅' },
+]
+
 // Simple markdown renderer component
 function MarkdownText({ text, userMap }: { text: string; userMap: Map<string, string> }) {
   // Parse Slack formatting first
@@ -297,6 +309,118 @@ function LinkPreview({ url }: { url: string }) {
   )
 }
 
+// Reaction picker component
+function ReactionPicker({
+  messageTs,
+  onReactionAdded
+}: {
+  messageTs: string
+  onReactionAdded: () => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [adding, setAdding] = useState<string | null>(null)
+
+  const addReaction = async (emojiName: string) => {
+    setAdding(emojiName)
+    try {
+      const response = await fetch('/api/slack/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp: messageTs, emoji: emojiName }),
+      })
+      if (response.ok) {
+        onReactionAdded()
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error)
+    } finally {
+      setAdding(null)
+      setIsOpen(false)
+    }
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-all"
+        title="Lägg till reaktion"
+      >
+        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-full right-0 mb-1 p-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex gap-0.5 z-10">
+          {QUICK_REACTIONS.map((reaction) => (
+            <button
+              key={reaction.name}
+              onClick={() => addReaction(reaction.name)}
+              disabled={adding === reaction.name}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-base disabled:opacity-50"
+              title={`:${reaction.name}:`}
+            >
+              {adding === reaction.name ? (
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                reaction.emoji
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Mention autocomplete component
+function MentionAutocomplete({
+  query,
+  users,
+  onSelect,
+  onClose,
+}: {
+  query: string
+  users: Map<string, string>
+  onSelect: (userId: string, userName: string) => void
+  onClose: () => void
+}) {
+  const filteredUsers = useMemo(() => {
+    const entries = Array.from(users.entries())
+    if (!query) return entries.slice(0, 5)
+
+    const lowerQuery = query.toLowerCase()
+    return entries
+      .filter(([_, name]) => name.toLowerCase().includes(lowerQuery))
+      .slice(0, 5)
+  }, [query, users])
+
+  if (filteredUsers.length === 0) return null
+
+  return (
+    <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-20">
+      {filteredUsers.map(([userId, userName]) => (
+        <button
+          key={userId}
+          onClick={() => {
+            onSelect(userId, userName)
+            onClose()
+          }}
+          className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors"
+        >
+          <span className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-medium text-white">
+              {userName.substring(0, 1).toUpperCase()}
+            </span>
+          </span>
+          <span className="text-gray-900 dark:text-gray-100">{userName}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function EditorialChat({ className = '' }: EditorialChatProps) {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
@@ -307,9 +431,52 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
   const [error, setError] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [userMap, setUserMap] = useState<Map<string, string>>(new Map())
+  const [showMentions, setShowMentions] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [cursorPosition, setCursorPosition] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
   const pollInterval = useRef<NodeJS.Timeout | null>(null)
+
+  // Handle input changes and detect @ mentions
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const cursor = e.target.selectionStart || 0
+    setNewMessage(value)
+    setCursorPosition(cursor)
+
+    // Check for @ mention
+    const textBeforeCursor = value.substring(0, cursor)
+    const atMatch = textBeforeCursor.match(/@(\w*)$/)
+
+    if (atMatch) {
+      setShowMentions(true)
+      setMentionQuery(atMatch[1])
+    } else {
+      setShowMentions(false)
+      setMentionQuery('')
+    }
+  }
+
+  // Insert mention when selected
+  const handleMentionSelect = (userId: string, userName: string) => {
+    const textBeforeCursor = newMessage.substring(0, cursorPosition)
+    const textAfterCursor = newMessage.substring(cursorPosition)
+
+    // Find and replace the @query with the Slack mention format
+    const newTextBefore = textBeforeCursor.replace(/@\w*$/, `<@${userId}> `)
+    const newText = newTextBefore + textAfterCursor
+
+    setNewMessage(newText)
+    setShowMentions(false)
+    setMentionQuery('')
+
+    // Focus back on input
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
+  }
 
   // Format timestamp to readable time
   const formatTime = (ts: string) => {
@@ -516,6 +683,10 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
                         <span className="text-xs text-gray-400 dark:text-gray-500">
                           {formatTime(message.timestamp)}
                         </span>
+                        <ReactionPicker
+                          messageTs={message.timestamp}
+                          onReactionAdded={() => fetchMessages(true)}
+                        />
                       </div>
                       <div className="text-sm text-gray-700 dark:text-gray-300 break-words">
                         <MarkdownText text={message.text} userMap={userMap} />
@@ -541,16 +712,26 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
           </div>
 
           {/* Input */}
-          <form onSubmit={sendMessage} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0">
+          <form onSubmit={sendMessage} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0 relative">
+            {/* Mention autocomplete */}
+            {showMentions && (
+              <MentionAutocomplete
+                query={mentionQuery}
+                users={userMap}
+                onSelect={handleMentionSelect}
+                onClose={() => setShowMentions(false)}
+              />
+            )}
             {error && messages.length > 0 && (
               <p className="text-xs text-red-500 mb-2">{error}</p>
             )}
             <div className="flex items-center gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Skriv ett meddelande..."
+                onChange={handleInputChange}
+                placeholder="Skriv ett meddelande... (@ för att nämna)"
                 className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 border-0 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500"
                 disabled={sending}
               />
