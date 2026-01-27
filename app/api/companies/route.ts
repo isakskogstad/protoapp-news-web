@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
 
     if (query) {
-      queryBuilder = queryBuilder.ilike('company_name', `%${query}%`)
+      queryBuilder = queryBuilder.or(`company_name.ilike.%${query}%,org_number.ilike.%${query}%`)
     }
 
     const { data, error } = await queryBuilder
@@ -26,9 +26,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 })
     }
 
+    // Transform to WatchList format
+    const companies = (data || []).map(item => ({
+      id: item.org_number,
+      name: item.company_name || 'Okänt bolag',
+      orgNumber: item.org_number,
+      status: 'quiet' as const,
+      activityCount: 0
+    }))
+
     return NextResponse.json({
-      companies: data || [],
-      total: data?.length || 0,
+      companies,
+      total: companies.length,
     })
   } catch (error) {
     console.error('Companies API error:', error)

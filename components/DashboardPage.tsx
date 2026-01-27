@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Bell, Search, Settings,
+  Bell, Search, Settings, Calendar, Eye,
   Clock, ArrowUpRight, Globe, FileText, Activity,
   Bookmark, BookmarkCheck, Share2, Link2, Check, X
 } from 'lucide-react'
@@ -11,6 +11,9 @@ import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
+import SidebarWidget from './SidebarWidget'
+import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
+import WatchList, { WatchedCompany } from './WatchList'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -653,6 +656,25 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
     ? items.filter(item => getBookmarks().has(item.id))
     : items
 
+  // Extract upcoming events from news items (kallelser)
+  const upcomingEvents: UpcomingEvent[] = items
+    .filter(item => {
+      const headline = item.headline?.toLowerCase() || ''
+      return headline.includes('kallelse') || headline.includes('stämma') || headline.includes('årsstämma')
+    })
+    .map(item => ({
+      id: item.id,
+      title: item.protocolType || 'Bolagsstämma',
+      company: item.companyName,
+      date: item.kallelseFaktaruta?.datum || item.timestamp,
+      location: item.kallelseFaktaruta?.plats,
+      type: 'stamma' as const
+    }))
+    .slice(0, 10)
+
+  // Sample watched companies (will be populated from localStorage in WatchList)
+  const sampleWatchedCompanies: WatchedCompany[] = []
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] pb-20">
       <DashboardHeader
@@ -666,8 +688,11 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
         <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <section>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            <section>
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
             <h2 className="text-2xl font-bold flex items-center gap-3">
               <LiveIndicator connected={sseConnected} />
@@ -742,8 +767,45 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
               — SLUT PÅ FLÖDET —
             </div>
           )}
-        </section>
-      </main>
+            </section>
+          </main>
+
+          {/* Right Sidebar */}
+          <aside className="hidden lg:block w-80 shrink-0 space-y-6">
+            {/* Upcoming Events */}
+            <SidebarWidget
+              title="Kommande händelser"
+              icon={<Calendar className="w-4 h-4" />}
+              actionLabel="Kalender"
+            >
+              <UpcomingEvents events={upcomingEvents} maxItems={5} />
+            </SidebarWidget>
+
+            {/* Watchlist */}
+            <SidebarWidget
+              title="Bevakningslista"
+              icon={<Eye className="w-4 h-4" />}
+              actionLabel="Alla"
+            >
+              <WatchList companies={sampleWatchedCompanies} />
+            </SidebarWidget>
+
+            {/* Quick Stats */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-black">{items.length}</div>
+                  <div className="text-[10px] font-mono text-gray-500 uppercase">Nyheter</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-black">{upcomingEvents.length}</div>
+                  <div className="text-[10px] font-mono text-gray-500 uppercase">Händelser</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   )
 }
