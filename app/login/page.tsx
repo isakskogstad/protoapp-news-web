@@ -334,7 +334,7 @@ const LoginModal = ({ profile, heroRect, onClose, onLogin, loginState }: LoginMo
           ref={imgRef}
           className="relative w-32 h-32 mb-8 rounded-full shadow-2xl overflow-hidden ring-4 ring-current z-20"
         >
-          <img src={profile.image} alt={profile.name} style={{width: '100%', height: '100%'}} className="object-cover"
+          <img src={profile.image} alt={profile.name} style={{width: '100%', height: '100%'}} className="object-cover" />
         </div>
 
         <div className={`flex flex-col items-center transition-all duration-500 pointer-events-auto ${loginState === 'success' ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
