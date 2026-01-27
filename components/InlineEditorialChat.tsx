@@ -91,7 +91,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
 
   if (!session) {
     return (
-      <div className="text-center py-6 text-sm text-gray-400">
+      <div className="text-center py-6 text-sm text-gray-400 dark:text-gray-500">
         Logga in för att se chatten
       </div>
     )
@@ -100,11 +100,11 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
   return (
     <div className="flex flex-col">
       {/* Channel header */}
-      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-gray-100">
-        <Hash className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-xs font-medium text-gray-600">redaktion-general</span>
+      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-gray-100 dark:border-gray-800">
+        <Hash className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">redaktion-general</span>
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-auto" />
-        <span className="text-[10px] font-mono text-gray-400">{messages.length}</span>
+        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">{messages.length}</span>
       </div>
 
       {/* Messages */}
@@ -115,18 +115,18 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       >
         {loading && messages.length === 0 ? (
           <div className="flex justify-center py-6">
-            <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+            <Loader2 className="w-4 h-4 text-gray-400 dark:text-gray-500 animate-spin" />
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-6">
-            <MessageSquare className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-            <p className="text-xs text-gray-400">Inga meddelanden än</p>
+            <MessageSquare className="w-6 h-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Inga meddelanden än</p>
           </div>
         ) : (
           messages.map((msg) => (
             <div key={msg.id} className="flex gap-2 group">
               {/* Avatar */}
-              <div className="w-6 h-6 rounded-md bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600 shrink-0 overflow-hidden">
+              <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
                 {msg.user.avatar ? (
                   <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -137,12 +137,12 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
               {/* Content */}
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-baseline gap-1.5 mb-0.5">
-                  <span className="text-[11px] font-semibold text-gray-900 truncate">{msg.user.name.split(' ')[0]}</span>
-                  <span className="text-[9px] text-gray-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 truncate">{msg.user.name.split(' ')[0]}</span>
+                  <span className="text-[9px] text-gray-400 dark:text-gray-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
                     {formatTime(msg.timestamp)}
                   </span>
                 </div>
-                <div className="text-xs text-gray-700 leading-relaxed break-words">
+                <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words">
                   {msg.text}
                 </div>
               </div>
@@ -152,7 +152,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       </div>
 
       {/* Input */}
-      <div className="pt-3 border-t border-gray-100">
+      <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
         <div className="relative">
           <input
             type="text"
@@ -160,13 +160,13 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Skriv..."
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-9 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-gray-300 transition-all placeholder:text-gray-400"
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-3 pr-9 py-2 text-xs text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black/10 dark:focus:ring-white/10 focus:border-gray-300 dark:focus:border-gray-600 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
             disabled={sending}
           />
           <button
             onClick={handleSend}
             disabled={sending || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-black disabled:opacity-40 disabled:hover:text-gray-400 transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white disabled:opacity-40 disabled:hover:text-gray-400 dark:disabled:hover:text-gray-500 transition-colors"
           >
             {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>

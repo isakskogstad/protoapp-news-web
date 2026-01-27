@@ -149,7 +149,7 @@ export default function NewsCoverage({ companyName }: NewsCoverageProps) {
             >
               {/* Media logo or fallback dot */}
               {getMediaLogo(article.source) ? (
-                <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0 mt-0.5 bg-white">
+                <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0 mt-0.5 bg-white dark:bg-gray-700">
                   <img
                     src={getMediaLogo(article.source)!}
                     alt=""

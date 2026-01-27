@@ -83,13 +83,13 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'active':
-        return { icon: TrendingUp, color: 'bg-green-50 text-green-700', label: 'Aktiv' }
+        return { icon: TrendingUp, color: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400', label: 'Aktiv' }
       case 'quiet':
-        return { icon: Minus, color: 'bg-gray-50 text-gray-600', label: 'Lugn' }
+        return { icon: Minus, color: 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400', label: 'Lugn' }
       case 'new':
-        return { icon: TrendingUp, color: 'bg-blue-50 text-blue-700', label: 'Ny' }
+        return { icon: TrendingUp, color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400', label: 'Ny' }
       default:
-        return { icon: Minus, color: 'bg-gray-50 text-gray-600', label: '' }
+        return { icon: Minus, color: 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400', label: '' }
     }
   }
 

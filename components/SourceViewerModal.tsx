@@ -62,11 +62,11 @@ export default function SourceViewerModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-5xl h-[90vh] mx-4 bg-white rounded-xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-gray-200">
+      <div className="relative w-full max-w-5xl h-[90vh] mx-4 bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-gray-200 dark:border-gray-700">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
               {sourceType === 'pdf' ? (
                 <FileText className="w-4 h-4 text-red-500" />
               ) : (
@@ -74,10 +74,10 @@ export default function SourceViewerModal({
               )}
             </div>
             <div>
-              <h2 className="text-sm font-bold text-black">
+              <h2 className="text-sm font-bold text-black dark:text-white">
                 {sourceType === 'pdf' ? 'Protokoll' : 'Kungörelse'}
               </h2>
-              <p className="text-xs text-gray-500 font-mono">{companyName}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{companyName}</p>
             </div>
           </div>
 
@@ -85,7 +85,7 @@ export default function SourceViewerModal({
             {sourceType === 'pdf' && sourceUrl && (
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 Ladda ner
@@ -93,7 +93,7 @@ export default function SourceViewerModal({
             )}
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -101,36 +101,36 @@ export default function SourceViewerModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden bg-gray-100">
+        <div className="flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
           {sourceType === 'pdf' && sourceUrl ? (
             <>
               {/* Loading state */}
               {loading && !error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                   <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-                    <p className="text-sm text-gray-500 font-mono">Laddar dokument...</p>
+                    <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-500 animate-spin" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">Laddar dokument...</p>
                   </div>
                 </div>
               )}
 
               {/* Error state */}
               {error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                   <div className="flex flex-col items-center gap-4 text-center px-8">
-                    <div className="w-14 h-14 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-center justify-center">
                       <X className="w-6 h-6 text-red-500" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-black mb-1">
+                      <p className="text-base font-bold text-black dark:text-white mb-1">
                         Kunde inte ladda dokumentet
                       </p>
-                      <p className="text-sm text-gray-500 mb-4">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                         Dokumentet kanske inte finns eller är inte tillgängligt.
                       </p>
                       <button
                         onClick={handleDownload}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-black dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />
                         Öppna i ny flik
@@ -155,11 +155,11 @@ export default function SourceViewerModal({
           ) : sourceType === 'kungorelse' && kungorelseText ? (
             <div className="p-8 overflow-auto h-full">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wider mb-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-[10px] font-mono font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
                     Kungörelsetext
                   </h3>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">
                     {kungorelseText}
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export default function SourceViewerModal({
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500 text-sm">Ingen källa tillgänglig</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Ingen källa tillgänglig</p>
             </div>
           )}
         </div>

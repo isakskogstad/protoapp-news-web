@@ -483,16 +483,16 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
 
   if (!url || error) {
     return (
-      <div className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-medium text-xs border border-gray-200`}>
+      <div className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium text-xs border border-gray-200 dark:border-gray-700`}>
         {initials}
       </div>
     )
   }
 
   return (
-    <div className={`${sizeClasses[size]} rounded-lg bg-white border border-gray-200 overflow-hidden relative`}>
+    <div className={`${sizeClasses[size]} rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden relative`}>
       {loading && (
-        <div className="absolute inset-0 bg-gray-100 skeleton-shimmer" />
+        <div className="absolute inset-0 bg-gray-100 dark:bg-gray-700 skeleton-shimmer" />
       )}
       {displayUrl && (
         <img
@@ -519,10 +519,10 @@ function ShareMenu({ url, title, onClose }: { url: string; title: string; onClos
   }
 
   return (
-    <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50 min-w-[180px]">
+    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-50 min-w-[180px]">
       <button
         onClick={copyLink}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
       >
         {copied ? <Check className="w-4 h-4 text-green-500" /> : <Link2 className="w-4 h-4" />}
         {copied ? 'Kopierad!' : 'Kopiera länk'}
@@ -532,7 +532,7 @@ function ShareMenu({ url, title, onClose }: { url: string; title: string; onClos
           window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`, '_blank')
           onClose()
         }}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
