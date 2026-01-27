@@ -508,14 +508,79 @@ function ShareMenu({ url, title, onClose }: { url: string; title: string; onClos
   )
 }
 
-// News Item Component
+// Smart time formatting
+function formatSmartTime(dateString: string): string {
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+
+    // Under 1 hour: "X min"
+    if (diffMins < 60) {
+      return `${Math.max(1, diffMins)} min`
+    }
+
+    // Same day (and within last 24h): show time "HH:MM"
+    const isToday = date.toDateString() === now.toDateString()
+    if (isToday) {
+      return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+    }
+
+    // Yesterday
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `I går ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
+    }
+
+    // Same week: weekday + time
+    const diffDays = Math.floor(diffMs / 86400000)
+    if (diffDays < 7) {
+      const weekday = date.toLocaleDateString('sv-SE', { weekday: 'short' })
+      return `${weekday} ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
+    }
+
+    // Older: date
+    return date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })
+  } catch {
+    return dateString
+  }
+}
+
+// Get category from item
+function getCategory(item: NewsItem): string {
+  // Check protocol type first
+  const pType = (item.protocolType || '').toLowerCase()
+  if (pType.includes('konkurs')) return 'Konkurs'
+  if (pType.includes('kallelse') || pType.includes('årsstämma') || pType.includes('extra bolagsstämma')) {
+    if (pType.includes('extra')) return 'Extra bolagsstämma'
+    if (pType.includes('årsstämma')) return 'Årsstämma'
+    return 'Kallelse till stämma'
+  }
+  if (pType.includes('styrelse')) return 'Styrelsemöte'
+
+  // Check headline
+  const headline = (item.headline || '').toLowerCase()
+  if (headline.includes('konkurs')) return 'Konkurs'
+  if (headline.includes('nyemission') || headline.includes('emission')) return 'Nyemission'
+  if (headline.includes('kallelse') || headline.includes('stämma')) return 'Kallelse till stämma'
+  if (headline.includes('styrelse')) return 'Styrelseändring'
+  if (headline.includes('vd')) return 'VD-byte'
+
+  // Fallback to protocol type or generic
+  if (item.protocolType) return item.protocolType
+  return 'Händelse'
+}
+
+// News Item Component - Compact horizontal layout
 interface NewsItemCardProps {
   item: NewsItem
-  priority?: boolean
   onBookmarkChange?: () => void
 }
 
-function NewsItemCard({ item, priority = false, onBookmarkChange }: NewsItemCardProps) {
+function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
 
@@ -523,15 +588,18 @@ function NewsItemCard({ item, priority = false, onBookmarkChange }: NewsItemCard
     setIsBookmarked(getBookmarks().has(item.id))
   }, [item.id])
 
+  const category = getCategory(item)
   const categoryColors: Record<string, string> = {
-    'Nyemission': 'bg-green-100 text-green-700',
-    'Konkurs': 'bg-red-100 text-red-700',
-    'Kallelse': 'bg-blue-100 text-blue-700',
-    'Styrelseändring': 'bg-purple-100 text-purple-700',
+    'Nyemission': 'text-emerald-600',
+    'Konkurs': 'text-red-600',
+    'Kallelse till stämma': 'text-blue-600',
+    'Årsstämma': 'text-blue-600',
+    'Extra bolagsstämma': 'text-blue-600',
+    'Styrelsemöte': 'text-purple-600',
+    'Styrelseändring': 'text-purple-600',
+    'VD-byte': 'text-orange-600',
   }
-
-  const category = item.headline?.split(':')[0] || 'Nyhet'
-  const categoryClass = categoryColors[category] || 'bg-gray-100 text-gray-600'
+  const categoryColor = categoryColors[category] || 'text-gray-500'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
   const handleBookmark = (e: React.MouseEvent) => {
@@ -550,84 +618,76 @@ function NewsItemCard({ item, priority = false, onBookmarkChange }: NewsItemCard
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className={`
-        relative bg-white border-b border-gray-100 hover:bg-gray-50/80 transition-colors duration-200
-        ${priority ? 'py-8' : 'py-5'}
-      `}>
+      <article className="relative bg-white border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150 py-4">
         <div className="flex gap-4">
-          {/* Company Logo */}
-          <CompanyLogo
-            orgNumber={item.orgNumber}
-            companyName={item.companyName}
-            logoUrl={item.logoUrl}
-            size={priority ? 'lg' : 'md'}
-          />
-
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex items-center gap-3 mb-2 overflow-hidden">
-              <span className={`
-                inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium tracking-wide uppercase whitespace-nowrap
-                ${priority ? 'bg-black text-white' : categoryClass}
-              `}>
-                {category}
-              </span>
-              <div className="flex items-center gap-3 text-xs font-mono text-gray-400 whitespace-nowrap">
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {formatRelativeTime(item.timestamp)}</span>
-                <span className="w-px h-3 bg-gray-200" />
-                <span className="flex items-center gap-1 truncate max-w-[150px]"><Globe className="w-3 h-3" /> {item.companyName}</span>
-              </div>
+          {/* Left column: Logo + Company info (fixed width) */}
+          <div className="w-44 shrink-0 flex items-start gap-3">
+            <CompanyLogo
+              orgNumber={item.orgNumber}
+              companyName={item.companyName}
+              logoUrl={item.logoUrl}
+              size="md"
+            />
+            <div className="min-w-0 flex-1">
+              <h4 className="text-sm font-bold text-black truncate leading-tight">
+                {item.companyName}
+              </h4>
+              <p className="text-[10px] font-mono text-gray-400 mt-0.5">
+                {item.orgNumber}
+              </p>
             </div>
+          </div>
 
-            <h3 className={`
-              font-bold text-black leading-tight mb-2 group-hover:text-blue-700 transition-colors
-              ${priority ? 'text-xl md:text-2xl' : 'text-base md:text-lg'}
-            `}>
-              {item.headline || `${item.companyName} - ${item.protocolType || 'Händelse'}`}
+          {/* Middle: Headline + Notice text (flexible) */}
+          <div className="flex-1 min-w-0 pr-4">
+            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
+              {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
-
             {item.noticeText && (
-              <p className={`
-                text-gray-600 leading-relaxed max-w-3xl
-                ${priority ? 'text-sm line-clamp-3' : 'text-sm line-clamp-2'}
-              `}>
+              <p className="text-xs text-gray-500 leading-relaxed mt-1 line-clamp-2">
                 {item.noticeText}
               </p>
             )}
+          </div>
 
-            <div className="mt-3 flex items-center gap-3">
-              <span className="text-xs font-mono font-medium text-black hover:underline flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                LÄS MER <ArrowUpRight className="w-3 h-3" />
-              </span>
+          {/* Right column: Time + Category (fixed width) */}
+          <div className="w-28 shrink-0 text-right flex flex-col items-end">
+            <span className="text-xs font-mono text-gray-400">
+              {formatSmartTime(item.timestamp)}
+            </span>
+            <span className={`text-[10px] font-medium mt-1 ${categoryColor}`}>
+              {category}
+            </span>
 
-              <div className="ml-auto flex items-center gap-1 relative">
-                <button
-                  onClick={handleBookmark}
-                  className={`p-1.5 rounded-md transition-all ${
-                    isBookmarked
-                      ? 'text-yellow-600 bg-yellow-50'
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100'
-                  }`}
-                  title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
-                >
-                  {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-                </button>
+            {/* Action buttons */}
+            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={handleBookmark}
+                className={`p-1 rounded transition-all ${
+                  isBookmarked
+                    ? 'text-yellow-600'
+                    : 'text-gray-300 hover:text-gray-500'
+                }`}
+                title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+              >
+                {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+              </button>
 
-                <button
-                  onClick={handleShare}
-                  className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-all"
-                  title="Dela"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
+              <button
+                onClick={handleShare}
+                className="p-1 rounded text-gray-300 hover:text-gray-500 transition-all relative"
+                title="Dela"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
 
-                {showShareMenu && (
-                  <ShareMenu
-                    url={newsUrl}
-                    title={item.headline || item.companyName}
-                    onClose={() => setShowShareMenu(false)}
-                  />
-                )}
-              </div>
+              {showShareMenu && (
+                <ShareMenu
+                  url={newsUrl}
+                  title={item.headline || item.companyName}
+                  onClose={() => setShowShareMenu(false)}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -852,11 +912,10 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 )}
               </div>
             ) : (
-              filteredItems.map((item, index) => (
+              filteredItems.map((item) => (
                 <NewsItemCard
                   key={item.id}
                   item={item}
-                  priority={index === 0 && filter === 'all'}
                   onBookmarkChange={() => forceUpdate({})}
                 />
               ))
