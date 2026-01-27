@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
-import { FileText, ExternalLink, Clock, Building2, Download, Loader2, AlertCircle } from 'lucide-react'
+import { FileText, ExternalLink, Clock, Building2, Download, Loader2, AlertCircle, Maximize2, Minimize2 } from 'lucide-react'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
@@ -21,6 +21,7 @@ export default function NewsDetail({ item }: NewsDetailProps) {
   const [pdfLoading, setPdfLoading] = useState(true)
   const [pdfError, setPdfError] = useState(false)
   const [pdfExists, setPdfExists] = useState<boolean | null>(null)
+  const [pdfExpanded, setPdfExpanded] = useState(false)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
@@ -124,51 +125,63 @@ export default function NewsDetail({ item }: NewsDetailProps) {
         </div>
       )}
 
-      {/* Inline PDF Viewer */}
+      {/* Bolagsinformation - visas direkt under notisen */}
+      <BolagsInfoCard data={item.bolagsInfo} />
+
+      {/* Inline PDF Viewer - Expandable */}
       {hasPdf && (
         <div className="mb-6">
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             {/* PDF Header */}
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <button
+              onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
+              className="w-full px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors cursor-pointer"
+            >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
                   <FileText className="w-3.5 h-3.5 text-red-600" />
                 </div>
-                <div>
+                <div className="text-left">
                   <h3 className="text-sm font-bold text-black">Protokoll</h3>
                   <p className="text-[10px] font-mono text-gray-500">{item.companyName}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {!pdfError && (
+                  <span className="text-[10px] font-mono text-gray-400 mr-2">
+                    {pdfExpanded ? 'Klicka för att minimera' : 'Klicka för att expandera'}
+                  </span>
+                )}
                 <a
                   href={item.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Ladda ner
                 </a>
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Öppna i ny flik
-                </a>
+                {pdfExpanded ? (
+                  <Minimize2 className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <Maximize2 className="w-4 h-4 text-gray-400" />
+                )}
               </div>
-            </div>
+            </button>
 
-            {/* PDF Content */}
-            <div className="relative bg-gray-100" style={{ height: pdfError ? '200px' : '800px' }}>
+            {/* PDF Content - 200px collapsed, 800px expanded */}
+            <div
+              className="relative bg-gray-100 transition-all duration-300 ease-in-out cursor-pointer"
+              style={{ height: pdfError ? '120px' : pdfExpanded ? '800px' : '200px' }}
+              onClick={() => !pdfError && !pdfExpanded && setPdfExpanded(true)}
+            >
               {/* Loading state - while checking if PDF exists */}
               {pdfLoading && !pdfError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-                    <p className="text-sm text-gray-500 font-mono">Laddar dokument...</p>
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                    <p className="text-xs text-gray-500 font-mono">Laddar...</p>
                   </div>
                 </div>
               )}
@@ -176,18 +189,11 @@ export default function NewsDetail({ item }: NewsDetailProps) {
               {/* Error state - PDF not found or can't be displayed */}
               {pdfError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
-                  <div className="flex flex-col items-center gap-4 text-center px-8">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">
-                        Protokollet är inte tillgängligt just nu
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Dokumentet kan ännu inte ha laddats upp
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-3 text-center px-8">
+                    <FileText className="w-5 h-5 text-gray-300" />
+                    <p className="text-sm text-gray-400">
+                      Protokollet är inte tillgängligt
+                    </p>
                   </div>
                 </div>
               )}
@@ -195,8 +201,8 @@ export default function NewsDetail({ item }: NewsDetailProps) {
               {/* PDF iframe - only render if PDF exists */}
               {pdfExists && (
                 <iframe
-                  src={`${item.sourceUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                  className={`w-full h-full border-0 ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
+                  src={`${item.sourceUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                  className={`w-full h-full border-0 transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
                   onLoad={() => setPdfLoading(false)}
                   onError={() => {
                     setPdfLoading(false)
@@ -204,6 +210,15 @@ export default function NewsDetail({ item }: NewsDetailProps) {
                   }}
                   title="PDF-dokument"
                 />
+              )}
+
+              {/* Expand overlay when collapsed */}
+              {!pdfExpanded && !pdfError && !pdfLoading && pdfExists && (
+                <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
+                  <span className="text-xs font-medium text-gray-500 bg-white/80 px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                    Klicka för att visa hela dokumentet
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -231,9 +246,6 @@ export default function NewsDetail({ item }: NewsDetailProps) {
 
       {/* Faktarutor - visas baserat på typ av händelse */}
       <div className="space-y-4 mb-6">
-        {/* Bolagsinformation */}
-        <BolagsInfoCard data={item.bolagsInfo} />
-
         {/* Kallelse till stämma */}
         <KallelseFaktaruta data={item.kallelseFaktaruta} />
 

@@ -645,11 +645,11 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
           {/* Middle: Headline + Notice text (flexible) */}
           <div className="flex-1 min-w-0 pr-4">
-            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-blue-700 transition-colors line-clamp-1">
+            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-blue-700 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-xs text-gray-500 leading-relaxed mt-1 line-clamp-2">
+              <p className="text-[13px] text-gray-600 leading-relaxed mt-1.5">
                 {item.noticeText}
               </p>
             )}
