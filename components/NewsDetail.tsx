@@ -4,6 +4,11 @@ import Image from 'next/image'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
 import AddToCalendar from './AddToCalendar'
+import BolagsInfoCard from './BolagsInfoCard'
+import NyemissionFaktaruta from './NyemissionFaktaruta'
+import KonkursFaktaruta from './KonkursFaktaruta'
+import StyrelseFaktaruta from './StyrelseFaktaruta'
+import KallelseFaktaruta from './KallelseFaktaruta'
 
 interface NewsDetailProps {
   item: NewsItem
@@ -96,6 +101,24 @@ export default function NewsDetail({ item }: NewsDetailProps) {
           </p>
         </div>
       )}
+
+      {/* Faktarutor - visas baserat på typ av händelse */}
+      <div className="space-y-4 mb-8">
+        {/* Bolagsinformation */}
+        <BolagsInfoCard data={item.bolagsInfo} />
+
+        {/* Kallelse till stämma */}
+        <KallelseFaktaruta data={item.kallelseFaktaruta} />
+
+        {/* Nyemission */}
+        <NyemissionFaktaruta data={item.nyemissionFaktaruta} />
+
+        {/* Konkurs */}
+        <KonkursFaktaruta data={item.konkursFaktaruta} />
+
+        {/* Styrelseförändringar */}
+        <StyrelseFaktaruta data={item.styrelseFaktaruta} />
+      </div>
 
       {/* Calculations */}
       {item.calculations && Object.keys(item.calculations).length > 0 && (

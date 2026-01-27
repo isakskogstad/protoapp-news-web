@@ -88,6 +88,51 @@ export interface Kungorelse {
   }
 }
 
+// Faktaruta types for detailed news displays
+
+export interface BolagsInfo {
+  anstallda: number
+  startat: string
+  omsattning: string
+  omsattningAr: number
+  vd: string
+}
+
+export interface KallelseFaktaruta {
+  bolagsnamn: string
+  stammatyp: string
+  datum: string
+  tid: string
+  plats: string
+}
+
+export interface KonkursFaktaruta {
+  bolagsnamn: string
+  beslutsdatum: string
+  tingsratt: string
+  konkursforvaltare: string
+  forvaltarbyra: string
+  bevakningsfrist: string
+}
+
+export interface NyemissionFaktaruta {
+  bolagsnamn: string
+  emissionstyp: string
+  antalAktier: string
+  teckningskurs: string
+  emissionsbelopp: string
+  utspädning: string
+  teckningsperiod: string
+}
+
+export interface StyrelseFaktaruta {
+  bolagsnamn: string
+  nyaLedamoter: string[]
+  avgaendeLedamoter: string[]
+  nyOrdforande: string
+  beslutsdatum: string
+}
+
 export interface NewsItem {
   id: string
   type: 'protocol' | 'kungorelse'
@@ -103,6 +148,11 @@ export interface NewsItem {
   extractedData?: ExtractedData
   calculations?: AnalysisCalculations
   kungorelse?: Kungorelse
+  bolagsInfo?: BolagsInfo
+  kallelseFaktaruta?: KallelseFaktaruta
+  konkursFaktaruta?: KonkursFaktaruta
+  nyemissionFaktaruta?: NyemissionFaktaruta
+  styrelseFaktaruta?: StyrelseFaktaruta
 }
 
 export interface ImpactLoopArticle {

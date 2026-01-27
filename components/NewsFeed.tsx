@@ -6,6 +6,7 @@ import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import { showLocalNotification, isSubscribed } from '@/lib/notifications'
 import NewsCard from './NewsCard'
 import FollowCompanies from './FollowCompanies'
+import SSEStatusIndicator from './SSEStatusIndicator'
 
 interface NewsFeedProps {
   initialItems: NewsItem[]
@@ -19,7 +20,7 @@ interface FollowSettings {
 
 export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const [items, setItems] = useState<NewsItem[]>(initialItems)
-  const [isConnected, setIsConnected] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting')
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
 
@@ -63,7 +64,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       eventSource = new EventSource('/api/news/stream')
 
       eventSource.addEventListener('connected', () => {
-        setIsConnected(true)
+        setConnectionStatus('connected')
       })
 
       eventSource.addEventListener('change', (event) => {
@@ -112,9 +113,12 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       })
 
       eventSource.onerror = () => {
-        setIsConnected(false)
+        setConnectionStatus('disconnected')
         eventSource?.close()
-        reconnectTimeout = setTimeout(connect, 5000)
+        reconnectTimeout = setTimeout(() => {
+          setConnectionStatus('connecting')
+          connect()
+        }, 5000)
       }
     }
 
@@ -179,9 +183,12 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     <div className="animate-fade-in">
       {/* Header with Follow button */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-          Senaste händelserna
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Senaste händelserna
+          </h2>
+          <SSEStatusIndicator status={connectionStatus} />
+        </div>
         <FollowCompanies />
       </div>
 
