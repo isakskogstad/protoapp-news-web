@@ -9,7 +9,8 @@ import {
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl } from '@/lib/utils'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
+import Image from 'next/image'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -59,14 +60,158 @@ function showNotification(title: string, body: string, url?: string) {
   }
 }
 
+// Settings Modal
+function SettingsModal({ onClose }: { onClose: () => void }) {
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
+
+  useEffect(() => {
+    // Load saved theme
+    const saved = localStorage.getItem('loopdesk_theme') as 'light' | 'dark' | 'system' | null
+    if (saved) setTheme(saved)
+  }, [])
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme)
+    localStorage.setItem('loopdesk_theme', newTheme)
+    // Apply theme (for now just light mode)
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold">Inställningar</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-md transition-colors">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Theme */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Tema</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['light', 'dark', 'system'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => handleThemeChange(t)}
+                  className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                    theme === t
+                      ? 'border-black bg-black text-white'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  {t === 'light' ? 'Ljust' : t === 'dark' ? 'Mörkt' : 'System'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notifications info */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notiser</label>
+            <p className="text-sm text-gray-500">
+              Hantera notiser via klocksymbolen i headern.
+            </p>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+          >
+            Stäng
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Profile Dropdown
+function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onOpenSettings: () => void }) {
+  const { data: session } = useSession()
+  const userName = session?.user?.name || 'Användare'
+  const userEmail = session?.user?.email || ''
+  const userImage = session?.user?.image
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' })
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50 min-w-[240px]">
+        {/* User info */}
+        <div className="px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            {userImage ? (
+              <Image
+                src={userImage}
+                alt={userName}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
+                {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-gray-900 truncate">{userName}</div>
+              <div className="text-xs text-gray-500 truncate">{userEmail}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu items */}
+        <div className="py-1">
+          <button
+            onClick={() => { onOpenSettings(); onClose() }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <Settings className="w-4 h-4 text-gray-400" />
+            Inställningar
+          </button>
+        </div>
+
+        {/* Logout */}
+        <div className="border-t border-gray-100 pt-1">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logga ut
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Dashboard Header
-function DashboardHeader({ onNotificationToggle, notificationsEnabled }: {
+function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSettings }: {
   onNotificationToggle: () => void
   notificationsEnabled: boolean
+  onOpenSettings: () => void
 }) {
   const { data: session } = useSession()
   const userName = session?.user?.name || 'Användare'
+  const userImage = session?.user?.image
   const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200">
@@ -121,21 +266,46 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled }: {
             )}
           </button>
 
-          <button className="p-2 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-black hidden sm:block">
+          <button
+            onClick={onOpenSettings}
+            className="p-2 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-black hidden sm:block"
+          >
             <Settings className="w-5 h-5" />
           </button>
 
           <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
 
-          <button className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-full transition-all border border-transparent hover:border-gray-200 group">
-            <div className="text-right hidden sm:block group-hover:opacity-80">
-              <div className="text-xs font-bold leading-none text-black">{userName.split(' ')[0]}</div>
-              <div className="text-[10px] font-mono text-gray-500 leading-none mt-0.5">REDAKTÖR</div>
-            </div>
-            <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
-              {initials}
-            </div>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-full transition-all border border-transparent hover:border-gray-200 group"
+            >
+              <div className="text-right hidden sm:block group-hover:opacity-80">
+                <div className="text-xs font-bold leading-none text-black">{userName.split(' ')[0]}</div>
+                <div className="text-[10px] font-mono text-gray-500 leading-none mt-0.5">REDAKTÖR</div>
+              </div>
+              {userImage ? (
+                <Image
+                  src={userImage}
+                  alt={userName}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
+                  {initials}
+                </div>
+              )}
+            </button>
+
+            {showProfileDropdown && (
+              <ProfileDropdown
+                onClose={() => setShowProfileDropdown(false)}
+                onOpenSettings={onOpenSettings}
+              />
+            )}
+          </div>
         </div>
       </div>
     </header>
@@ -372,6 +542,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const [hasMore, setHasMore] = useState(true)
   const [sseConnected, setSseConnected] = useState(false)
   const [notificationsEnabled, setNotificationsEnabled] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [, forceUpdate] = useState({})
   const loaderRef = useRef<HTMLDivElement>(null)
   const offset = useRef(initialItems.length)
@@ -487,7 +658,13 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
       <DashboardHeader
         onNotificationToggle={handleNotificationToggle}
         notificationsEnabled={notificationsEnabled}
+        onOpenSettings={() => setShowSettingsModal(true)}
       />
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <SettingsModal onClose={() => setShowSettingsModal(false)} />
+      )}
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <section>

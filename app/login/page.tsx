@@ -39,21 +39,21 @@ const TEAM_MEMBERS = [
     name: 'Diana Demin',
     firstName: 'Diana',
     role: 'CMO',
-    image: '/team/Diana.jpg'
+    image: '/team/Diana.png'
   },
   {
     id: 'sandra',
     name: 'Sandra Norberg',
     firstName: 'Sandra',
     role: 'Kommersiell chef',
-    image: '/team/Sandra.jpg'
+    image: '/team/Sandra.png'
   },
   {
     id: 'christian',
     name: 'Christian von Essen',
     firstName: 'Christian',
     role: 'Redaktör',
-    image: '/team/Christian.jpg'
+    image: '/team/Christian.png'
   },
   {
     id: 'isak',
