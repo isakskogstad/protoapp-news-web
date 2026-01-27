@@ -8,7 +8,7 @@ import {
   Bookmark, BookmarkCheck, Share2, Link2, Check, X
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
-import { formatRelativeTime, getLogoUrl } from '@/lib/utils'
+import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
 // Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
@@ -513,44 +513,71 @@ function ShareMenu({ url, title, onClose }: { url: string; title: string; onClos
   )
 }
 
-// Smart time formatting
-function formatSmartTime(dateString: string): string {
+// Smart time formatting with recency info
+interface SmartTime {
+  text: string
+  isRecent: boolean   // Within last hour
+  isToday: boolean    // Published today
+}
+
+function formatSmartTime(dateString: string): SmartTime {
   try {
     const date = new Date(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
+
+    // Same day check
+    const isToday = date.toDateString() === now.toDateString()
 
     // Under 1 hour: "X min"
     if (diffMins < 60) {
-      return `${Math.max(1, diffMins)} min`
+      return {
+        text: `${Math.max(1, diffMins)} min`,
+        isRecent: true,
+        isToday: true
+      }
     }
 
     // Same day (and within last 24h): show time "HH:MM"
-    const isToday = date.toDateString() === now.toDateString()
     if (isToday) {
-      return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+      return {
+        text: date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
+        isRecent: false,
+        isToday: true
+      }
     }
 
     // Yesterday
     const yesterday = new Date(now)
     yesterday.setDate(yesterday.getDate() - 1)
     if (date.toDateString() === yesterday.toDateString()) {
-      return `I går ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
+      return {
+        text: `I går ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`,
+        isRecent: false,
+        isToday: false
+      }
     }
 
     // Same week: weekday + time
     const diffDays = Math.floor(diffMs / 86400000)
     if (diffDays < 7) {
       const weekday = date.toLocaleDateString('sv-SE', { weekday: 'short' })
-      return `${weekday} ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
+      return {
+        text: `${weekday} ${date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`,
+        isRecent: false,
+        isToday: false
+      }
     }
 
     // Older: date
-    return date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })
+    return {
+      text: date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' }),
+      isRecent: false,
+      isToday: false
+    }
   } catch {
-    return dateString
+    return { text: dateString, isRecent: false, isToday: false }
   }
 }
 
@@ -607,6 +634,9 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   const categoryColor = categoryColors[category] || 'text-gray-500'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
+  // Get time with recency info for visual hierarchy
+  const timeInfo = formatSmartTime(item.timestamp)
+
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -638,27 +668,34 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
                 {item.companyName}
               </h4>
               <p className="text-[10px] font-mono text-gray-400 mt-0.5">
-                {item.orgNumber}
+                {formatOrgNumber(item.orgNumber)}
               </p>
             </div>
           </div>
 
-          {/* Middle: Headline + Notice text (flexible) */}
+          {/* Middle: Headline + Notice text (flexible, max 50 words) */}
           <div className="flex-1 min-w-0 pr-4">
             <h3 className="text-sm font-bold text-black leading-snug group-hover:text-blue-700 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 leading-relaxed mt-1.5">
-                {item.noticeText}
+              <p className="text-[13px] text-gray-600 leading-[1.75] mt-1.5">
+                {truncateWords(item.noticeText, 50)}
               </p>
             )}
           </div>
 
           {/* Right column: Time + Category (fixed width) */}
           <div className="w-28 shrink-0 text-right flex flex-col items-end">
-            <span className="text-xs font-mono text-gray-400">
-              {formatSmartTime(item.timestamp)}
+            {/* Time with visual hierarchy: bold + larger for recent, normal for today, muted for older */}
+            <span className={`font-mono ${
+              timeInfo.isRecent
+                ? 'text-sm font-bold text-black'
+                : timeInfo.isToday
+                  ? 'text-sm font-medium text-gray-700'
+                  : 'text-xs text-gray-400'
+            }`}>
+              {timeInfo.text}
             </span>
             <span className={`text-[10px] font-medium mt-1 ${categoryColor}`}>
               {category}

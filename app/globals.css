@@ -12,11 +12,10 @@
 }
 
 :root {
-  /* Font stacks */
+  /* Font stacks - reduced to 2 fonts for cleaner design */
   --font-heading: 'NewYorker', Georgia, serif;
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-slack: 'Lato', system-ui, sans-serif;
   --foreground: #111;
   --background: #fafafa;
   --muted: #666;
@@ -224,10 +223,6 @@ a:focus-visible {
 
 .font-mono {
   font-family: var(--font-mono), monospace;
-}
-
-.font-slack {
-  font-family: var(--font-slack), sans-serif;
 }
 
 /* Liquid background filter */

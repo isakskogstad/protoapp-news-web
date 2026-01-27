@@ -13,6 +13,27 @@ export function getLogoUrl(orgNumber: string, logoUrl?: string): string {
   return ''
 }
 
+// Format org number with hyphen: 5565859484 -> 556585-9484
+export function formatOrgNumber(org: string): string {
+  if (!org) return ''
+  // Remove any existing hyphens/spaces
+  const cleaned = org.replace(/[-\s]/g, '')
+  // If it's 10 digits, format as XXXXXX-XXXX
+  if (cleaned.length === 10 && /^\d+$/.test(cleaned)) {
+    return `${cleaned.slice(0, 6)}-${cleaned.slice(6)}`
+  }
+  // Return as-is if already formatted or invalid
+  return org
+}
+
+// Truncate text to a maximum number of words
+export function truncateWords(text: string, maxWords: number): string {
+  if (!text) return ''
+  const words = text.split(/\s+/)
+  if (words.length <= maxWords) return text
+  return words.slice(0, maxWords).join(' ') + '...'
+}
+
 export function formatRelativeTime(dateString: string): string {
   try {
     const date = parseISO(dateString)

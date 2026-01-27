@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import NewsDetail from '@/components/NewsDetail'
-import NewsSidebar from '@/components/NewsSidebar'
 import GlobalSidebar from '@/components/GlobalSidebar'
 
 interface NewsPageProps {
@@ -61,7 +60,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex gap-8">
-          {/* Main content */}
+          {/* Main content - now includes news sidebar in two-column layout */}
           <main className="flex-1 min-w-0">
             <Link
               href="/"
@@ -72,13 +71,11 @@ export default async function NewsPage({ params }: NewsPageProps) {
               </svg>
               Tillbaka
             </Link>
-            <NewsDetail item={newsItem} />
+            <NewsDetail item={newsItem} showNewsSidebar={true} />
           </main>
 
-          {/* Global sidebar with chat + news */}
-          <GlobalSidebar>
-            <NewsSidebar companyName={newsItem.companyName} />
-          </GlobalSidebar>
+          {/* Global sidebar with chat only */}
+          <GlobalSidebar />
         </div>
       </div>
     )
@@ -96,7 +93,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex gap-8">
-          {/* Main content */}
+          {/* Main content - now includes news sidebar in two-column layout */}
           <main className="flex-1 min-w-0">
             <Link
               href="/"
@@ -107,13 +104,11 @@ export default async function NewsPage({ params }: NewsPageProps) {
               </svg>
               Tillbaka
             </Link>
-            <NewsDetail item={newsItem} />
+            <NewsDetail item={newsItem} showNewsSidebar={true} />
           </main>
 
-          {/* Global sidebar with chat + news */}
-          <GlobalSidebar>
-            <NewsSidebar companyName={newsItem.companyName} />
-          </GlobalSidebar>
+          {/* Global sidebar with chat only */}
+          <GlobalSidebar />
         </div>
       </div>
     )
