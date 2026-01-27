@@ -5,12 +5,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Bell, Search, Settings, Calendar, Eye,
   Clock, ArrowUpRight, Globe, FileText, Activity,
-  Bookmark, BookmarkCheck, Share2, Link2, Check, X
+  Bookmark, BookmarkCheck, Share2, Link2, Check, X, BellOff
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from './ThemeProvider'
+import { useNotifications } from '@/lib/hooks/useNotifications'
 // Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
@@ -41,29 +42,7 @@ function toggleBookmark(id: string): boolean {
   return bookmarks.has(id)
 }
 
-// Push notification utilities
-async function requestNotificationPermission(): Promise<boolean> {
-  if (!('Notification' in window)) return false
-  if (Notification.permission === 'granted') return true
-  if (Notification.permission === 'denied') return false
-  const permission = await Notification.requestPermission()
-  return permission === 'granted'
-}
-
-function showNotification(title: string, body: string, url?: string) {
-  if (Notification.permission !== 'granted') return
-  const notification = new Notification(title, {
-    body,
-    icon: '/team/Isak.png',
-    badge: '/team/Isak.png',
-  })
-  if (url) {
-    notification.onclick = () => {
-      window.focus()
-      window.location.href = url
-    }
-  }
-}
+// Notification utilities are now imported from useNotifications hook
 
 // Settings Modal
 function SettingsModal({ onClose }: { onClose: () => void }) {
@@ -192,10 +171,83 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
   )
 }
 
+// Notification button with tooltip
+function NotificationButton({
+  enabled,
+  supported,
+  permission,
+  loading,
+  browserInfo,
+  onToggle
+}: {
+  enabled: boolean
+  supported: boolean
+  permission: NotificationPermission | 'unsupported'
+  loading: boolean
+  browserInfo: { name: string; supportLevel: 'full' | 'partial' | 'none' }
+  onToggle: () => void
+}) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  const getStatusText = () => {
+    if (!supported) return 'Notiser stöds inte i denna webbläsare'
+    if (permission === 'denied') return 'Notiser blockerade - ändra i webbläsarens inställningar'
+    if (enabled) return `Notiser på (${browserInfo.name})`
+    return 'Aktivera notiser'
+  }
+
+  const getIcon = () => {
+    if (!supported || permission === 'denied') return <BellOff className="w-5 h-5" />
+    return <Bell className="w-5 h-5" />
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={onToggle}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        disabled={loading || !supported || permission === 'denied'}
+        className={`p-2 rounded-md transition-colors relative ${
+          enabled
+            ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
+            : !supported || permission === 'denied'
+              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+        }`}
+        title={getStatusText()}
+      >
+        {loading ? (
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : (
+          getIcon()
+        )}
+        {enabled && (
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900"></span>
+        )}
+      </button>
+
+      {/* Tooltip */}
+      {showTooltip && (
+        <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg shadow-lg whitespace-nowrap z-50">
+          {getStatusText()}
+          {browserInfo.supportLevel === 'full' && enabled && (
+            <div className="text-gray-400 dark:text-gray-600 mt-1">
+              Fungerar även när webbläsaren är stängd
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Dashboard Header
-function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSettings }: {
-  onNotificationToggle: () => void
-  notificationsEnabled: boolean
+function DashboardHeader({
+  notifications,
+  onOpenSettings
+}: {
+  notifications: ReturnType<typeof useNotifications>
   onOpenSettings: () => void
 }) {
   const { data: session } = useSession()
@@ -243,20 +295,14 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
 
         {/* Right: Profile & Notifications */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={onNotificationToggle}
-            className={`p-2 rounded-md transition-colors relative ${
-              notificationsEnabled
-                ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-            title={notificationsEnabled ? 'Notiser på' : 'Aktivera notiser'}
-          >
-            <Bell className="w-5 h-5" />
-            {notificationsEnabled && (
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900"></span>
-            )}
-          </button>
+          <NotificationButton
+            enabled={notifications.enabled}
+            supported={notifications.supported}
+            permission={notifications.permission}
+            loading={notifications.loading}
+            browserInfo={notifications.browserInfo}
+            onToggle={notifications.toggle}
+          />
 
           <button
             onClick={onOpenSettings}
@@ -779,71 +825,90 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [sseConnected, setSseConnected] = useState(false)
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [, forceUpdate] = useState({})
   const loaderRef = useRef<HTMLDivElement>(null)
   const offset = useRef(initialItems.length)
 
-  // Check notification permission on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationsEnabled(Notification.permission === 'granted')
-    }
-  }, [])
-
-  // Toggle notifications
-  const handleNotificationToggle = async () => {
-    if (notificationsEnabled) {
-      setNotificationsEnabled(false)
-    } else {
-      const granted = await requestNotificationPermission()
-      setNotificationsEnabled(granted)
-      if (granted) {
-        showNotification('Notiser aktiverade', 'Du får nu notiser om nya nyheter')
-      }
-    }
-  }
+  // Use notifications hook
+  const notifications = useNotifications()
 
   // SSE Connection for real-time updates
   useEffect(() => {
-    const eventSource = new EventSource('/api/news/stream')
+    let reconnectAttempts = 0
+    let eventSource: EventSource | null = null
+    let reconnectTimeout: NodeJS.Timeout | null = null
 
-    eventSource.onopen = () => {
-      setSseConnected(true)
-    }
+    const connect = () => {
+      eventSource = new EventSource('/api/news/stream')
 
-    eventSource.onerror = () => {
-      setSseConnected(false)
-    }
+      eventSource.onopen = () => {
+        setSseConnected(true)
+        reconnectAttempts = 0
+      }
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        if (data.type === 'INSERT' && data.payload) {
-          // Add new item to top
-          setItems(prev => {
-            // Avoid duplicates
-            if (prev.some(item => item.id === data.payload.id)) return prev
-            return [data.payload, ...prev]
-          })
+      eventSource.onerror = () => {
+        setSseConnected(false)
+        eventSource?.close()
 
-          // Show notification if enabled
-          if (notificationsEnabled && data.payload.headline) {
-            showNotification(
-              data.payload.companyName || 'Ny nyhet',
-              data.payload.headline,
-              `/news/${data.payload.id}`
-            )
+        // Exponential backoff reconnect (max 30s)
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
+        reconnectAttempts++
+        reconnectTimeout = setTimeout(connect, delay)
+      }
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          // Handle connection/heartbeat messages
+          if (data.type === 'connected' || data.type === 'heartbeat') {
+            setSseConnected(true)
+            return
           }
+
+          // Handle INSERT - add new item to top
+          if (data.type === 'INSERT' && data.payload) {
+            setItems(prev => {
+              // Avoid duplicates
+              if (prev.some(item => item.id === data.payload.id)) return prev
+              return [data.payload, ...prev]
+            })
+
+            // Show notification if enabled (with sound)
+            if (data.payload.headline) {
+              notifications.showNotificationWithSound(
+                data.payload.companyName || 'Ny nyhet',
+                data.payload.headline,
+                `/news/${data.payload.id}`
+              )
+            }
+          }
+
+          // Handle UPDATE - update existing item
+          if (data.type === 'UPDATE' && data.payload) {
+            setItems(prev => prev.map(item =>
+              item.id === data.payload.id ? data.payload : item
+            ))
+          }
+
+          // Handle DELETE - remove item
+          if (data.type === 'DELETE' && data.oldId) {
+            setItems(prev => prev.filter(item => item.id !== data.oldId))
+          }
+        } catch {
+          // Ignore parse errors
         }
-      } catch (e) {
-        // Ignore parse errors (heartbeats etc)
       }
     }
 
-    return () => eventSource.close()
-  }, [notificationsEnabled])
+    connect()
+
+    return () => {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout)
+      eventSource?.close()
+    }
+  }, [notifications])
 
   // Infinite scroll
   const loadMore = useCallback(async () => {
@@ -921,8 +986,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
       <DashboardHeader
-        onNotificationToggle={handleNotificationToggle}
-        notificationsEnabled={notificationsEnabled}
+        notifications={notifications}
         onOpenSettings={() => setShowSettingsModal(true)}
       />
 

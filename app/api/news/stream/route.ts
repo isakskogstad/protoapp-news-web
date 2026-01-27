@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
+import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
+import { ProtocolAnalysis, Kungorelse } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +12,7 @@ export async function GET(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       // Send initial connection message
-      controller.enqueue(encoder.encode(`event: connected\ndata: {"status": "connected"}\n\n`))
+      controller.enqueue(encoder.encode(`data: {"type": "connected", "status": "connected"}\n\n`))
 
       // Subscribe to ProtocolAnalysis changes
       const protocolChannel = supabase
@@ -23,13 +25,22 @@ export async function GET(request: NextRequest) {
             table: 'ProtocolAnalysis',
           },
           (payload) => {
-            const data = JSON.stringify({
-              type: 'protocol',
-              operation: payload.eventType,
-              record: payload.new,
-              old: payload.old,
-            })
-            controller.enqueue(encoder.encode(`event: change\ndata: ${data}\n\n`))
+            try {
+              // Transform to NewsItem format
+              const newsItem = payload.new
+                ? protocolToNewsItem(payload.new as ProtocolAnalysis)
+                : null
+
+              const data = JSON.stringify({
+                type: payload.eventType, // 'INSERT', 'UPDATE', 'DELETE'
+                source: 'protocol',
+                payload: newsItem,
+                oldId: (payload.old as ProtocolAnalysis)?.id,
+              })
+              controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+            } catch (err) {
+              console.error('Error processing protocol change:', err)
+            }
           }
         )
         .subscribe()
@@ -45,13 +56,22 @@ export async function GET(request: NextRequest) {
             table: 'Kungorelser',
           },
           (payload) => {
-            const data = JSON.stringify({
-              type: 'kungorelse',
-              operation: payload.eventType,
-              record: payload.new,
-              old: payload.old,
-            })
-            controller.enqueue(encoder.encode(`event: change\ndata: ${data}\n\n`))
+            try {
+              // Transform to NewsItem format
+              const newsItem = payload.new
+                ? kungorelseToNewsItem(payload.new as Kungorelse)
+                : null
+
+              const data = JSON.stringify({
+                type: payload.eventType, // 'INSERT', 'UPDATE', 'DELETE'
+                source: 'kungorelse',
+                payload: newsItem,
+                oldId: (payload.old as Kungorelse)?.id,
+              })
+              controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+            } catch (err) {
+              console.error('Error processing kungorelse change:', err)
+            }
           }
         )
         .subscribe()
@@ -59,7 +79,7 @@ export async function GET(request: NextRequest) {
       // Send heartbeat every 30 seconds
       const heartbeatInterval = setInterval(() => {
         try {
-          controller.enqueue(encoder.encode(`event: heartbeat\ndata: {"time": "${new Date().toISOString()}"}\n\n`))
+          controller.enqueue(encoder.encode(`data: {"type": "heartbeat", "time": "${new Date().toISOString()}"}\n\n`))
         } catch {
           clearInterval(heartbeatInterval)
         }
