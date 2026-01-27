@@ -12,56 +12,56 @@ const TEAM_MEMBERS = [
     name: 'Andreas Jennische',
     firstName: 'Andreas',
     role: 'Nyhetschef',
-    image: `${SUPABASE_STORAGE_URL}/Andreas.png`
+    image: `${SUPABASE_STORAGE_URL}/andreas-jennische.png`
   },
   {
     id: 'johann',
     name: 'Johann Bernövall',
     firstName: 'Johann',
     role: 'Reporter',
-    image: `${SUPABASE_STORAGE_URL}/Johann.png`
+    image: `${SUPABASE_STORAGE_URL}/johann-bernovall.png`
   },
   {
     id: 'jenny',
     name: 'Jenny Kjellén',
     firstName: 'Jenny',
     role: 'Reporter',
-    image: `${SUPABASE_STORAGE_URL}/Jenny.png`
+    image: `${SUPABASE_STORAGE_URL}/jenny-kjellen.png`
   },
   {
     id: 'camilla',
     name: 'Camilla Bergman',
     firstName: 'Camilla',
     role: 'Chefredaktör',
-    image: `${SUPABASE_STORAGE_URL}/Camilla.png`
+    image: `${SUPABASE_STORAGE_URL}/camilla-bergman.png`
   },
   {
     id: 'diana',
     name: 'Diana Demin',
     firstName: 'Diana',
     role: 'CMO',
-    image: `${SUPABASE_STORAGE_URL}/Diana.png`
+    image: `${SUPABASE_STORAGE_URL}/diana-demin.png`
   },
   {
     id: 'sandra',
     name: 'Sandra Norberg',
     firstName: 'Sandra',
     role: 'Kommersiell chef',
-    image: `${SUPABASE_STORAGE_URL}/Sandra.png`
+    image: `${SUPABASE_STORAGE_URL}/sandra-norberg.png`
   },
   {
     id: 'christian',
     name: 'Christian von Essen',
     firstName: 'Christian',
     role: 'Redaktör',
-    image: `${SUPABASE_STORAGE_URL}/Christian.png`
+    image: `${SUPABASE_STORAGE_URL}/christian-von-essen.png`
   },
   {
     id: 'isak',
     name: 'Isak Skogstad',
     firstName: 'Isak',
     role: 'Produkt',
-    image: `${SUPABASE_STORAGE_URL}/Isak.png`
+    image: `${SUPABASE_STORAGE_URL}/Isak%20Skogstad.png`
   }
 ]
 
