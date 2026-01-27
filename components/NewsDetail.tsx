@@ -9,10 +9,35 @@ interface NewsDetailProps {
   item: NewsItem
 }
 
+// Check if this is a future event that should show calendar option
+function isFutureEvent(item: NewsItem): boolean {
+  const headline = (item.headline || '').toLowerCase()
+  const noticeText = (item.noticeText || '').toLowerCase()
+  const protocolType = (item.protocolType || '').toLowerCase()
+
+  const futureEventKeywords = [
+    'kallelse',
+    'inbjudan',
+    'kommande',
+    'planerad',
+    'årsstämma',
+    'extra bolagsstämma',
+    'bolagsstämma',
+    'stämma',
+  ]
+
+  return futureEventKeywords.some(keyword =>
+    headline.includes(keyword) ||
+    noticeText.includes(keyword) ||
+    protocolType.includes(keyword)
+  )
+}
+
 export default function NewsDetail({ item }: NewsDetailProps) {
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
+  const showCalendar = isFutureEvent(item)
 
   return (
     <article className="animate-fade-in">
@@ -36,23 +61,16 @@ export default function NewsDetail({ item }: NewsDetailProps) {
           </div>
 
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              {eventConfig && (
+            {eventConfig && (
+              <div className="flex items-center gap-2 mb-1">
                 <span
                   className="text-xs px-2 py-0.5 rounded text-white font-medium"
                   style={{ backgroundColor: eventConfig.color }}
                 >
                   {eventConfig.label}
                 </span>
-              )}
-              {item.newsValue && item.newsValue >= 5 && (
-                <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                  item.newsValue >= 7 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                }`}>
-                  {item.newsValue}/10
-                </span>
-              )}
-            </div>
+              </div>
+            )}
             <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {item.companyName}
             </h1>
@@ -116,13 +134,15 @@ export default function NewsDetail({ item }: NewsDetailProps) {
 
       {/* Actions */}
       <section className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-3">
-        <AddToCalendar
-          title={item.headline || `Händelse för ${item.companyName}`}
-          description={item.noticeText}
-          date={item.timestamp}
-          companyName={item.companyName}
-          eventType={eventConfig?.label}
-        />
+        {showCalendar && (
+          <AddToCalendar
+            title={item.headline || `Händelse för ${item.companyName}`}
+            description={item.noticeText}
+            date={item.timestamp}
+            companyName={item.companyName}
+            eventType={eventConfig?.label}
+          />
+        )}
 
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}

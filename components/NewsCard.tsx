@@ -80,19 +80,6 @@ export default function NewsCard({ item }: NewsCardProps) {
             </div>
           </div>
 
-          {/* Right side: News value */}
-          <div className="flex flex-col items-center gap-2 flex-shrink-0">
-            {item.newsValue && item.newsValue >= 4 && (
-              <div className={`
-                w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold
-                ${item.newsValue >= 7 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                  item.newsValue >= 5 ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' :
-                  'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'}
-              `}>
-                {item.newsValue}
-              </div>
-            )}
-          </div>
         </div>
       </Link>
 
