@@ -144,7 +144,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* Two-column layout for modules */}
       {(hasLeftColumnContent || showNewsSidebar) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
           {/* Left column: Protocol/Kungörelse + Faktarutor */}
           <div className="space-y-4">
             {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
@@ -247,10 +247,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
             {hasStyrelse && <StyrelseFaktaruta data={item.styrelseFaktaruta} />}
           </div>
 
-          {/* Right column: News Sidebar (related news) */}
+          {/* Right column: News Sidebar (related news) - matches left column height */}
           {showNewsSidebar && (
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <NewsSidebar companyName={item.companyName} />
+            <div className="lg:self-stretch">
+              <NewsSidebar companyName={item.companyName} matchHeight />
             </div>
           )}
         </div>

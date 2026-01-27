@@ -13,9 +13,10 @@ interface Article {
 
 interface NewsSidebarProps {
   companyName: string
+  matchHeight?: boolean // Match sibling height, make content scrollable
 }
 
-export default function NewsSidebar({ companyName }: NewsSidebarProps) {
+export default function NewsSidebar({ companyName, matchHeight = false }: NewsSidebarProps) {
   // Google News state
   const [newsArticles, setNewsArticles] = useState<Article[]>([])
   const [newsLoading, setNewsLoading] = useState(true)
@@ -88,15 +89,16 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
   return (
     <div
       className={`
-        space-y-4 transition-all duration-500 ease-out
+        transition-all duration-500 ease-out
+        ${matchHeight ? 'h-full flex flex-col' : 'space-y-4'}
         ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}
       `}
     >
       {/* News Coverage Module - Only show if articles exist */}
       {!newsLoading && newsArticles.length > 0 && (
-        <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+        <section className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 min-h-0' : ''}`} style={matchHeight ? undefined : { maxHeight: '280px' }}>
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
               <Newspaper className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             </div>
@@ -105,8 +107,8 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
             </h3>
           </div>
 
-          {/* Articles */}
-          <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+          {/* Articles - scrollable */}
+          <ul className="divide-y divide-gray-100 dark:divide-gray-800 overflow-y-auto flex-1">
             {newsArticles.map((article, i) => (
               <li
                 key={i}
@@ -120,23 +122,17 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                  className="flex items-start gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                 >
-                  <p className="text-sm font-medium text-black dark:text-white line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                  <p className="text-xs font-medium text-black dark:text-white line-clamp-1 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors flex-1">
                     {article.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {article.source && (
-                      <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400">
-                        {article.source}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-1.5 shrink-0 text-[9px] font-mono text-gray-400 dark:text-gray-500">
+                    {article.source && <span>{article.source}</span>}
                     {article.publishedDate && (
                       <>
                         <span className="text-gray-300 dark:text-gray-600">·</span>
-                        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">
-                          {article.publishedDate}
-                        </span>
+                        <span>{article.publishedDate}</span>
                       </>
                     )}
                   </div>
