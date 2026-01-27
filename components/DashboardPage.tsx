@@ -245,10 +245,14 @@ function NotificationButton({
 // Dashboard Header
 function DashboardHeader({
   notifications,
-  onOpenSettings
+  onOpenSettings,
+  searchQuery,
+  onSearchChange
 }: {
   notifications: ReturnType<typeof useNotifications>
   onOpenSettings: () => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
 }) {
   const { data: session } = useSession()
   const userName = session?.user?.name || 'Användare'
@@ -284,12 +288,23 @@ function DashboardHeader({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Sök bolag, person eller nyckelord..."
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1">
-              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5">⌘K</span>
-            </div>
+            {searchQuery ? (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            ) : (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1">
+                <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5">⌘K</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -769,7 +784,7 @@ function getCategory(item: NewsItem): string {
   return 'Händelse'
 }
 
-// News Item Component - Compact horizontal layout
+// News Item Component - Compact horizontal layout with left-aligned metadata
 interface NewsItemCardProps {
   item: NewsItem
   onBookmarkChange?: () => void
@@ -785,16 +800,16 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   const category = getCategory(item)
   const categoryColors: Record<string, string> = {
-    'Nyemission': 'text-emerald-600 dark:text-emerald-400',
-    'Konkurs': 'text-red-600 dark:text-red-400',
-    'Kallelse till stämma': 'text-blue-600 dark:text-blue-400',
-    'Årsstämma': 'text-blue-600 dark:text-blue-400',
-    'Extra bolagsstämma': 'text-blue-600 dark:text-blue-400',
-    'Styrelsemöte': 'text-purple-600 dark:text-purple-400',
-    'Styrelseändring': 'text-purple-600 dark:text-purple-400',
-    'VD-byte': 'text-orange-600 dark:text-orange-400',
+    'Nyemission': 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
+    'Konkurs': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+    'Kallelse till stämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+    'Årsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+    'Extra bolagsstämma': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+    'Styrelsemöte': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+    'Styrelseändring': 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+    'VD-byte': 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
   }
-  const categoryColor = categoryColors[category] || 'text-gray-500 dark:text-gray-400'
+  const categoryColor = categoryColors[category] || 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
   // Get time with recency info for visual hierarchy
@@ -818,26 +833,81 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
     <Link href={`/news/${item.id}`} className="block group">
       <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-4">
         <div className="flex gap-4">
-          {/* Left column: Logo + Company info (fixed width) */}
-          <div className="w-44 shrink-0 flex items-start gap-3">
-            <CompanyLogo
-              orgNumber={item.orgNumber}
-              companyName={item.companyName}
-              logoUrl={item.logoUrl}
-              size="md"
-            />
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-black dark:text-white truncate leading-tight">
-                {item.companyName}
-              </h4>
-              <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
-                {formatOrgNumber(item.orgNumber)}
-              </p>
+          {/* Left column: Logo + Company info + Time + Category + Actions */}
+          <div className="w-40 shrink-0 flex flex-col">
+            {/* Top: Logo + Company */}
+            <div className="flex items-start gap-2.5">
+              <CompanyLogo
+                orgNumber={item.orgNumber}
+                companyName={item.companyName}
+                logoUrl={item.logoUrl}
+                size="md"
+              />
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-bold text-black dark:text-white truncate leading-tight">
+                  {item.companyName}
+                </h4>
+                <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
+                  {formatOrgNumber(item.orgNumber)}
+                </p>
+              </div>
+            </div>
+
+            {/* Middle: Time + Category */}
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              {/* Time with visual hierarchy */}
+              <span className={`font-mono ${
+                timeInfo.isRecent
+                  ? 'text-xs font-bold text-black dark:text-white'
+                  : timeInfo.isToday
+                    ? 'text-xs font-medium text-gray-600 dark:text-gray-300'
+                    : 'text-[11px] text-gray-400 dark:text-gray-500'
+              }`}>
+                {timeInfo.text}
+              </span>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              {/* Category badge */}
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${categoryColor}`}>
+                {category}
+              </span>
+            </div>
+
+            {/* Bottom: Action buttons */}
+            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={handleBookmark}
+                className={`p-1.5 rounded-md transition-all ${
+                  isBookmarked
+                    ? 'text-yellow-600 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+              >
+                {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={handleShare}
+                  className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  title="Dela"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                </button>
+
+                {showShareMenu && (
+                  <ShareMenu
+                    url={newsUrl}
+                    title={item.headline || item.companyName}
+                    onClose={() => setShowShareMenu(false)}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Middle: Headline + Notice text (flexible, max 50 words) */}
-          <div className="flex-1 min-w-0 pr-4">
+          {/* Right: Headline + Notice text (expanded, takes remaining width) */}
+          <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
@@ -846,54 +916,6 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
                 {truncateWords(item.noticeText, 50)}
               </p>
             )}
-          </div>
-
-          {/* Right column: Time + Category (fixed width) */}
-          <div className="w-28 shrink-0 text-right flex flex-col items-end">
-            {/* Time with visual hierarchy: bold + larger for recent, normal for today, muted for older */}
-            <span className={`font-mono ${
-              timeInfo.isRecent
-                ? 'text-sm font-bold text-black dark:text-white'
-                : timeInfo.isToday
-                  ? 'text-sm font-medium text-gray-700 dark:text-gray-300'
-                  : 'text-xs text-gray-400 dark:text-gray-500'
-            }`}>
-              {timeInfo.text}
-            </span>
-            <span className={`text-[10px] font-medium mt-1 ${categoryColor}`}>
-              {category}
-            </span>
-
-            {/* Action buttons */}
-            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={handleBookmark}
-                className={`p-1 rounded transition-all ${
-                  isBookmarked
-                    ? 'text-yellow-600 dark:text-yellow-500'
-                    : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'
-                }`}
-                title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
-              >
-                {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-              </button>
-
-              <button
-                onClick={handleShare}
-                className="p-1 rounded text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-all relative"
-                title="Dela"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-              </button>
-
-              {showShareMenu && (
-                <ShareMenu
-                  url={newsUrl}
-                  title={item.headline || item.companyName}
-                  onClose={() => setShowShareMenu(false)}
-                />
-              )}
-            </div>
           </div>
         </div>
       </article>
@@ -927,8 +949,32 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [, forceUpdate] = useState({})
   const [watchlistCount, setWatchlistCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [isOnline, setIsOnline] = useState(true)
   const loaderRef = useRef<HTMLDivElement>(null)
   const offset = useRef(initialItems.length)
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Online/offline detection
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   // Use notifications hook
   const notifications = useNotifications()
@@ -1051,11 +1097,26 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
     return () => observer.disconnect()
   }, [loadMore, hasMore, loading])
 
-  // Filter items - apply news-worthy filter + user filter (all/bookmarks)
+  // Filter items - apply news-worthy filter + search + user filter (all/bookmarks)
   const newsWorthyItems = items.filter(isNewsWorthy)
-  const filteredItems = filter === 'bookmarks'
-    ? newsWorthyItems.filter(item => getBookmarks().has(item.id))
+
+  // Apply search filter
+  const searchFilteredItems = debouncedSearch.trim()
+    ? newsWorthyItems.filter(item => {
+        const query = debouncedSearch.toLowerCase()
+        return (
+          item.companyName?.toLowerCase().includes(query) ||
+          item.orgNumber?.includes(query) ||
+          item.headline?.toLowerCase().includes(query) ||
+          item.noticeText?.toLowerCase().includes(query) ||
+          item.protocolType?.toLowerCase().includes(query)
+        )
+      })
     : newsWorthyItems
+
+  const filteredItems = filter === 'bookmarks'
+    ? searchFilteredItems.filter(item => getBookmarks().has(item.id))
+    : searchFilteredItems
 
   // Extract upcoming events from news-worthy items (kallelser)
   const upcomingEvents: UpcomingEvent[] = newsWorthyItems
@@ -1088,7 +1149,21 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
       <DashboardHeader
         notifications={notifications}
         onOpenSettings={() => setShowSettingsModal(true)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
+
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="bg-amber-500 text-amber-950 px-4 py-2 text-center text-sm font-medium">
+          <span className="inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
+            </svg>
+            Du är offline — visar cachade nyheter
+          </span>
+        </div>
+      )}
 
       {/* Settings Modal */}
       {showSettingsModal && (
@@ -1130,10 +1205,34 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </div>
           </div>
 
+          {/* Search results indicator */}
+          {debouncedSearch && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {filteredItems.length === 0 ? 'Inga resultat för' : `${filteredItems.length} träffar för`}
+              </span>
+              <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm font-medium text-black dark:text-white">
+                "{debouncedSearch}"
+              </span>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                Rensa
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3">
             {filteredItems.length === 0 ? (
               <div className="py-16 text-center text-gray-500 dark:text-gray-400">
-                {filter === 'bookmarks' ? (
+                {debouncedSearch ? (
+                  <>
+                    <Search className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                    <p className="text-sm">Inga nyheter hittades</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Prova ett annat sökord</p>
+                  </>
+                ) : filter === 'bookmarks' ? (
                   <>
                     <Bookmark className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                     <p className="text-sm">Inga sparade nyheter än</p>

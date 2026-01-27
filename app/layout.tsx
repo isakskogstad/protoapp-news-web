@@ -5,6 +5,18 @@ import Providers from '@/components/Providers'
 export const metadata: Metadata = {
   title: 'LoopDesk',
   description: 'Redaktionell bevakning och nyhetsflöde',
+  manifest: '/manifest.json',
+  themeColor: '#000000',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'LoopDesk',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
 }
 
 export default function RootLayout({
