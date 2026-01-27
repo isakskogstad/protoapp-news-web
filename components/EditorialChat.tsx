@@ -175,6 +175,128 @@ function EmojiReaction({ reaction }: { reaction: ChatReaction }) {
   )
 }
 
+// Link preview data type
+interface LinkPreviewData {
+  url: string
+  title?: string
+  description?: string
+  image?: string
+  siteName?: string
+  favicon?: string
+}
+
+// Link preview cache
+const linkPreviewCache = new Map<string, LinkPreviewData | null>()
+
+// Link preview component
+function LinkPreview({ url }: { url: string }) {
+  const [preview, setPreview] = useState<LinkPreviewData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    // Check cache first
+    if (linkPreviewCache.has(url)) {
+      const cached = linkPreviewCache.get(url)
+      setPreview(cached || null)
+      setLoading(false)
+      return
+    }
+
+    const fetchPreview = async () => {
+      try {
+        const response = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`)
+        if (!response.ok) throw new Error('Failed to fetch')
+        const data = await response.json()
+        linkPreviewCache.set(url, data)
+        setPreview(data)
+      } catch {
+        linkPreviewCache.set(url, null)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPreview()
+  }, [url])
+
+  if (loading) {
+    return (
+      <div className="mt-2 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden animate-pulse">
+        <div className="p-3 flex gap-3">
+          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !preview || !preview.title) {
+    return null
+  }
+
+  // Check if it's an internal LoopDesk news link
+  const isInternalNews = url.includes('/news/')
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 block rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-purple-300 dark:hover:border-purple-700 transition-colors group"
+    >
+      <div className="flex gap-0">
+        {/* Image */}
+        {preview.image && (
+          <div className="w-20 h-20 flex-shrink-0 bg-gray-100 dark:bg-gray-800">
+            <img
+              src={preview.image}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1 p-2.5 min-w-0">
+          {/* Site info */}
+          <div className="flex items-center gap-1.5 mb-1">
+            {preview.favicon && (
+              <img
+                src={preview.favicon}
+                alt=""
+                className="w-3 h-3"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+            )}
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              {isInternalNews ? 'LoopDesk' : preview.siteName}
+            </span>
+          </div>
+
+          {/* Title */}
+          <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+            {preview.title}
+          </h4>
+
+          {/* Description */}
+          {preview.description && (
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+              {preview.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </a>
+  )
+}
+
 export default function EditorialChat({ className = '' }: EditorialChatProps) {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
@@ -398,6 +520,10 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
                       <div className="text-sm text-gray-700 dark:text-gray-300 break-words">
                         <MarkdownText text={message.text} userMap={userMap} />
                       </div>
+                      {/* Link previews */}
+                      {extractUrls(message.text).slice(0, 1).map((url, idx) => (
+                        <LinkPreview key={idx} url={url} />
+                      ))}
                       {/* Reactions */}
                       {message.reactions.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">

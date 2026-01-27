@@ -9,6 +9,7 @@ import KonkursFaktaruta from './KonkursFaktaruta'
 import StyrelseFaktaruta from './StyrelseFaktaruta'
 import KallelseFaktaruta from './KallelseFaktaruta'
 import SourceViewerModal from './SourceViewerModal'
+import ShareToChat from './ShareToChat'
 
 interface NewsDetailProps {
   item: NewsItem
@@ -138,6 +139,12 @@ export default function NewsDetail({ item }: NewsDetailProps) {
 
       {/* Actions */}
       <section className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-3">
+        <ShareToChat
+          companyName={item.companyName}
+          headline={item.headline}
+          newsId={item.id}
+        />
+        <span className="text-gray-300 dark:text-gray-600">·</span>
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
           target="_blank"
