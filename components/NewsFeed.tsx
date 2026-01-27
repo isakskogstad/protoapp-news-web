@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { NewsItem, ProtocolAnalysis, Kungorelse, EventType, eventTypeConfig } from '@/lib/types'
 import { protocolToNewsItem, kungorelseToNewsItem, detectEventType } from '@/lib/utils'
+import { showLocalNotification, isSubscribed } from '@/lib/notifications'
 import NewsCard from './NewsCard'
 
 interface NewsFeedProps {
@@ -51,7 +52,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       } else {
         next.add(orgNumber)
       }
-      localStorage.setItem('loopdesk_favorites', JSON.stringify([...next]))
+      localStorage.setItem('loopdesk_favorites', JSON.stringify(Array.from(next)))
       return next
     })
   }, [])
@@ -104,6 +105,17 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
             setItems(prev => {
               if (prev.some(item => item.id === newItem.id)) return prev
               return [newItem, ...prev].slice(0, 100)
+            })
+
+            // Show notification for new items
+            isSubscribed().then(subscribed => {
+              if (subscribed) {
+                showLocalNotification(
+                  newItem.companyName,
+                  newItem.headline || 'Ny händelse',
+                  `/news/${newItem.id}`
+                )
+              }
             })
           } else if (data.operation === 'UPDATE') {
             const updatedItem = data.type === 'protocol'

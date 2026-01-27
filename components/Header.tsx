@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import NotificationToggle from './NotificationToggle'
 
 export default function Header() {
   const { data: session } = useSession()
@@ -41,12 +42,15 @@ export default function Header() {
           LoopDesk
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {/* Live indicator */}
-          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mr-2">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-subtle" />
             Live
           </div>
+
+          {/* Notification toggle */}
+          <NotificationToggle />
 
           {/* Dark mode toggle */}
           <button
@@ -67,7 +71,7 @@ export default function Header() {
 
           {/* User */}
           {session?.user && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
               {session.user.image && (
                 <Image
                   src={session.user.image}
