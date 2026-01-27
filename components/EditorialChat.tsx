@@ -2,115 +2,275 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, Hash, ChevronDown } from 'lucide-react'
+import {
+  Hash,
+  ChevronDown,
+  Loader2,
+  Settings,
+  Volume2,
+  VolumeX,
+  ArrowDown,
+  RefreshCw,
+} from 'lucide-react'
+import { ChatMessage as ChatMessageType, ChatSettings } from '@/lib/slack-types'
+import ChatMessage from './ChatMessage'
+import ChatInput from './ChatInput'
+import ThreadPanel from './ThreadPanel'
+import TypingIndicator from './TypingIndicator'
 
-interface ChatMessage {
-  id: string
-  text: string
-  timestamp: string
-  user: {
-    id: string
-    name: string
-    avatar: string | null
-  }
+const DEFAULT_SETTINGS: ChatSettings = {
+  soundEnabled: true,
+  notificationsEnabled: true,
+  compactMode: false,
+}
+
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 880
+    gain.gain.setValueAtTime(0.1, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.1)
+  } catch {}
 }
 
 export default function EditorialChat() {
   const { data: session } = useSession()
+
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<ChatMessageType[]>([])
+  const [users, setUsers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [typingUsers, setTypingUsers] = useState<Array<{ userName: string }>>([])
+  const [showNewMessageButton, setShowNewMessageButton] = useState(false)
+  const [activeThread, setActiveThread] = useState<ChatMessageType | null>(null)
+  const [settings, setSettings] = useState<ChatSettings>(DEFAULT_SETTINGS)
+  const [showSettings, setShowSettings] = useState(false)
+
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
   const previousMessageCount = useRef(0)
+  const isAtBottom = useRef(true)
+  const eventSourceRef = useRef<EventSource | null>(null)
 
-  // Format timestamp
-  const formatTime = (ts: string) => {
-    const date = new Date(parseFloat(ts) * 1000)
-    return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+  // Load settings
+  useEffect(() => {
+    const saved = localStorage.getItem('chat-settings')
+    if (saved) {
+      try { setSettings(JSON.parse(saved)) } catch {}
+    }
+  }, [])
+
+  const updateSettings = (newSettings: Partial<ChatSettings>) => {
+    const updated = { ...settings, ...newSettings }
+    setSettings(updated)
+    localStorage.setItem('chat-settings', JSON.stringify(updated))
   }
 
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
+  const checkIfAtBottom = useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+      isAtBottom.current = scrollHeight - scrollTop - clientHeight < 50
+    }
+  }, [])
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      })
+      setShowNewMessageButton(false)
+    }
+  }, [])
 
   // Fetch messages
-  const fetchMessages = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
+  const fetchMessages = useCallback(async (options: {
+    silent?: boolean
+    older?: boolean
+  } = {}) => {
+    const { silent = false, older = false } = options
+
+    if (!silent && !older) setLoading(true)
+    if (older) setLoadingMore(true)
+
     try {
-      const res = await fetch('/api/slack/messages?limit=50')
+      let url = '/api/slack/messages?limit=50'
+
+      if (older && messages.length > 0) {
+        url += `&latest=${messages[0].timestamp}`
+      }
+
+      const res = await fetch(url)
       if (!res.ok) throw new Error()
+
       const data = await res.json()
       const newMessages = data.messages || []
 
-      // Play sound if new messages (not initial load)
-      if (newMessages.length > previousMessageCount.current && previousMessageCount.current > 0 && !isOpen) {
-        // Simple beep
-        try {
-          const ctx = new AudioContext()
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.frequency.value = 880
-          gain.gain.setValueAtTime(0.1, ctx.currentTime)
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
-          osc.start()
-          osc.stop(ctx.currentTime + 0.1)
-        } catch {}
-      }
-      previousMessageCount.current = newMessages.length
+      setUsers(data.users || {})
+      setHasMore(data.has_more || false)
 
-      setMessages(newMessages)
+      if (older) {
+        setMessages(prev => [...newMessages, ...prev])
+      } else {
+        if (newMessages.length > previousMessageCount.current &&
+            previousMessageCount.current > 0 &&
+            !isOpen &&
+            settings.soundEnabled) {
+          playNotificationSound()
+        }
+        previousMessageCount.current = newMessages.length
 
-      // Update unread count
-      if (!isOpen && lastReadTimestamp.current && newMessages.length > 0) {
-        const unread = newMessages.filter(
-          (m: ChatMessage) => parseFloat(m.timestamp) > parseFloat(lastReadTimestamp.current!)
-        )
-        setUnreadCount(unread.length)
+        setMessages(newMessages)
+
+        if (!isOpen && lastReadTimestamp.current && newMessages.length > 0) {
+          const unread = newMessages.filter(
+            (m: ChatMessageType) => parseFloat(m.timestamp) > parseFloat(lastReadTimestamp.current!)
+          )
+          setUnreadCount(unread.length)
+        }
+
+        // Show new message button if not at bottom
+        if (isOpen && !isAtBottom.current && newMessages.length > messages.length) {
+          setShowNewMessageButton(true)
+        }
       }
-    } catch {
-      // Silently fail
+    } catch (error) {
+      console.error('Error fetching messages:', error)
     } finally {
-      if (!silent) setLoading(false)
+      setLoading(false)
+      setLoadingMore(false)
     }
-  }, [isOpen])
+  }, [isOpen, messages, settings.soundEnabled])
 
   // Send message
-  const handleSend = async () => {
-    if (!input.trim() || sending) return
+  const handleSend = async (text: string) => {
+    if (!text.trim() || sending) return
     setSending(true)
 
     try {
       const res = await fetch('/api/slack/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: input.trim() }),
+        body: JSON.stringify({ text: text.trim() }),
       })
+
       if (res.ok) {
-        setInput('')
-        await fetchMessages(true)
+        await fetchMessages({ silent: true })
+        scrollToBottom()
       }
-    } catch {
-      // Silently fail
+    } catch (error) {
+      console.error('Error sending message:', error)
     } finally {
       setSending(false)
     }
   }
 
-  // Scroll to bottom
+  // Handle reaction
+  const handleReact = async (timestamp: string, emoji: string) => {
+    try {
+      await fetch('/api/slack/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp, emoji }),
+      })
+      await fetchMessages({ silent: true })
+    } catch (error) {
+      console.error('Error adding reaction:', error)
+    }
+  }
+
+  // Handle typing indicator
+  const handleTyping = async (isTyping: boolean) => {
+    try {
+      await fetch('/api/slack/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isTyping }),
+      })
+    } catch {}
+  }
+
+  // Fetch typing indicators
+  const fetchTyping = async () => {
+    try {
+      const res = await fetch('/api/slack/typing')
+      if (res.ok) {
+        const data = await res.json()
+        setTypingUsers(data.typing || [])
+      }
+    } catch {}
+  }
+
+  // Load more (older messages)
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchMessages({ older: true })
+    }
+  }
+
+  // Handle scroll
+  const handleScroll = () => {
+    checkIfAtBottom()
+
+    // Load more when scrolled to top
+    if (scrollRef.current && scrollRef.current.scrollTop < 50 && hasMore && !loadingMore) {
+      loadMore()
+    }
+  }
+
+  // Setup SSE connection
   useEffect(() => {
-    if (isOpen && scrollRef.current) {
+    if (!isOpen || !session) return
+
+    const setupSSE = () => {
+      eventSourceRef.current = new EventSource('/api/slack/stream')
+
+      eventSourceRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          if (data.type === 'messages' && data.messages?.length > 0) {
+            fetchMessages({ silent: true })
+          }
+
+          if (data.type === 'typing') {
+            setTypingUsers(data.users || [])
+          }
+        } catch {}
+      }
+
+      eventSourceRef.current.onerror = () => {
+        eventSourceRef.current?.close()
+        // Reconnect after 5 seconds
+        setTimeout(setupSSE, 5000)
+      }
+    }
+
+    setupSSE()
+
+    return () => {
+      eventSourceRef.current?.close()
+    }
+  }, [isOpen, session, fetchMessages])
+
+  // Scroll to bottom on new messages when at bottom
+  useEffect(() => {
+    if (isOpen && isAtBottom.current && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, isOpen])
 
-  // Load messages when opening
+  // Initial load and mark as read
   useEffect(() => {
     if (isOpen) {
       fetchMessages()
@@ -119,13 +279,17 @@ export default function EditorialChat() {
       }
       setUnreadCount(0)
     }
-  }, [isOpen, fetchMessages])
+  }, [isOpen])
 
-  // Poll for new messages
+  // Polling fallback
   useEffect(() => {
-    const interval = setInterval(() => fetchMessages(true), isOpen ? 3000 : 15000)
-    fetchMessages(true)
-    return () => clearInterval(interval)
+    const pollInterval = setInterval(() => {
+      fetchMessages({ silent: true })
+      if (isOpen) fetchTyping()
+    }, isOpen ? 5000 : 30000)
+
+    fetchMessages({ silent: true })
+    return () => clearInterval(pollInterval)
   }, [fetchMessages, isOpen])
 
   // Mark as read
@@ -142,97 +306,154 @@ export default function EditorialChat() {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Panel */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
+        <div className="absolute bottom-16 right-0 w-96 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in">
           {/* Header */}
-          <div className="px-4 py-2.5 border-b border-gray-100 bg-white flex items-center gap-2">
-            <Hash className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-900">redaktion-general</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-auto" />
-            <span className="text-[10px] font-mono text-gray-400">{messages.length}</span>
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-gray-50 dark:from-gray-800 to-white dark:to-gray-900 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Hash className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">redaktion-general</span>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => fetchMessages()}
+                className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 ml-1">{messages.length}</span>
+            </div>
           </div>
 
-          {/* Messages */}
-          <div ref={scrollRef} className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
-            {loading && messages.length === 0 ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center py-8 text-sm text-gray-400">
-                Inga meddelanden än
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className="flex gap-2.5 group">
-                  {/* Avatar */}
-                  <div className="w-7 h-7 rounded-md bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 shrink-0 overflow-hidden">
-                    {msg.user.avatar ? (
-                      <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      getInitials(msg.user.name)
-                    )}
-                  </div>
+          {/* Settings dropdown */}
+          {showSettings && (
+            <div className="absolute top-14 right-4 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-2 z-50">
+              <button
+                onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
+              >
+                {settings.soundEnabled ? (
+                  <Volume2 className="w-4 h-4" />
+                ) : (
+                  <VolumeX className="w-4 h-4" />
+                )}
+                <span>Ljud {settings.soundEnabled ? 'på' : 'av'}</span>
+              </button>
+            </div>
+          )}
 
-                  {/* Content */}
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xs font-semibold text-gray-900 truncate">{msg.user.name}</span>
-                      <span className="text-[10px] text-gray-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                        {formatTime(msg.timestamp)}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-700 leading-relaxed break-words">
-                      {msg.text}
-                    </div>
-                  </div>
+          {/* Messages container */}
+          <div className="relative h-96">
+            {/* Thread panel overlay */}
+            {activeThread && (
+              <ThreadPanel
+                parentMessage={activeThread}
+                users={users}
+                onClose={() => setActiveThread(null)}
+                onReact={handleReact}
+              />
+            )}
+
+            {/* Main message list */}
+            <div
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="h-full overflow-y-auto p-4 space-y-1 bg-gradient-to-b from-gray-50/30 dark:from-gray-800/30 to-white dark:to-gray-900"
+            >
+              {/* Load more button */}
+              {hasMore && (
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="w-full py-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center gap-2"
+                >
+                  {loadingMore ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    'Ladda äldre meddelanden'
+                  )}
+                </button>
+              )}
+
+              {loading && messages.length === 0 ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
                 </div>
-              ))
+              ) : messages.length === 0 ? (
+                <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">
+                  Inga meddelanden än
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <ChatMessage
+                    key={msg.id}
+                    message={msg}
+                    users={users}
+                    onReact={handleReact}
+                    onOpenThread={setActiveThread}
+                  />
+                ))
+              )}
+            </div>
+
+            {/* Typing indicator */}
+            {typingUsers.length > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pt-4">
+                <TypingIndicator users={typingUsers} />
+              </div>
+            )}
+
+            {/* New message button */}
+            {showNewMessageButton && (
+              <button
+                onClick={() => scrollToBottom()}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black text-xs rounded-full shadow-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors animate-bounce-in"
+              >
+                <ArrowDown className="w-3 h-3" />
+                Nya meddelanden
+              </button>
             )}
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t border-gray-100 bg-white">
-            <div className="relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Skriv ett meddelande..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-gray-300 transition-all placeholder:text-gray-400"
-                disabled={sending}
-              />
-              <button
-                onClick={handleSend}
-                disabled={sending || !input.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-black disabled:opacity-40 disabled:hover:text-gray-400 transition-colors"
-              >
-                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </button>
-            </div>
+          <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <ChatInput
+              users={users}
+              onSend={handleSend}
+              onTyping={handleTyping}
+              sending={sending}
+            />
           </div>
         </div>
       )}
 
       {/* Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+        onClick={() => {
+          setIsOpen(!isOpen)
+          setShowSettings(false)
+        }}
+        className={`w-14 h-14 rounded-2xl shadow-xl flex items-center justify-center transition-all duration-300 ${
           isOpen
-            ? 'bg-gray-100 hover:bg-gray-200'
-            : 'bg-black hover:bg-gray-800 hover:scale-105'
+            ? 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rotate-0'
+            : 'bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 hover:scale-105'
         }`}
       >
         {isOpen ? (
-          <ChevronDown className="w-5 h-5 text-gray-600" />
+          <ChevronDown className="w-6 h-6 text-gray-600 dark:text-gray-400" />
         ) : (
           <>
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            {/* Unread badge */}
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}

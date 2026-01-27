@@ -1,7 +1,7 @@
-// Slack message parsing utilities
+// Slack message parsing utilities - Enhanced version
 
-// Common Slack emoji mappings
-const EMOJI_MAP: Record<string, string> = {
+// Common Slack emoji mappings (expanded)
+export const EMOJI_MAP: Record<string, string> = {
   // Faces
   'smile': '😄', 'smiley': '😃', 'grinning': '😀', 'blush': '😊',
   'relaxed': '☺️', 'wink': '😉', 'heart_eyes': '😍', 'kissing_heart': '😘',
@@ -53,104 +53,63 @@ const EMOJI_MAP: Record<string, string> = {
   'candy': '🍬', 'lollipop': '🍭', 'ice_cream': '🍨', 'doughnut': '🍩',
   'apple': '🍎', 'green_apple': '🍏', 'banana': '🍌', 'orange': '🍊',
   'rocket': '🚀', 'airplane': '✈️', 'car': '🚗', 'taxi': '🚕',
-  'bus': '🚌', 'ambulance': '🚑', 'fire_engine': '🚒', 'police_car': '🚓',
-  'bike': '🚲', 'ship': '🚢', 'phone': '📱', 'computer': '💻',
-  'keyboard': '⌨️', 'desktop_computer': '🖥️', 'printer': '🖨️',
-  'camera': '📷', 'video_camera': '📹', 'movie_camera': '🎥',
-  'tv': '📺', 'radio': '📻', 'speaker': '🔊', 'mute': '🔇',
-  'bell': '🔔', 'no_bell': '🔕', 'mega': '📣', 'loudspeaker': '📢',
-  'bulb': '💡', 'flashlight': '🔦', 'book': '📖', 'books': '📚',
-  'bookmark': '🔖', 'link': '🔗', 'paperclip': '📎', 'scissors': '✂️',
-  'lock': '🔒', 'unlock': '🔓', 'key': '🔑', 'hammer': '🔨',
-  'wrench': '🔧', 'gear': '⚙️', 'bomb': '💣', 'gun': '🔫',
+  'tada': '🎉', 'party_popper': '🎉', 'confetti_ball': '🎊',
+  'balloon': '🎈', 'gift': '🎁', 'ribbon': '🎀',
   'trophy': '🏆', 'medal_sports': '🏅', 'medal_military': '🎖️',
   'crown': '👑', 'gem': '💎', 'moneybag': '💰', 'dollar': '💵',
-  'credit_card': '💳', 'chart': '💹', 'chart_with_upwards_trend': '📈',
-  'chart_with_downwards_trend': '📉', 'envelope': '✉️', 'email': '📧',
-  'inbox_tray': '📥', 'outbox_tray': '📤', 'package': '📦',
-  'date': '📅', 'calendar': '📆', 'spiral_calendar': '🗓️',
-  'memo': '📝', 'pencil': '✏️', 'pencil2': '✏️', 'pen': '🖊️',
-  'clipboard': '📋', 'pushpin': '📌', 'round_pushpin': '📍',
-  'triangular_flag_on_post': '🚩', 'white_flag': '🏳️', 'checkered_flag': '🏁',
+  'bulb': '💡', 'book': '📖', 'books': '📚', 'memo': '📝',
+  'pencil': '✏️', 'pencil2': '✏️', 'pen': '🖊️',
+  'link': '🔗', 'paperclip': '📎', 'scissors': '✂️',
+  'lock': '🔒', 'unlock': '🔓', 'key': '🔑',
+  'phone': '📱', 'computer': '💻', 'keyboard': '⌨️',
 
   // Status & Misc
   'white_check_mark': '✅', 'check': '✔️', 'heavy_check_mark': '✔️',
   'x': '❌', 'negative_squared_cross_mark': '❎',
   'exclamation': '❗', 'question': '❓', 'grey_exclamation': '❕', 'grey_question': '❔',
-  'bangbang': '‼️', 'interrobang': '⁉️',
   'warning': '⚠️', 'no_entry': '⛔', 'no_entry_sign': '🚫',
-  'stop_sign': '🛑', 'construction': '🚧',
-  'sos': '🆘', 'information_source': 'ℹ️',
-  'arrow_right': '➡️', 'arrow_left': '⬅️', 'arrow_up': '⬆️', 'arrow_down': '⬇️',
-  'arrow_upper_right': '↗️', 'arrow_lower_right': '↘️',
-  'arrow_lower_left': '↙️', 'arrow_upper_left': '↖️',
-  'arrows_counterclockwise': '🔄', 'rewind': '⏪', 'fast_forward': '⏩',
-  'arrow_forward': '▶️', 'arrow_backward': '◀️',
-  'new': '🆕', 'top': '🔝', 'up': '🆙', 'cool': '🆒', 'free': '🆓',
-  'ok': '🆗', 'ng': '🆖', 'soon': '🔜', 'on': '🔛', 'end': '🔚', 'back': '🔙',
-  '100': '💯', '1234': '🔢',
-  'eyes': '👀', 'eye': '👁️', 'ear': '👂', 'nose': '👃', 'tongue': '👅', 'lips': '👄',
-  'brain': '🧠', 'bone': '🦴',
-  'dog': '🐶', 'cat': '🐱', 'mouse': '🐭', 'rabbit': '🐰', 'fox_face': '🦊',
-  'bear': '🐻', 'panda_face': '🐼', 'koala': '🐨', 'tiger': '🐯', 'lion': '🦁',
-  'cow': '🐮', 'pig': '🐷', 'frog': '🐸', 'monkey_face': '🐵', 'chicken': '🐔',
-  'penguin': '🐧', 'bird': '🐦', 'baby_chick': '🐤', 'eagle': '🦅', 'owl': '🦉',
-  'bat': '🦇', 'wolf': '🐺', 'horse': '🐴', 'unicorn': '🦄',
-  'bee': '🐝', 'bug': '🐛', 'butterfly': '🦋', 'snail': '🐌', 'spider': '🕷️',
-  'turtle': '🐢', 'snake': '🐍', 'lizard': '🦎', 'scorpion': '🦂',
-  'crab': '🦀', 'shrimp': '🦐', 'squid': '🦑', 'octopus': '🐙',
-  'whale': '🐳', 'dolphin': '🐬', 'fish': '🐟', 'tropical_fish': '🐠', 'shark': '🦈',
-  'crocodile': '🐊', 'elephant': '🐘', 'rhinoceros': '🦏', 'hippopotamus': '🦛',
-  'camel': '🐫', 'giraffe': '🦒', 'zebra': '🦓', 'gorilla': '🦍',
-  'dragon': '🐉', 'dragon_face': '🐲', 'dinosaur': '🦕', 't-rex': '🦖',
-
-  // Slack-specific
-  'tada': '🎉', 'party_popper': '🎉', 'confetti_ball': '🎊',
-  'balloon': '🎈', 'gift': '🎁', 'ribbon': '🎀',
-  'speech_balloon': '💬', 'thought_balloon': '💭',
-  'zzz': '💤', 'dizzy': '💫', 'sweat_drops': '💦', 'dash': '💨',
-  'poop': '💩', 'hankey': '💩', 'shit': '💩',
-  'skull': '💀', 'skull_and_crossbones': '☠️', 'ghost': '👻',
-  'alien': '👽', 'robot': '🤖', 'jack_o_lantern': '🎃',
-  'smiley_cat': '😺', 'smile_cat': '😸', 'joy_cat': '😹', 'heart_eyes_cat': '😻',
-  'smirk_cat': '😼', 'kissing_cat': '😽', 'scream_cat': '🙀',
-  'crying_cat_face': '😿', 'pouting_cat': '😾',
+  'eyes': '👀', 'eye': '👁️', 'ear': '👂',
+  '100': '💯', 'zzz': '💤', 'poop': '💩',
+  'skull': '💀', 'ghost': '👻', 'alien': '👽', 'robot': '🤖',
   'see_no_evil': '🙈', 'hear_no_evil': '🙉', 'speak_no_evil': '🙊',
+}
+
+// Popular reaction emojis for quick picker
+export const QUICK_REACTIONS = [
+  { name: 'thumbsup', emoji: '👍' },
+  { name: 'heart', emoji: '❤️' },
+  { name: 'joy', emoji: '😂' },
+  { name: 'fire', emoji: '🔥' },
+  { name: 'eyes', emoji: '👀' },
+  { name: 'tada', emoji: '🎉' },
+  { name: 'thinking_face', emoji: '🤔' },
+  { name: 'white_check_mark', emoji: '✅' },
+]
+
+// Extended emoji categories for picker
+export const EMOJI_CATEGORIES = {
+  'Vanliga': ['👍', '❤️', '😂', '🔥', '👀', '🎉', '🤔', '✅', '👎', '😢', '😮', '🙏'],
+  'Ansikten': ['😀', '😃', '😄', '😊', '😉', '😍', '🤩', '😎', '🥳', '😏', '😌', '😴', '🤔', '😕', '😢', '😭', '😱', '🤯', '😡'],
+  'Gester': ['👍', '👎', '👏', '🙌', '🤝', '✌️', '🤞', '💪', '🙏', '👋', '✋', '👊'],
+  'Hjärtan': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '💕', '💖', '💗'],
+  'Objekt': ['🔥', '⭐', '✨', '🎉', '🎊', '🎁', '🏆', '💡', '📌', '✅', '❌', '⚠️'],
 }
 
 // System message subtypes to filter out
 const SYSTEM_SUBTYPES = [
-  'channel_join',
-  'channel_leave',
-  'channel_topic',
-  'channel_purpose',
-  'channel_name',
-  'channel_archive',
-  'channel_unarchive',
-  'group_join',
-  'group_leave',
-  'group_topic',
-  'group_purpose',
-  'group_name',
-  'group_archive',
-  'group_unarchive',
-  'bot_add',
-  'bot_remove',
-  'file_share',
-  'file_comment',
-  'file_mention',
-  'pinned_item',
-  'unpinned_item',
+  'channel_join', 'channel_leave', 'channel_topic', 'channel_purpose',
+  'channel_name', 'channel_archive', 'channel_unarchive',
+  'group_join', 'group_leave', 'group_topic', 'group_purpose',
+  'group_name', 'group_archive', 'group_unarchive',
+  'bot_add', 'bot_remove', 'pinned_item', 'unpinned_item',
 ]
 
 // Check if message is a system message
 export function isSystemMessage(message: { subtype?: string; text?: string }): boolean {
-  // Check subtype
   if (message.subtype && SYSTEM_SUBTYPES.includes(message.subtype)) {
     return true
   }
 
-  // Check for common system message patterns in text
   const text = message.text || ''
   const systemPatterns = [
     /^<@\w+> has joined the channel$/,
@@ -159,7 +118,6 @@ export function isSystemMessage(message: { subtype?: string; text?: string }): b
     /^<@\w+> set the channel purpose/,
     /^<@\w+> added an integration/,
     /^<@\w+> removed an integration/,
-    /uploaded a file:/,
     /pinned a message/,
     /unpinned a message/,
   ]
@@ -178,10 +136,15 @@ export function parseEmoji(text: string): string {
 // Parse Slack user mentions <@U123ABC> to display names
 export function parseUserMentions(
   text: string,
-  userMap: Map<string, string>
+  userMap: Map<string, string> | Record<string, string>
 ): string {
+  const getUser = (id: string) => {
+    if (userMap instanceof Map) return userMap.get(id)
+    return userMap[id]
+  }
+
   return text.replace(/<@(\w+)>/g, (match, userId) => {
-    const userName = userMap.get(userId)
+    const userName = getUser(userId)
     return userName ? `@${userName}` : match
   })
 }
@@ -192,20 +155,26 @@ export function parseChannelMentions(text: string): string {
 }
 
 // Parse Slack links <url|text> or <url>
-export function parseLinks(text: string): string {
+export function parseLinks(text: string): { text: string; links: Array<{ url: string; text: string }> } {
+  const links: Array<{ url: string; text: string }> = []
+
   // Links with display text: <https://example.com|Example>
-  text = text.replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '[$2]($1)')
+  let parsed = text.replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, (_, url, linkText) => {
+    links.push({ url, text: linkText })
+    return `[${linkText}](${url})`
+  })
 
   // Links without display text: <https://example.com>
-  text = text.replace(/<(https?:\/\/[^>]+)>/g, '[$1]($1)')
+  parsed = parsed.replace(/<(https?:\/\/[^>]+)>/g, (_, url) => {
+    links.push({ url, text: url })
+    return `[${url}](${url})`
+  })
 
-  // Email links: <mailto:email@example.com|email@example.com>
-  text = text.replace(/<mailto:([^|>]+)\|([^>]+)>/g, '[$2](mailto:$1)')
+  // Email links
+  parsed = parsed.replace(/<mailto:([^|>]+)\|([^>]+)>/g, '[$2](mailto:$1)')
+  parsed = parsed.replace(/<mailto:([^>]+)>/g, '[$1](mailto:$1)')
 
-  // Email links without display text
-  text = text.replace(/<mailto:([^>]+)>/g, '[$1](mailto:$1)')
-
-  return text
+  return { text: parsed, links }
 }
 
 // Parse Slack special commands <!here>, <!channel>, <!everyone>
@@ -219,34 +188,28 @@ export function parseSpecialMentions(text: string): string {
     .replace(/<!everyone\|everyone>/g, '@alla')
 }
 
-// Parse Slack formatting to markdown
+// Parse Slack formatting to HTML-safe format
 export function parseSlackFormatting(text: string): string {
-  // Bold: *text* (but not if it's an emoji like :star:)
-  // Slack uses *text* for bold, which conflicts with markdown italic
-  // We'll convert to **text** for proper markdown bold
-  text = text.replace(/(?<![:\w])\*([^*\n]+)\*(?![:\w])/g, '**$1**')
+  // Bold: *text*
+  text = text.replace(/(?<![:\w])\*([^*\n]+)\*(?![:\w])/g, '<strong>$1</strong>')
 
   // Italic: _text_
-  text = text.replace(/(?<![:\w])_([^_\n]+)_(?![:\w])/g, '*$1*')
+  text = text.replace(/(?<![:\w])_([^_\n]+)_(?![:\w])/g, '<em>$1</em>')
 
   // Strikethrough: ~text~
-  text = text.replace(/~([^~\n]+)~/g, '~~$1~~')
+  text = text.replace(/~([^~\n]+)~/g, '<del>$1</del>')
 
   // Code: `text`
-  // Already markdown compatible
+  text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>')
 
   // Code block: ```text```
-  // Already markdown compatible
-
-  // Blockquote: > text (at start of line)
-  // Already markdown compatible
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
 
   return text
 }
 
 // Parse message from bot format "*UserName:* message" to extract user
 export function parseBotMessage(text: string): { userName: string | null; cleanText: string } {
-  // Match *UserName:* at the start, followed by the rest of the message
   const botMatch = text.match(/^\*([^:*]+):\*\s*([\s\S]*)$/)
   if (botMatch) {
     return {
@@ -260,24 +223,105 @@ export function parseBotMessage(text: string): { userName: string | null; cleanT
 // Full message parsing pipeline
 export function parseSlackMessage(
   text: string,
-  userMap: Map<string, string> = new Map()
-): string {
+  userMap: Map<string, string> | Record<string, string> = new Map()
+): { html: string; links: Array<{ url: string; text: string }> } {
   let parsed = text
 
-  // Order matters!
   parsed = parseSpecialMentions(parsed)
   parsed = parseUserMentions(parsed, userMap)
   parsed = parseChannelMentions(parsed)
-  parsed = parseLinks(parsed)
+
+  const { text: linkedText, links } = parseLinks(parsed)
+  parsed = linkedText
+
   parsed = parseSlackFormatting(parsed)
   parsed = parseEmoji(parsed)
 
-  return parsed
+  // Convert markdown links to HTML
+  parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>')
+
+  // Convert newlines to <br>
+  parsed = parsed.replace(/\n/g, '<br>')
+
+  return { html: parsed, links }
 }
 
 // Extract URLs from text for link previews
 export function extractUrls(text: string): string[] {
   const urlRegex = /https?:\/\/[^\s<>\[\]]+/g
   const matches = text.match(urlRegex) || []
-  return Array.from(new Set(matches)) // Remove duplicates
+  return Array.from(new Set(matches))
+}
+
+// Check if URL is an image
+export function isImageUrl(url: string): boolean {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+  const lowercaseUrl = url.toLowerCase()
+  return imageExtensions.some(ext => lowercaseUrl.includes(ext))
+}
+
+// Format relative time
+export function formatRelativeTime(timestamp: string): string {
+  const date = new Date(parseFloat(timestamp) * 1000)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'just nu'
+  if (diffMins < 60) return `${diffMins} min sedan`
+  if (diffHours < 24) return `${diffHours} tim sedan`
+  if (diffDays < 7) return `${diffDays} dagar sedan`
+
+  return date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })
+}
+
+// Format timestamp for display
+export function formatTime(ts: string): string {
+  const date = new Date(parseFloat(ts) * 1000)
+  return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+}
+
+// Format date header
+export function formatDateHeader(ts: string): string {
+  const date = new Date(parseFloat(ts) * 1000)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (date.toDateString() === today.toDateString()) return 'Idag'
+  if (date.toDateString() === yesterday.toDateString()) return 'Igår'
+
+  return date.toLocaleDateString('sv-SE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  })
+}
+
+// Get user initials from name
+export function getInitials(name: string): string {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+// Filter users for autocomplete
+export function filterUsersForMention(
+  query: string,
+  users: Record<string, string>
+): Array<{ id: string; name: string }> {
+  const lowerQuery = query.toLowerCase()
+  return Object.entries(users)
+    .filter(([_, name]) => name.toLowerCase().includes(lowerQuery))
+    .map(([id, name]) => ({ id, name }))
+    .slice(0, 8)
+}
+
+// Search emojis by name
+export function searchEmojis(query: string): Array<{ name: string; emoji: string }> {
+  const lowerQuery = query.toLowerCase()
+  return Object.entries(EMOJI_MAP)
+    .filter(([name]) => name.includes(lowerQuery))
+    .map(([name, emoji]) => ({ name, emoji }))
+    .slice(0, 20)
 }
