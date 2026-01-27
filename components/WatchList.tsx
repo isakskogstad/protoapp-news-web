@@ -36,9 +36,10 @@ function removeFromWatchlist(id: string): void {
 interface WatchListProps {
   companies?: WatchedCompany[]
   onAddCompany?: () => void
+  onCountChange?: (count: number) => void
 }
 
-export default function WatchList({ companies: propCompanies, onAddCompany }: WatchListProps) {
+export default function WatchList({ companies: propCompanies, onAddCompany, onCountChange }: WatchListProps) {
   const [companies, setCompanies] = useState<WatchedCompany[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,6 +53,11 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
       setCompanies(getWatchlist())
     }
   }, [propCompanies])
+
+  // Report count changes to parent
+  useEffect(() => {
+    onCountChange?.(companies.length)
+  }, [companies.length, onCountChange])
 
   const handleRemove = (id: string) => {
     removeFromWatchlist(id)

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, Hash, MessageSquare } from 'lucide-react'
+import { Send, Loader2, Hash, MessageSquare, Smile } from 'lucide-react'
+import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
 
 interface ChatMessage {
   id: string
@@ -13,6 +14,11 @@ interface ChatMessage {
     name: string
     avatar: string | null
   }
+  reactions?: Array<{
+    name: string
+    count: number
+    users: string[]
+  }>
 }
 
 interface InlineEditorialChatProps {
@@ -22,9 +28,11 @@ interface InlineEditorialChatProps {
 export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorialChatProps) {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [users, setUsers] = useState<Record<string, string>>({})
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Format timestamp
@@ -46,12 +54,33 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       if (!res.ok) throw new Error()
       const data = await res.json()
       setMessages(data.messages || [])
+      setUsers(data.users || {})
     } catch {
       // Silently fail
     } finally {
       if (!silent) setLoading(false)
     }
   }, [])
+
+  // Handle reaction
+  const handleReact = async (timestamp: string, emoji: string) => {
+    try {
+      await fetch('/api/slack/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp, emoji }),
+      })
+      await fetchMessages(true)
+    } catch {
+      // Silently fail
+    }
+    setShowEmojiPicker(null)
+  }
+
+  // Get emoji character from name
+  const getEmojiChar = (name: string): string => {
+    return EMOJI_MAP[name] || `:${name}:`
+  }
 
   // Send message
   const handleSend = async () => {
@@ -123,31 +152,77 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
             <p className="text-xs text-gray-400 dark:text-gray-500">Inga meddelanden än</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className="flex gap-2 group">
-              {/* Avatar */}
-              <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
-                {msg.user.avatar ? (
-                  <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  getInitials(msg.user.name)
+          messages.map((msg) => {
+            const { html } = parseSlackMessage(msg.text, users)
+            return (
+              <div key={msg.id} className="flex gap-2 group relative">
+                {/* Avatar */}
+                <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
+                  {msg.user.avatar ? (
+                    <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    getInitials(msg.user.name)
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-baseline gap-1.5 mb-0.5">
+                    <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 truncate">{msg.user.name.split(' ')[0]}</span>
+                    <span className="text-[9px] text-gray-400 dark:text-gray-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                      {formatTime(msg.timestamp)}
+                    </span>
+                  </div>
+                  {/* Message with markdown/emoji support */}
+                  <div
+                    className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+
+                  {/* Reactions */}
+                  {msg.reactions && msg.reactions.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {msg.reactions.map((reaction) => (
+                        <button
+                          key={reaction.name}
+                          onClick={() => handleReact(msg.id, reaction.name)}
+                          className="inline-flex items-center gap-0.5 px-1 py-0.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-[10px] transition-colors"
+                          title={reaction.users.map(id => users[id] || id).join(', ')}
+                        >
+                          <span>{getEmojiChar(reaction.name)}</span>
+                          <span className="text-gray-500 dark:text-gray-400">{reaction.count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Hover action - add reaction */}
+                <button
+                  onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
+                  className="absolute -top-1 right-0 p-1 bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <Smile className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                </button>
+
+                {/* Quick emoji picker */}
+                {showEmojiPicker === msg.id && (
+                  <div className="absolute -top-8 right-0 flex gap-0.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 z-10">
+                    {QUICK_REACTIONS.slice(0, 6).map(({ name, emoji }) => (
+                      <button
+                        key={name}
+                        onClick={() => handleReact(msg.id, name)}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-sm"
+                        title={name}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
-
-              {/* Content */}
-              <div className="flex flex-col min-w-0 flex-1">
-                <div className="flex items-baseline gap-1.5 mb-0.5">
-                  <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 truncate">{msg.user.name.split(' ')[0]}</span>
-                  <span className="text-[9px] text-gray-400 dark:text-gray-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                    {formatTime(msg.timestamp)}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words">
-                  {msg.text}
-                </div>
-              </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 

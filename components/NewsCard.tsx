@@ -23,17 +23,17 @@ export default function NewsCard({ item }: NewsCardProps) {
         <div className="flex gap-5">
           {/* Left column: Logo + Company info */}
           <div className="flex flex-col items-center w-20 flex-shrink-0">
-            {/* Logo with skeleton */}
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 mb-2 flex items-center justify-center">
+            {/* Logo - shown directly with rounded corners */}
+            <div className="relative w-14 h-14 mb-2 flex items-center justify-center">
               {/* Skeleton shimmer while loading */}
               {logoLoading && !logoError && (
-                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 skeleton-shimmer rounded-xl" />
+                <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
               )}
               {!logoError ? (
                 <img
                   src={logoUrl}
                   alt=""
-                  className={`w-full h-full object-contain p-1.5 transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                  className={`w-full h-full object-contain rounded-xl transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
                   onLoad={() => setLogoLoading(false)}
                   onError={() => {
                     setLogoError(true)
@@ -41,9 +41,11 @@ export default function NewsCard({ item }: NewsCardProps) {
                   }}
                 />
               ) : (
-                <span className="text-gray-300 dark:text-gray-600 font-semibold text-sm">
-                  {item.companyName.substring(0, 2).toUpperCase()}
-                </span>
+                <div className="w-full h-full rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <span className="text-gray-500 dark:text-gray-400 font-semibold text-sm">
+                    {item.companyName.substring(0, 2).toUpperCase()}
+                  </span>
+                </div>
               )}
             </div>
 

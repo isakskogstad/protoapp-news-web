@@ -72,16 +72,16 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       {/* Header */}
       <header className="mb-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+          <div className="relative w-14 h-14 flex-shrink-0 flex items-center justify-center">
             {/* Skeleton shimmer while loading */}
             {logoLoading && !logoError && (
-              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 skeleton-shimmer rounded-xl" />
+              <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
             )}
             {!logoError ? (
               <img
                 src={logoUrl}
                 alt=""
-                className={`w-full h-full object-contain p-2 transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                className={`w-full h-full object-contain rounded-xl transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
                 onLoad={() => setLogoLoading(false)}
                 onError={() => {
                   setLogoError(true)
@@ -89,9 +89,11 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 }}
               />
             ) : (
-              <span className="text-gray-400 dark:text-gray-500 font-bold text-sm">
-                {item.companyName.substring(0, 2).toUpperCase()}
-              </span>
+              <div className="w-full h-full rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <span className="text-gray-500 dark:text-gray-400 font-semibold text-sm">
+                  {item.companyName.substring(0, 2).toUpperCase()}
+                </span>
+              </div>
             )}
           </div>
 

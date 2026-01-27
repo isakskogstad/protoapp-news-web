@@ -481,25 +481,27 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
     }
   }
 
+  // Fallback: show initials in a subtle rounded container
   if (!url || error) {
     return (
-      <div className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium text-xs border border-gray-200 dark:border-gray-700`}>
+      <div className={`${sizeClasses[size]} rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 font-semibold text-xs`}>
         {initials}
       </div>
     )
   }
 
+  // Logo: show directly with rounded corners, no container
   return (
-    <div className={`${sizeClasses[size]} rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden relative`}>
+    <div className={`${sizeClasses[size]} relative flex-shrink-0`}>
       {loading && (
-        <div className="absolute inset-0 bg-gray-100 dark:bg-gray-700 skeleton-shimmer" />
+        <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-xl skeleton-shimmer" />
       )}
       {displayUrl && (
         <img
           src={displayUrl}
           alt=""
           crossOrigin="anonymous"
-          className={`w-full h-full object-contain p-1.5 transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
+          className={`w-full h-full object-contain rounded-xl transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
           onLoad={handleLoad}
           onError={() => { setError(true); setLoading(false) }}
         />
@@ -609,6 +611,103 @@ function formatSmartTime(dateString: string): SmartTime {
   } catch {
     return { text: dateString, isRecent: false, isToday: false }
   }
+}
+
+// Timeline period types
+type TimelinePeriod = 'minutes' | 'hours' | 'today' | 'yesterday' | 'thisWeek' | 'older'
+
+// Get timeline period for a date
+function getTimelinePeriod(dateString: string): TimelinePeriod {
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    // Under 1 hour: minutes
+    if (diffMins < 60) return 'minutes'
+
+    // Same day: hours
+    const isToday = date.toDateString() === now.toDateString()
+    if (isToday) return 'hours'
+
+    // Yesterday
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (date.toDateString() === yesterday.toDateString()) return 'yesterday'
+
+    // This week (within 7 days)
+    if (diffDays < 7) return 'thisWeek'
+
+    // Older
+    return 'older'
+  } catch {
+    return 'older'
+  }
+}
+
+// Format timeline label for a period
+function getTimelinePeriodLabel(period: TimelinePeriod): string {
+  switch (period) {
+    case 'minutes': return 'Senaste timmen'
+    case 'hours': return 'Idag'
+    case 'today': return 'Idag'
+    case 'yesterday': return 'Igår'
+    case 'thisWeek': return 'Denna vecka'
+    case 'older': return 'Tidigare'
+  }
+}
+
+// Timeline marker component
+function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean }) {
+  return (
+    <div className={`flex items-center gap-3 ${isFirst ? '' : 'mt-2'}`}>
+      <div className="w-16 flex justify-end">
+        <span className="text-[10px] font-mono font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+          {label}
+        </span>
+      </div>
+      <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 ring-4 ring-gray-100 dark:ring-gray-900" />
+      <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent" />
+    </div>
+  )
+}
+
+// Timeline item wrapper
+function TimelineItemWrapper({
+  children,
+  isLast,
+  showDot = true
+}: {
+  children: React.ReactNode
+  isLast: boolean
+  showDot?: boolean
+}) {
+  return (
+    <div className="flex">
+      {/* Timeline column */}
+      <div className="w-16 shrink-0 flex flex-col items-end pr-3 relative">
+        {/* Vertical line */}
+        {!isLast && (
+          <div className="absolute right-[11px] top-3 bottom-0 w-px bg-gray-200 dark:bg-gray-800" />
+        )}
+      </div>
+
+      {/* Dot */}
+      <div className="shrink-0 relative z-10">
+        {showDot && (
+          <div className="w-2 h-2 mt-5 rounded-full bg-gray-300 dark:bg-gray-700" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 pl-3">
+        {children}
+      </div>
+    </div>
+  )
 }
 
 // Allowed kungörelse categories (only Konkurs and Kallelse are news-worthy)
@@ -827,6 +926,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const [sseConnected, setSseConnected] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [, forceUpdate] = useState({})
+  const [watchlistCount, setWatchlistCount] = useState(0)
   const loaderRef = useRef<HTMLDivElement>(null)
   const offset = useRef(initialItems.length)
 
@@ -1044,13 +1144,43 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 )}
               </div>
             ) : (
-              filteredItems.map((item) => (
-                <NewsItemCard
-                  key={item.id}
-                  item={item}
-                  onBookmarkChange={() => forceUpdate({})}
-                />
-              ))
+              (() => {
+                // Group items by timeline period and render with markers
+                let lastPeriod: TimelinePeriod | null = null
+                const elements: React.ReactNode[] = []
+
+                filteredItems.forEach((item, index) => {
+                  const period = getTimelinePeriod(item.timestamp)
+                  const isLastItem = index === filteredItems.length - 1
+
+                  // Add period marker when period changes
+                  if (period !== lastPeriod) {
+                    elements.push(
+                      <TimelineMarker
+                        key={`marker-${period}-${index}`}
+                        label={getTimelinePeriodLabel(period)}
+                        isFirst={lastPeriod === null}
+                      />
+                    )
+                    lastPeriod = period
+                  }
+
+                  // Add the news item wrapped in timeline
+                  elements.push(
+                    <TimelineItemWrapper
+                      key={item.id}
+                      isLast={isLastItem}
+                    >
+                      <NewsItemCard
+                        item={item}
+                        onBookmarkChange={() => forceUpdate({})}
+                      />
+                    </TimelineItemWrapper>
+                  )
+                })
+
+                return elements
+              })()
             )}
           </div>
 
@@ -1083,6 +1213,8 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
               title="Kommande händelser"
               icon={<Calendar className="w-4 h-4" />}
               actionLabel="Kalender"
+              itemCount={upcomingEvents.length}
+              collapsible={true}
             >
               <UpcomingEvents events={upcomingEvents} maxItems={5} />
             </SidebarWidget>
@@ -1092,8 +1224,13 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
               title="Bevakningslista"
               icon={<Eye className="w-4 h-4" />}
               actionLabel="Alla"
+              itemCount={watchlistCount}
+              collapsible={true}
             >
-              <WatchList companies={sampleWatchedCompanies} />
+              <WatchList
+                companies={sampleWatchedCompanies}
+                onCountChange={setWatchlistCount}
+              />
             </SidebarWidget>
 
             {/* Quick Stats */}
