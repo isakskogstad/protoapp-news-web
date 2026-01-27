@@ -9,6 +9,7 @@ import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
 import StyrelseFaktaruta from './StyrelseFaktaruta'
 import KallelseFaktaruta from './KallelseFaktaruta'
+import BolagsfaktaModule from './BolagsfaktaModule'
 import ShareToChat from './ShareToChat'
 import NewsSidebar from './NewsSidebar'
 
@@ -59,8 +60,11 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   const hasKonkurs = !!item.konkursFaktaruta
   const hasStyrelse = !!item.styrelseFaktaruta
 
-  // Check if we have any left column content
-  const hasLeftColumnContent = hasPdf || hasKungorelse || hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
+  // Check if we have any specific left column content (faktarutor)
+  const hasSpecificLeftContent = hasPdf || hasKungorelse || hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
+
+  // Always show two-column layout - use BolagsfaktaModule as fallback
+  const hasLeftColumnContent = true // Always true - we show BolagsfaktaModule if nothing else
 
   return (
     <article className="animate-fade-in">
@@ -142,8 +146,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
       )}
 
-      {/* Two-column layout for modules */}
-      {(hasLeftColumnContent || showNewsSidebar) && (
+      {/* Two-column layout for modules - always show when sidebar is enabled */}
+      {showNewsSidebar && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
           {/* Left column: Protocol/Kungörelse + Faktarutor */}
           <div className="space-y-4">
@@ -245,6 +249,21 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
             {hasNyemission && <NyemissionFaktaruta data={item.nyemissionFaktaruta} />}
             {hasKonkurs && <KonkursFaktaruta data={item.konkursFaktaruta} />}
             {hasStyrelse && <StyrelseFaktaruta data={item.styrelseFaktaruta} />}
+
+            {/* Bolagsfakta - always show as fallback when no other faktaruta */}
+            {!hasSpecificLeftContent && (
+              <BolagsfaktaModule
+                orgNumber={item.orgNumber}
+                companyName={item.companyName}
+                initialData={item.bolagsInfo ? {
+                  vd: item.bolagsInfo.vd,
+                  anstallda: item.bolagsInfo.anstallda,
+                  omsattning: item.bolagsInfo.omsattning,
+                  omsattningAr: item.bolagsInfo.omsattningAr,
+                  startat: item.bolagsInfo.startat,
+                } : undefined}
+              />
+            )}
           </div>
 
           {/* Right column: News Sidebar (related news) - matches left column height */}
