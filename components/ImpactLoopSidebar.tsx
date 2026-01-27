@@ -6,7 +6,7 @@ import Image from 'next/image'
 interface Article {
   title: string
   url: string
-  source?: string
+  excerpt?: string
   publishedDate?: string
 }
 
@@ -17,8 +17,8 @@ interface ImpactLoopSidebarProps {
 export default function ImpactLoopSidebar({ companyName }: ImpactLoopSidebarProps) {
   const [articles, setArticles] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [searchUrl, setSearchUrl] = useState<string>('')
 
   useEffect(() => {
     // Trigger animation after mount
@@ -32,40 +32,24 @@ export default function ImpactLoopSidebar({ companyName }: ImpactLoopSidebarProp
 
   const fetchArticles = async () => {
     setIsLoading(true)
-    setError(null)
 
     try {
-      // First try Impact Loop proxy
-      const ilResponse = await fetch(`/api/impactloop?q=${encodeURIComponent(companyName)}&limit=5`, {
-        signal: AbortSignal.timeout(5000)
+      const response = await fetch(`/api/impactloop-search?q=${encodeURIComponent(companyName)}&limit=5`, {
+        signal: AbortSignal.timeout(10000)
       })
 
-      if (ilResponse.ok) {
-        const data = await ilResponse.json()
-        if (data.articles && data.articles.length > 0) {
-          setArticles(data.articles)
-          setIsLoading(false)
-          return
-        }
-      }
-    } catch (e) {
-      console.log('Impact Loop failed, trying fallback:', e)
-    }
-
-    // Fallback: Use our news search API
-    try {
-      const fallbackResponse = await fetch(`/api/news-search?q=${encodeURIComponent(companyName)}&limit=5`)
-
-      if (fallbackResponse.ok) {
-        const data = await fallbackResponse.json()
+      if (response.ok) {
+        const data = await response.json()
         setArticles(data.articles || [])
+        setSearchUrl(data.searchUrl || `https://www.impactloop.se/search?query=${encodeURIComponent(companyName)}`)
       } else {
         setArticles([])
+        setSearchUrl(`https://www.impactloop.se/search?query=${encodeURIComponent(companyName)}`)
       }
     } catch (e) {
-      console.error('Fallback search failed:', e)
-      setError('Kunde inte hämta nyheter')
+      console.error('Impact Loop search failed:', e)
       setArticles([])
+      setSearchUrl(`https://www.impactloop.se/search?query=${encodeURIComponent(companyName)}`)
     }
 
     setIsLoading(false)
@@ -94,7 +78,7 @@ export default function ImpactLoopSidebar({ companyName }: ImpactLoopSidebarProp
           </span>
         </div>
         <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-          Nyheter om {companyName}
+          Artiklar om {companyName}
         </p>
       </div>
 
@@ -103,63 +87,71 @@ export default function ImpactLoopSidebar({ companyName }: ImpactLoopSidebarProp
         {isLoading ? (
           <div className="py-8 flex flex-col items-center gap-2">
             <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-500 rounded-full animate-spin" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">Söker artiklar...</span>
-          </div>
-        ) : error ? (
-          <div className="py-6 text-center">
-            <p className="text-sm text-gray-400 dark:text-gray-500">{error}</p>
+            <span className="text-xs text-gray-400 dark:text-gray-500">Söker på impactloop.se...</span>
           </div>
         ) : articles.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="text-sm text-gray-400 dark:text-gray-500">
+            <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">
               Inga artiklar hittades
             </p>
+            <a
+              href={searchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Sök på Impact Loop
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </div>
         ) : (
-          <ul className="space-y-3">
-            {articles.map((article, i) => (
-              <li
-                key={i}
-                className={`
-                  transition-all duration-300 ease-out
-                  ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-                `}
-                style={{ transitionDelay: `${150 + i * 75}ms` }}
-              >
-                <a
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 -mx-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+          <>
+            <ul className="space-y-3">
+              {articles.map((article, i) => (
+                <li
+                  key={i}
+                  className={`
+                    transition-all duration-300 ease-out
+                    ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
+                  `}
+                  style={{ transitionDelay: `${150 + i * 75}ms` }}
                 >
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug">
-                    {article.title}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {article.source && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {article.source}
-                      </span>
-                    )}
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 -mx-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug">
+                      {article.title}
+                    </p>
                     {article.publishedDate && (
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                         {article.publishedDate}
-                      </span>
+                      </p>
                     )}
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+                  </a>
+                </li>
+              ))}
+            </ul>
 
-        {/* Article count */}
-        {!isLoading && !error && articles.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-              {articles.length} artikel{articles.length !== 1 ? 'ar' : ''} hittade
-            </p>
-          </div>
+            {/* Link to full search */}
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <a
+                href={searchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                Visa alla på Impact Loop
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </>
         )}
       </div>
     </aside>

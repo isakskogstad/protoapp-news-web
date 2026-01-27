@@ -2,7 +2,8 @@
 
 import Image from 'next/image'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
-import { formatDate, formatSignalName, getLogoUrl, detectEventType } from '@/lib/utils'
+import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
+import NewsCoverage from './NewsCoverage'
 
 interface NewsDetailProps {
   item: NewsItem
@@ -78,37 +79,8 @@ export default function NewsDetail({ item }: NewsDetailProps) {
         </div>
       )}
 
-      {/* Signals */}
-      {item.signals?.detekterade && item.signals.detekterade.length > 0 && (
-        <section className="mb-8">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-            Signaler
-          </h3>
-          <div className="space-y-2">
-            {item.signals.detekterade.map((signal, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                  signal.styrka === 'stark' ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300' :
-                  signal.styrka === 'medel' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300' :
-                  'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                }`}>
-                  {signal.styrka || '—'}
-                </span>
-                <div>
-                  <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                    {formatSignalName(signal.signal)}
-                  </p>
-                  {signal.motivering && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {signal.motivering}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* News Coverage */}
+      <NewsCoverage companyName={item.companyName} />
 
       {/* Calculations */}
       {item.calculations && Object.keys(item.calculations).length > 0 && (
