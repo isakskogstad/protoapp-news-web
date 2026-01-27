@@ -11,16 +11,16 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
   if (!data) return null
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-red-200 dark:border-red-900 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-red-200 dark:border-red-900 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
       {/* Header with warning */}
-      <div className="px-4 py-3 border-b border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/30 flex items-center gap-2">
+      <div className="px-4 py-3 border-b border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/30 flex items-center gap-2 shrink-0">
         <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
           <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
         </div>
         <h3 className="text-sm font-bold text-red-900 dark:text-red-300">Konkursbeslut</h3>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex-1">
         {/* Facts list */}
         <div className="space-y-3">
           {/* Beslutsdatum */}

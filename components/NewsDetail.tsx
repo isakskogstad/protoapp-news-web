@@ -148,9 +148,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* Two-column layout for modules - always show when sidebar is enabled */}
       {showNewsSidebar && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
           {/* Left column: Protocol/Kungörelse + Faktarutor */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col min-h-[200px]">
             {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
             {hasPdf && pdfExists && (
               <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
@@ -268,7 +268,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
           {/* Right column: News Sidebar (related news) - matches left column height */}
           {showNewsSidebar && (
-            <div className="lg:self-stretch">
+            <div className="flex flex-col min-h-[200px]">
               <NewsSidebar companyName={item.companyName} matchHeight />
             </div>
           )}

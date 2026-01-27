@@ -57,14 +57,14 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
             <Building2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
           </div>
           <h3 className="text-sm font-bold text-black dark:text-white">Bolagsfakta</h3>
         </div>
-        <div className="p-8 flex items-center justify-center">
+        <div className="p-8 flex items-center justify-center flex-1">
           <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
         </div>
       </div>
@@ -75,16 +75,16 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
   const hasData = data && (data.vd || data.ordforande || data.anstallda || data.omsattning || data.startat || data.bransch)
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
         <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
           <Building2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
         </div>
         <h3 className="text-sm font-bold text-black dark:text-white">Bolagsfakta</h3>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex-1">
         {/* Always show org number */}
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
           <span className="text-sm font-bold text-black dark:text-white">{companyName}</span>

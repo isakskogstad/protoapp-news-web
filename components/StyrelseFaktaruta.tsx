@@ -18,7 +18,7 @@ export default function StyrelseFaktaruta({ data }: StyrelseFaktarutaProps) {
   if (!hasNewMembers && !hasLeavingMembers && !hasNewChairman) return null
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -27,7 +27,7 @@ export default function StyrelseFaktaruta({ data }: StyrelseFaktarutaProps) {
         <h3 className="text-sm font-bold text-black dark:text-white">Styrelseförändringar</h3>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 flex-1">
         {/* New chairman */}
         {hasNewChairman && (
           <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg px-3 py-2.5">

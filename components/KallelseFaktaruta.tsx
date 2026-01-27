@@ -37,16 +37,16 @@ END:VCALENDAR`
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
         <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
           <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
         </div>
         <h3 className="text-sm font-bold text-black dark:text-white">Kallelse till stämma</h3>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex-1">
         {/* Meeting type badge */}
         <div className="mb-4">
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">

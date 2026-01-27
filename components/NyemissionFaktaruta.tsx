@@ -15,7 +15,7 @@ export default function NyemissionFaktaruta({ data }: NyemissionFaktarutaProps) 
   const isHighDilution = !isNaN(utspädningValue) && utspädningValue > 20
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
@@ -24,7 +24,7 @@ export default function NyemissionFaktaruta({ data }: NyemissionFaktarutaProps) 
         <h3 className="text-sm font-bold text-black dark:text-white">Nyemission</h3>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 flex-1">
         {/* Facts grid */}
         <div className="space-y-3">
           {/* Emissionstyp */}

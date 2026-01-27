@@ -96,7 +96,7 @@ export default function NewsSidebar({ companyName, matchHeight = false }: NewsSi
     >
       {/* News Coverage Module - Only show if articles exist */}
       {!newsLoading && newsArticles.length > 0 && (
-        <section className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 min-h-0' : ''}`} style={matchHeight ? undefined : { maxHeight: '280px' }}>
+        <section className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 h-full' : ''}`} style={matchHeight ? { minHeight: '200px' } : { maxHeight: '280px' }}>
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
