@@ -841,51 +841,52 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   return (
     <Link href={`/news/${item.id}`} className="block group">
       <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-5">
-        {/* Time - top left */}
-        <p className={`absolute top-3 left-4 font-mono ${
-          timeInfo.isRecent
-            ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
-            : timeInfo.isToday
-              ? 'text-[10px] text-gray-500 dark:text-gray-500'
-              : 'text-[9px] text-gray-400 dark:text-gray-600'
-        }`}>
-          {timeInfo.text}
-        </p>
+        {/* Top bar: Time (left) + Action buttons (right) */}
+        <div className="flex items-center justify-between mb-4">
+          <p className={`font-mono ${
+            timeInfo.isRecent
+              ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
+              : timeInfo.isToday
+                ? 'text-[10px] text-gray-500 dark:text-gray-500'
+                : 'text-[9px] text-gray-400 dark:text-gray-600'
+          }`}>
+            {timeInfo.text}
+          </p>
 
-        {/* Action buttons - top right, always visible */}
-        <div className="absolute top-3 right-4 flex items-center gap-1">
-          <button
-            onClick={handleBookmark}
-            className={`p-1.5 rounded-md transition-all ${
-              isBookmarked
-                ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-            title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
-          >
-            {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-          </button>
-
-          <div className="relative">
+          <div className="flex items-center gap-1">
             <button
-              onClick={handleShare}
-              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              title="Dela"
+              onClick={handleBookmark}
+              className={`p-1.5 rounded-md transition-all ${
+                isBookmarked
+                  ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+              title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
             >
-              <Share2 className="w-4 h-4" />
+              {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
             </button>
 
-            {showShareMenu && (
-              <ShareMenu
-                url={newsUrl}
-                title={item.headline || item.companyName}
-                onClose={() => setShowShareMenu(false)}
-              />
-            )}
+            <div className="relative">
+              <button
+                onClick={handleShare}
+                className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                title="Dela"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+
+              {showShareMenu && (
+                <ShareMenu
+                  url={newsUrl}
+                  title={item.headline || item.companyName}
+                  onClose={() => setShowShareMenu(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-5 mt-5">
+        <div className="flex gap-5">
           {/* Left column: Vertical stack - Logo, Company, Org, Category */}
           <div className="w-36 shrink-0 flex flex-col">
             {/* Logo - top, left-aligned */}
@@ -912,8 +913,8 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
             </span>
           </div>
 
-          {/* Right: Headline + Notice text (expanded, takes remaining width) */}
-          <div className="flex-1 min-w-0 pr-12">
+          {/* Right: Headline + Notice text (full width now) */}
+          <div className="flex-1 min-w-0">
             <h3 className="text-[15px] font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
