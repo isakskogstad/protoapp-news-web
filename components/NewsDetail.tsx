@@ -157,142 +157,141 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
       )}
 
-      {/* Two-column layout for modules - always show when sidebar is enabled */}
-      {showNewsSidebar && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-          {/* Left column: Protocol/Kungörelse + Faktarutor */}
-          <div className="space-y-4 flex flex-col min-h-[200px]">
-            {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
-            {hasPdf && pdfExists && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-                {/* PDF Header */}
-                <button
-                  onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
-                  className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                      <FileText className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div className="text-left">
-                      <h3 className="text-sm font-bold text-black dark:text-white">Protokoll</h3>
-                      <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400">{item.companyName}</p>
-                    </div>
+      {/* Two-column layout for modules - always show */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
+        {/* Left column */}
+        <div className="flex flex-col min-h-[200px]">
+          {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
+          {hasPdf && pdfExists && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
+              {/* PDF Header */}
+              <button
+                onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
+                className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer shrink-0"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <FileText className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Ladda ner
-                    </a>
-                    {pdfExpanded ? (
-                      <Minimize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    ) : (
-                      <Maximize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    )}
+                  <div className="text-left">
+                    <h3 className="text-sm font-bold text-black dark:text-white">Protokoll</h3>
+                    <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400">{item.companyName}</p>
                   </div>
-                </button>
-
-                {/* PDF Content - 200px collapsed, 600px expanded */}
-                <div
-                  className="relative bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out cursor-pointer"
-                  style={{ height: pdfExpanded ? '600px' : '200px' }}
-                  onClick={() => !pdfExpanded && setPdfExpanded(true)}
-                >
-                  {/* Loading state */}
-                  {pdfLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">Laddar...</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PDF iframe */}
-                  <iframe
-                    src={`${item.sourceUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                    className={`w-full h-full border-0 transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
-                    onLoad={() => setPdfLoading(false)}
-                    onError={() => {
-                      setPdfLoading(false)
-                      setPdfError(true)
-                    }}
-                    title="PDF-dokument"
-                  />
-
-                  {/* Expand overlay when collapsed */}
-                  {!pdfExpanded && !pdfLoading && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 dark:from-gray-900/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
-                        Klicka för att visa hela dokumentet
-                      </span>
-                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={item.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Ladda ner
+                  </a>
+                  {pdfExpanded ? (
+                    <Minimize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   )}
                 </div>
-              </div>
-            )}
+              </button>
 
-            {/* Inline Kungörelse text (if source type is kungorelse) */}
-            {hasKungorelse && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              {/* PDF Content - 200px collapsed, 600px expanded */}
+              <div
+                className="relative bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out cursor-pointer flex-1"
+                style={{ minHeight: pdfExpanded ? '600px' : '200px' }}
+                onClick={() => !pdfExpanded && setPdfExpanded(true)}
+              >
+                {/* Loading state */}
+                {pdfLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">Laddar...</p>
+                    </div>
                   </div>
-                  <h3 className="text-sm font-bold text-black dark:text-white">Kungörelse</h3>
-                </div>
-                <div className="p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap">
-                    {item.noticeText}
-                  </p>
-                </div>
+                )}
+
+                {/* PDF iframe */}
+                <iframe
+                  src={`${item.sourceUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                  className={`w-full h-full border-0 transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setPdfLoading(false)}
+                  onError={() => {
+                    setPdfLoading(false)
+                    setPdfError(true)
+                  }}
+                  title="PDF-dokument"
+                />
+
+                {/* Expand overlay when collapsed */}
+                {!pdfExpanded && !pdfLoading && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/90 dark:from-gray-900/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+                      Klicka för att visa hela dokumentet
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Faktarutor - only render if data exists */}
-            {hasKallelse && <KallelseFaktaruta data={item.kallelseFaktaruta} />}
-            {hasNyemission && <NyemissionFaktaruta data={item.nyemissionFaktaruta} />}
-            {hasKonkurs && <KonkursFaktaruta data={item.konkursFaktaruta} />}
-            {hasStyrelse && <StyrelseFaktaruta data={item.styrelseFaktaruta} />}
-
-            {/* Bolagsfakta - always show as fallback when no other faktaruta */}
-            {!hasSpecificLeftContent && (
-              <BolagsfaktaModule
-                orgNumber={item.orgNumber}
-                companyName={item.companyName}
-                initialData={item.bolagsInfo ? {
-                  vd: item.bolagsInfo.vd,
-                  anstallda: item.bolagsInfo.anstallda,
-                  omsattning: item.bolagsInfo.omsattning,
-                  omsattningAr: item.bolagsInfo.omsattningAr,
-                  startat: item.bolagsInfo.startat,
-                } : undefined}
-              />
-            )}
-
-            {/* Årsredovisningar - show when no other faktaruta (to ensure at least 2 modules) */}
-            {!hasSpecificLeftContent && (
-              <ArsredovisningarModule
-                orgNumber={item.orgNumber}
-                companyName={item.companyName}
-              />
-            )}
-          </div>
-
-          {/* Right column: News Sidebar (related news) - matches left column height */}
-          {showNewsSidebar && (
-            <div className="flex flex-col min-h-[200px]">
-              <NewsSidebar companyName={item.companyName} matchHeight />
             </div>
           )}
+
+          {/* Inline Kungörelse text (if source type is kungorelse) */}
+          {hasKungorelse && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-sm font-bold text-black dark:text-white">Kungörelse</h3>
+              </div>
+              <div className="p-4 flex-1">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap">
+                  {item.noticeText}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Faktarutor - only render if data exists */}
+          {hasKallelse && <KallelseFaktaruta data={item.kallelseFaktaruta} />}
+          {hasNyemission && <NyemissionFaktaruta data={item.nyemissionFaktaruta} />}
+          {hasKonkurs && <KonkursFaktaruta data={item.konkursFaktaruta} />}
+          {hasStyrelse && <StyrelseFaktaruta data={item.styrelseFaktaruta} />}
+
+          {/* Bolagsfakta - show when no specific content */}
+          {!hasSpecificLeftContent && (
+            <BolagsfaktaModule
+              orgNumber={item.orgNumber}
+              companyName={item.companyName}
+              initialData={item.bolagsInfo ? {
+                vd: item.bolagsInfo.vd,
+                anstallda: item.bolagsInfo.anstallda,
+                omsattning: item.bolagsInfo.omsattning,
+                omsattningAr: item.bolagsInfo.omsattningAr,
+                startat: item.bolagsInfo.startat,
+              } : undefined}
+            />
+          )}
         </div>
-      )}
+
+        {/* Right column */}
+        <div className="flex flex-col min-h-[200px]">
+          {/* Show Årsredovisningar when no specific content (side by side with Bolagsfakta) */}
+          {!hasSpecificLeftContent && (
+            <ArsredovisningarModule
+              orgNumber={item.orgNumber}
+              companyName={item.companyName}
+            />
+          )}
+
+          {/* Show NewsSidebar when there IS specific content */}
+          {hasSpecificLeftContent && showNewsSidebar && (
+            <NewsSidebar companyName={item.companyName} matchHeight />
+          )}
+        </div>
+      </div>
 
     </article>
   )
