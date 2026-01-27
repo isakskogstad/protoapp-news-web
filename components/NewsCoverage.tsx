@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 interface Article {
   title: string
@@ -11,6 +12,56 @@ interface Article {
 
 interface NewsCoverageProps {
   companyName: string
+}
+
+// Swedish media source logos (favicon URLs)
+const mediaLogos: Record<string, string> = {
+  'Svenska Dagbladet': 'https://www.svd.se/favicon.ico',
+  'SvD': 'https://www.svd.se/favicon.ico',
+  'Dagens Nyheter': 'https://www.dn.se/favicon.ico',
+  'DN': 'https://www.dn.se/favicon.ico',
+  'Expressen': 'https://www.expressen.se/favicon.ico',
+  'Aftonbladet': 'https://www.aftonbladet.se/favicon.ico',
+  'Dagens Industri': 'https://www.di.se/favicon.ico',
+  'DI': 'https://www.di.se/favicon.ico',
+  'SVT Nyheter': 'https://www.svt.se/favicon.ico',
+  'SVT': 'https://www.svt.se/favicon.ico',
+  'TV4 Nyheterna': 'https://www.tv4.se/favicon.ico',
+  'TV4': 'https://www.tv4.se/favicon.ico',
+  'Göteborgs-Posten': 'https://www.gp.se/favicon.ico',
+  'GP': 'https://www.gp.se/favicon.ico',
+  'Sydsvenskan': 'https://www.sydsvenskan.se/favicon.ico',
+  'Breakit': 'https://www.breakit.se/favicon.ico',
+  'Realtid': 'https://www.realtid.se/favicon.ico',
+  'Placera': 'https://www.placera.se/favicon.ico',
+  'Avanza': 'https://www.avanza.se/favicon.ico',
+  'Nordnet': 'https://www.nordnet.se/favicon.ico',
+  'Omni': 'https://omni.se/favicon.ico',
+  'Omni Ekonomi': 'https://omni.se/favicon.ico',
+  'E24': 'https://e24.no/favicon.ico',
+  'TT': 'https://tt.se/favicon.ico',
+  'TT Nyhetsbyrån': 'https://tt.se/favicon.ico',
+  'Reuters': 'https://www.reuters.com/favicon.ico',
+  'Bloomberg': 'https://www.bloomberg.com/favicon.ico',
+  'Financial Times': 'https://www.ft.com/favicon.ico',
+  'FT': 'https://www.ft.com/favicon.ico',
+  'Nasdaq': 'https://www.nasdaq.com/favicon.ico',
+  'Yahoo Finance': 'https://finance.yahoo.com/favicon.ico',
+  'Google News': 'https://news.google.com/favicon.ico',
+}
+
+function getMediaLogo(source?: string): string | null {
+  if (!source) return null
+  // Try exact match first
+  if (mediaLogos[source]) return mediaLogos[source]
+  // Try partial match
+  for (const [key, url] of Object.entries(mediaLogos)) {
+    if (source.toLowerCase().includes(key.toLowerCase()) ||
+        key.toLowerCase().includes(source.toLowerCase())) {
+      return url
+    }
+  }
+  return null
 }
 
 export default function NewsCoverage({ companyName }: NewsCoverageProps) {
@@ -75,14 +126,9 @@ export default function NewsCoverage({ companyName }: NewsCoverageProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
           </svg>
         </div>
-        <div>
-          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-            Nyhetsbevakning
-          </h3>
-          <p className="text-xs text-blue-700 dark:text-blue-300">
-            {articles.length} artikel{articles.length !== 1 ? 'ar' : ''} om bolaget från det senaste dygnet
-          </p>
-        </div>
+        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+          Nyheter om {companyName}
+        </h3>
       </div>
 
       {/* Articles list */}
@@ -102,21 +148,42 @@ export default function NewsCoverage({ companyName }: NewsCoverageProps) {
               rel="noopener noreferrer"
               className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-lg hover:bg-blue-100/50 dark:hover:bg-blue-800/30 transition-colors group"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 mt-2 flex-shrink-0" />
+              {/* Media logo or fallback dot */}
+              {getMediaLogo(article.source) ? (
+                <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0 mt-0.5 bg-white">
+                  <img
+                    src={getMediaLogo(article.source)!}
+                    alt=""
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      target.parentElement!.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 m-auto"></div>'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                   {article.title}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   {article.source && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                       {article.source}
                     </span>
                   )}
                   {article.publishedDate && (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {article.publishedDate}
-                    </span>
+                    <>
+                      <span className="text-gray-300 dark:text-gray-600">·</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {article.publishedDate}
+                      </span>
+                    </>
                   )}
                 </div>
               </div>

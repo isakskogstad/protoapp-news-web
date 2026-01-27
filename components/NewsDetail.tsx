@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { useState } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
 import AddToCalendar from './AddToCalendar'
@@ -39,6 +39,7 @@ function isFutureEvent(item: NewsItem): boolean {
 }
 
 export default function NewsDetail({ item }: NewsDetailProps) {
+  const [logoError, setLogoError] = useState(false)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
@@ -49,20 +50,19 @@ export default function NewsDetail({ item }: NewsDetailProps) {
       {/* Header */}
       <header className="mb-8">
         <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
-            <Image
-              src={logoUrl}
-              alt=""
-              fill
-              className="object-contain p-2"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.style.display = 'none'
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center text-gray-300 dark:text-gray-600 font-medium">
-              {item.companyName.substring(0, 2).toUpperCase()}
-            </div>
+          <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
+            {!logoError ? (
+              <img
+                src={logoUrl}
+                alt=""
+                className="w-full h-full object-contain p-2"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <span className="text-gray-300 dark:text-gray-600 font-medium">
+                {item.companyName.substring(0, 2).toUpperCase()}
+              </span>
+            )}
           </div>
 
           <div className="flex-1">

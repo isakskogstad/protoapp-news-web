@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { useState } from 'react'
 import Link from 'next/link'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, detectEventType } from '@/lib/utils'
@@ -11,6 +11,7 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ item }: NewsCardProps) {
+  const [logoError, setLogoError] = useState(false)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
@@ -22,20 +23,19 @@ export default function NewsCard({ item }: NewsCardProps) {
           {/* Left column: Logo + Company info */}
           <div className="flex flex-col items-center w-20 flex-shrink-0">
             {/* Logo */}
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 mb-2">
-              <Image
-                src={logoUrl}
-                alt=""
-                fill
-                className="object-contain p-1.5"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center text-gray-300 dark:text-gray-600 font-semibold text-sm">
-                {item.companyName.substring(0, 2).toUpperCase()}
-              </div>
+            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 mb-2 flex items-center justify-center">
+              {!logoError ? (
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="w-full h-full object-contain p-1.5"
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <span className="text-gray-300 dark:text-gray-600 font-semibold text-sm">
+                  {item.companyName.substring(0, 2).toUpperCase()}
+                </span>
+              )}
             </div>
 
             {/* Company name */}
