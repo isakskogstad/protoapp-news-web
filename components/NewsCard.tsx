@@ -8,12 +8,9 @@ import ShareButton from './ShareButton'
 
 interface NewsCardProps {
   item: NewsItem
-  isFavorite?: boolean
-  onToggleFavorite?: (orgNumber: string) => void
-  impactLoopCount?: number
 }
 
-export default function NewsCard({ item, isFavorite, onToggleFavorite, impactLoopCount }: NewsCardProps) {
+export default function NewsCard({ item }: NewsCardProps) {
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
@@ -80,13 +77,6 @@ export default function NewsCard({ item, isFavorite, onToggleFavorite, impactLoo
               <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">
                 {item.orgNumber}
               </span>
-
-              {/* Impact Loop badge */}
-              {impactLoopCount !== undefined && impactLoopCount > 0 && (
-                <span className="text-[10px] px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                  {impactLoopCount} artiklar
-                </span>
-              )}
             </div>
           </div>
 
@@ -106,32 +96,9 @@ export default function NewsCard({ item, isFavorite, onToggleFavorite, impactLoo
         </div>
       </Link>
 
-      {/* Action buttons (outside link) */}
-      <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {/* Share button */}
+      {/* Share button (outside link) */}
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
         <ShareButton item={item} />
-
-        {/* Favorite button */}
-        {onToggleFavorite && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onToggleFavorite(item.orgNumber)
-            }}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label={isFavorite ? 'Ta bort favorit' : 'Lägg till favorit'}
-          >
-            <svg
-              className={`w-4 h-4 ${isFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`}
-              fill={isFavorite ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
-          </button>
-        )}
       </div>
     </article>
   )
