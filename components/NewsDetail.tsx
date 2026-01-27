@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
 import NewsCoverage from './NewsCoverage'
+import AddToCalendar from './AddToCalendar'
 
 interface NewsDetailProps {
   item: NewsItem
@@ -117,8 +118,16 @@ export default function NewsDetail({ item }: NewsDetailProps) {
         </section>
       )}
 
-      {/* Allabolag link */}
-      <section className="pt-4 border-t border-gray-100 dark:border-gray-800">
+      {/* Actions */}
+      <section className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-3">
+        <AddToCalendar
+          title={item.headline || `Händelse för ${item.companyName}`}
+          description={item.noticeText}
+          date={item.timestamp}
+          companyName={item.companyName}
+          eventType={eventConfig?.label}
+        />
+
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
           target="_blank"
