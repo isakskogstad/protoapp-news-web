@@ -1,7 +1,7 @@
 'use client'
 
 import { KallelseFaktaruta as KallelseFaktarutaType } from '@/lib/types'
-import AddToCalendar from './AddToCalendar'
+import { Calendar, Clock, MapPin, Plus } from 'lucide-react'
 
 interface KallelseFaktarutaProps {
   data?: KallelseFaktarutaType
@@ -10,82 +10,101 @@ interface KallelseFaktarutaProps {
 export default function KallelseFaktaruta({ data }: KallelseFaktarutaProps) {
   if (!data) return null
 
+  const handleAddToCalendar = () => {
+    // Create ICS file content
+    const startDate = parseSwedishDate(data.datum)
+    const title = `${data.stammatyp} - ${data.bolagsnamn}`
+    const location = data.plats || ''
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${formatICSDate(startDate)}
+DTEND:${formatICSDate(new Date(startDate.getTime() + 2 * 60 * 60 * 1000))}
+SUMMARY:${title}
+LOCATION:${location}
+DESCRIPTION:${data.stammatyp} för ${data.bolagsnamn}
+END:VEVENT
+END:VCALENDAR`
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${data.bolagsnamn}-stamma.ics`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700/50 rounded-xl p-4">
-      {/* Header with calendar icon */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+          <Calendar className="w-3.5 h-3.5 text-blue-600" />
         </div>
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Kallelse till stämma
-        </h3>
+        <h3 className="text-sm font-bold text-black">Kallelse till stämma</h3>
       </div>
 
-      {/* Meeting type badge */}
-      <div className="mb-4">
-        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-          {data.stammatyp}
-        </span>
-      </div>
+      <div className="p-4">
+        {/* Meeting type badge */}
+        <div className="mb-4">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
+            {data.stammatyp}
+          </span>
+        </div>
 
-      {/* Main info card */}
-      <div className="bg-slate-100 dark:bg-slate-800/40 rounded-lg px-4 py-3 mb-3">
-        <div className="flex items-start gap-3">
-          {/* Calendar visual */}
-          <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex flex-col items-center justify-center shadow-sm flex-shrink-0 border border-blue-200 dark:border-blue-800">
-            <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase">
-              {getMonthAbbr(data.datum)}
-            </span>
-            <span className="text-lg font-bold text-slate-900 dark:text-slate-100 -mt-0.5">
-              {getDayNumber(data.datum)}
-            </span>
-          </div>
+        {/* Main info card */}
+        <div className="bg-gray-50 rounded-lg px-4 py-3 mb-3 border border-gray-100">
+          <div className="flex items-start gap-3">
+            {/* Calendar visual */}
+            <div className="w-12 h-12 bg-white rounded-lg flex flex-col items-center justify-center shadow-sm flex-shrink-0 border border-gray-200">
+              <span className="text-[9px] font-mono font-bold text-blue-600 uppercase">
+                {getMonthAbbr(data.datum)}
+              </span>
+              <span className="text-lg font-bold text-black -mt-0.5">
+                {getDayNumber(data.datum)}
+              </span>
+            </div>
 
-          <div className="flex-1 min-w-0">
-            {/* Date and time */}
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {data.datum}
-            </p>
-            {data.tid && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {data.tid}
+            <div className="flex-1 min-w-0">
+              {/* Date and time */}
+              <p className="text-sm font-bold text-black">
+                {data.datum}
               </p>
-            )}
+              {data.tid && (
+                <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5 font-mono">
+                  <Clock className="w-3 h-3" />
+                  {data.tid}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Location */}
-      {data.plats && (
-        <div className="flex items-start gap-2.5">
-          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Plats</p>
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              {data.plats}
-            </p>
+        {/* Location */}
+        {data.plats && (
+          <div className="flex items-start gap-2.5 mb-3">
+            <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-mono text-gray-500 uppercase">Plats</p>
+              <p className="text-sm font-medium text-black">
+                {data.plats}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Add to calendar button */}
-      <div className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-700/50">
-        <AddToCalendar
-          title={`${data.stammatyp} - ${data.bolagsnamn}`}
-          description={`${data.stammatyp} för ${data.bolagsnamn}${data.plats ? `. Plats: ${data.plats}` : ''}`}
-          date={data.datum}
-          companyName={data.bolagsnamn}
-          eventType={data.stammatyp}
-        />
+        {/* Add to calendar button */}
+        <div className="pt-3 border-t border-gray-100">
+          <button
+            onClick={handleAddToCalendar}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Lägg till i kalender
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -93,10 +112,9 @@ export default function KallelseFaktaruta({ data }: KallelseFaktarutaProps) {
 
 // Helper functions to extract date parts
 function getMonthAbbr(dateStr: string): string {
-  const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAJ', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC']
 
   // Try to parse various date formats
-  // Format: "2024-03-15" or "15 mars 2024" or "15/3/2024"
   const isoMatch = dateStr.match(/^\d{4}-(\d{2})-\d{2}/)
   if (isoMatch) {
     const monthNum = parseInt(isoMatch[1], 10) - 1
@@ -134,4 +152,20 @@ function getDayNumber(dateStr: string): string {
   }
 
   return ''
+}
+
+function parseSwedishDate(dateStr: string): Date {
+  // Try ISO format first
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (isoMatch) {
+    return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]))
+  }
+
+  // Fallback to current date
+  return new Date()
+}
+
+function formatICSDate(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`
 }

@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
+import { FileText, ExternalLink, Clock, Building2, Download, Loader2, AlertCircle } from 'lucide-react'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
 import StyrelseFaktaruta from './StyrelseFaktaruta'
 import KallelseFaktaruta from './KallelseFaktaruta'
-import SourceViewerModal from './SourceViewerModal'
 import ShareToChat from './ShareToChat'
 
 interface NewsDetailProps {
@@ -18,30 +18,25 @@ interface NewsDetailProps {
 export default function NewsDetail({ item }: NewsDetailProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
-  const [showSourceModal, setShowSourceModal] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(true)
+  const [pdfError, setPdfError] = useState(false)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
 
   // Determine if we have a viewable source
-  const hasSource = item.sourceType === 'pdf' ? !!item.sourceUrl : item.sourceType === 'kungorelse'
-
-  // Get button text based on source type
-  const getSourceButtonText = () => {
-    if (item.sourceType === 'pdf') return 'Se protokoll'
-    if (item.sourceType === 'kungorelse') return 'Se kungörelse'
-    return 'Se källa'
-  }
+  const hasPdf = item.sourceType === 'pdf' && !!item.sourceUrl
+  const hasKungorelse = item.sourceType === 'kungorelse' && !!item.noticeText
 
   return (
     <article className="animate-fade-in">
       {/* Header */}
-      <header className="mb-8">
+      <header className="mb-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
+          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-200">
             {/* Skeleton shimmer while loading */}
             {logoLoading && !logoError && (
-              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 skeleton-shimmer rounded-xl" />
+              <div className="absolute inset-0 bg-gray-200 skeleton-shimmer rounded-xl" />
             )}
             {!logoError ? (
               <img
@@ -55,36 +50,44 @@ export default function NewsDetail({ item }: NewsDetailProps) {
                 }}
               />
             ) : (
-              <span className="text-gray-300 dark:text-gray-600 font-medium">
+              <span className="text-gray-400 font-bold text-sm">
                 {item.companyName.substring(0, 2).toUpperCase()}
               </span>
             )}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {eventConfig && (
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1.5">
                 <span
-                  className="text-xs px-2 py-0.5 rounded text-white font-medium"
-                  style={{ backgroundColor: eventConfig.color }}
+                  className="text-[10px] px-2 py-0.5 rounded font-mono font-medium uppercase tracking-wide"
+                  style={{ backgroundColor: `${eventConfig.color}15`, color: eventConfig.color }}
                 >
                   {eventConfig.label}
                 </span>
               </div>
             )}
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h1 className="text-xl font-bold text-black leading-tight">
               {item.companyName}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-              {item.orgNumber} · {formatDate(item.timestamp)}
-            </p>
+            <div className="flex items-center gap-3 mt-1 text-xs font-mono text-gray-500">
+              <span className="flex items-center gap-1">
+                <Building2 className="w-3 h-3" />
+                {item.orgNumber}
+              </span>
+              <span className="w-px h-3 bg-gray-300" />
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formatDate(item.timestamp)}
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Headline */}
       {item.headline && (
-        <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 leading-relaxed">
+        <h2 className="text-lg font-bold text-black mb-3 leading-snug">
           {item.headline}
         </h2>
       )}
@@ -92,35 +95,126 @@ export default function NewsDetail({ item }: NewsDetailProps) {
       {/* Notice text */}
       {item.noticeText && (
         <div className="mb-6">
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+          <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">
             {item.noticeText}
           </p>
         </div>
       )}
 
-      {/* Source button */}
-      {hasSource && (
-        <div className="mb-8">
-          <button
-            onClick={() => setShowSourceModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            {item.sourceType === 'pdf' ? (
-              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            )}
-            {getSourceButtonText()}
-          </button>
+      {/* Inline PDF Viewer */}
+      {hasPdf && (
+        <div className="mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            {/* PDF Header */}
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-black">Protokoll</h3>
+                  <p className="text-[10px] font-mono text-gray-500">{item.companyName}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Ladda ner
+                </a>
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Öppna i ny flik
+                </a>
+              </div>
+            </div>
+
+            {/* PDF Content */}
+            <div className="relative bg-gray-100" style={{ height: '800px' }}>
+              {/* Loading state */}
+              {pdfLoading && !pdfError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                    <p className="text-sm text-gray-500 font-mono">Laddar dokument...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error state */}
+              {pdfError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                  <div className="flex flex-col items-center gap-4 text-center px-8">
+                    <div className="w-14 h-14 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-black mb-1">
+                        PDF kan inte visas i webbläsaren
+                      </p>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Klicka nedan för att öppna dokumentet i en ny flik.
+                      </p>
+                      <a
+                        href={item.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Öppna PDF
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PDF iframe - using embed for better compatibility */}
+              <iframe
+                src={`${item.sourceUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                className={`w-full h-full border-0 ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => setPdfLoading(false)}
+                onError={() => {
+                  setPdfLoading(false)
+                  setPdfError(true)
+                }}
+                title="PDF-dokument"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inline Kungörelse text (if no PDF) */}
+      {hasKungorelse && !hasPdf && (
+        <div className="mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                <FileText className="w-3.5 h-3.5 text-blue-600" />
+              </div>
+              <h3 className="text-sm font-bold text-black">Kungörelse</h3>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {item.noticeText}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Faktarutor - visas baserat på typ av händelse */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-4 mb-6">
         {/* Bolagsinformation */}
         <BolagsInfoCard data={item.bolagsInfo} />
 
@@ -138,35 +232,23 @@ export default function NewsDetail({ item }: NewsDetailProps) {
       </div>
 
       {/* Actions */}
-      <section className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-3">
+      <section className="pt-4 border-t border-gray-200 flex flex-wrap items-center gap-3">
         <ShareToChat
           companyName={item.companyName}
           headline={item.headline}
           newsId={item.id}
         />
-        <span className="text-gray-300 dark:text-gray-600">·</span>
+        <span className="text-gray-300">·</span>
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-black transition-colors"
         >
           <span>Visa på Allabolag</span>
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
+          <ExternalLink className="w-3 h-3" />
         </a>
       </section>
-
-      {/* Source Viewer Modal */}
-      <SourceViewerModal
-        isOpen={showSourceModal}
-        onClose={() => setShowSourceModal(false)}
-        sourceUrl={item.sourceUrl}
-        sourceType={item.sourceType}
-        kungorelseText={item.noticeText}
-        companyName={item.companyName}
-      />
     </article>
   )
 }

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Bell, Search, Settings, Calendar, Eye,
   Clock, ArrowUpRight, Globe, FileText, Activity,
-  Bookmark, BookmarkCheck, Share2, Link2, Check, X
+  Bookmark, BookmarkCheck, Share2, Link2, Check, X, MessageSquare
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl } from '@/lib/utils'
@@ -14,6 +14,7 @@ import Image from 'next/image'
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
 import WatchList, { WatchedCompany } from './WatchList'
+import InlineEditorialChat from './InlineEditorialChat'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -315,7 +316,73 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
   )
 }
 
-// Company Logo Component
+// Logo cache utilities
+const LOGO_CACHE_KEY = 'loopdesk_logo_cache'
+const LOGO_CACHE_VERSION = 1
+const LOGO_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+interface LogoCacheEntry {
+  url: string
+  dataUrl: string
+  timestamp: number
+  version: number
+}
+
+function getLogoCache(): Record<string, LogoCacheEntry> {
+  if (typeof window === 'undefined') return {}
+  try {
+    const stored = localStorage.getItem(LOGO_CACHE_KEY)
+    if (!stored) return {}
+    const cache = JSON.parse(stored)
+    // Filter out expired entries
+    const now = Date.now()
+    const valid: Record<string, LogoCacheEntry> = {}
+    for (const [key, entry] of Object.entries(cache)) {
+      const e = entry as LogoCacheEntry
+      if (e.version === LOGO_CACHE_VERSION && now - e.timestamp < LOGO_CACHE_MAX_AGE) {
+        valid[key] = e
+      }
+    }
+    return valid
+  } catch {
+    return {}
+  }
+}
+
+function saveLogoToCache(orgNumber: string, url: string, dataUrl: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const cache = getLogoCache()
+    cache[orgNumber] = {
+      url,
+      dataUrl,
+      timestamp: Date.now(),
+      version: LOGO_CACHE_VERSION
+    }
+    // Limit cache size (max 100 logos)
+    const keys = Object.keys(cache)
+    if (keys.length > 100) {
+      const sorted = keys.sort((a, b) => cache[a].timestamp - cache[b].timestamp)
+      for (let i = 0; i < keys.length - 100; i++) {
+        delete cache[sorted[i]]
+      }
+    }
+    localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function getCachedLogo(orgNumber: string, url: string): string | null {
+  const cache = getLogoCache()
+  const entry = cache[orgNumber]
+  if (entry && entry.url === url) {
+    return entry.dataUrl
+  }
+  return null
+}
+
+// Company Logo Component with caching
 function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
   orgNumber: string
   companyName: string
@@ -324,6 +391,7 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
 }) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null)
   const url = getLogoUrl(orgNumber, logoUrl)
 
   const sizeClasses = {
@@ -333,6 +401,50 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
   }
 
   const initials = companyName.substring(0, 2).toUpperCase()
+
+  // Check cache on mount
+  useEffect(() => {
+    if (!url) {
+      setError(true)
+      setLoading(false)
+      return
+    }
+
+    // Check cache first
+    const cached = getCachedLogo(orgNumber, url)
+    if (cached) {
+      setDisplayUrl(cached)
+      setLoading(false)
+      return
+    }
+
+    // No cache, will load from network
+    setDisplayUrl(url)
+  }, [url, orgNumber])
+
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    setLoading(false)
+    // Cache the image if not already cached
+    if (url && !getCachedLogo(orgNumber, url)) {
+      try {
+        const img = e.currentTarget
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0)
+          const dataUrl = canvas.toDataURL('image/png', 0.8)
+          // Only cache if not too large (< 50KB)
+          if (dataUrl.length < 50000) {
+            saveLogoToCache(orgNumber, url, dataUrl)
+          }
+        }
+      } catch {
+        // CORS or other error, skip caching
+      }
+    }
+  }
 
   if (!url || error) {
     return (
@@ -347,13 +459,16 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
       {loading && (
         <div className="absolute inset-0 bg-gray-100 skeleton-shimmer" />
       )}
-      <img
-        src={url}
-        alt=""
-        className={`w-full h-full object-contain p-1.5 transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
-        onLoad={() => setLoading(false)}
-        onError={() => { setError(true); setLoading(false) }}
-      />
+      {displayUrl && (
+        <img
+          src={displayUrl}
+          alt=""
+          crossOrigin="anonymous"
+          className={`w-full h-full object-contain p-1.5 transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
+          onLoad={handleLoad}
+          onError={() => { setError(true); setLoading(false) }}
+        />
+      )}
     </div>
   )
 }
@@ -772,6 +887,16 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
 
           {/* Right Sidebar */}
           <aside className="hidden lg:block w-80 shrink-0 space-y-6">
+            {/* Editorial Chat */}
+            <SidebarWidget
+              title="Redaktionschatten"
+              icon={<MessageSquare className="w-4 h-4" />}
+            >
+              <div className="p-4">
+                <InlineEditorialChat maxHeight={280} />
+              </div>
+            </SidebarWidget>
+
             {/* Upcoming Events */}
             <SidebarWidget
               title="Kommande händelser"
