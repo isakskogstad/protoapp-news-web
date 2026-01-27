@@ -87,7 +87,7 @@ export function detectEventType(item: NewsItem): EventType | null {
 }
 
 export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
-  return {
+  const item: NewsItem = {
     id: analysis.id,
     type: 'protocol',
     companyName: analysis.company_name || 'Okänt bolag',
@@ -102,10 +102,50 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     extractedData: analysis.extracted_data,
     calculations: analysis.calculations,
   }
+
+  // Extract nyemission faktaruta from extracted_data
+  const nyemission = analysis.extracted_data?.kapitalåtgärder?.nyemission
+  if (nyemission && nyemission.beslutad) {
+    item.nyemissionFaktaruta = {
+      bolagsnamn: analysis.company_name || '',
+      emissionstyp: nyemission.typ || 'Nyemission',
+      antalAktier: nyemission.antal_nya_aktier ? nyemission.antal_nya_aktier.toLocaleString('sv-SE') : '-',
+      teckningskurs: nyemission.teckningskurs_kr ? `${nyemission.teckningskurs_kr.toLocaleString('sv-SE')} kr` : '-',
+      emissionsbelopp: nyemission.emissionsbelopp_kr ? `${(nyemission.emissionsbelopp_kr / 1_000_000).toFixed(1)} mkr` : '-',
+      utspädning: analysis.calculations?.utspädning_procent ? `${analysis.calculations.utspädning_procent.toFixed(1)}%` : '-',
+      teckningsperiod: '',
+    }
+  }
+
+  // Extract styrelse faktaruta from extracted_data
+  const styrelse = analysis.extracted_data?.styrelse
+  if (styrelse && (styrelse.tillträdande_ledamöter?.length || styrelse.avgående_ledamöter?.length || styrelse.ordförande)) {
+    item.styrelseFaktaruta = {
+      bolagsnamn: analysis.company_name || '',
+      nyaLedamoter: styrelse.tillträdande_ledamöter?.map(l => l.namn || '').filter(Boolean) || [],
+      avgaendeLedamoter: styrelse.avgående_ledamöter?.map(l => l.namn || '').filter(Boolean) || [],
+      nyOrdforande: styrelse.ordförande || '',
+      beslutsdatum: analysis.protocol_date || '',
+    }
+  }
+
+  // Extract kallelse faktaruta if protocol type indicates meeting invitation
+  const protocolType = (analysis.protocol_type || '').toLowerCase()
+  if (protocolType.includes('kallelse') || protocolType.includes('stämma')) {
+    item.kallelseFaktaruta = {
+      bolagsnamn: analysis.company_name || '',
+      stammatyp: analysis.protocol_type || 'Bolagsstämma',
+      datum: analysis.protocol_date || '',
+      tid: '',
+      plats: analysis.extracted_data?.bolag?.säte || '',
+    }
+  }
+
+  return item
 }
 
 export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
-  return {
+  const item: NewsItem = {
     id: k.id,
     type: 'kungorelse',
     companyName: k.company_name || 'Okänt bolag',
@@ -117,6 +157,33 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
     timestamp: k.publicerad || new Date().toISOString(),
     kungorelse: k,
   }
+
+  // Extract konkurs faktaruta from kungörelse
+  const amnesomrade = (k.amnesomrade || '').toLowerCase()
+  if (amnesomrade.includes('konkurs')) {
+    item.konkursFaktaruta = {
+      bolagsnamn: k.company_name || '',
+      beslutsdatum: k.datum_konkursbeslut || k.publicerad || '',
+      tingsratt: k.konkurs_data?.tingsratt || `${k.lan || ''} tingsrätt`.trim(),
+      konkursforvaltare: k.konkurs_data?.konkursforvaltare || '',
+      forvaltarbyra: '',
+      bevakningsfrist: '',
+    }
+  }
+
+  // Extract kallelse faktaruta if kungörelse is about meeting invitation
+  const typ = (k.typ || '').toLowerCase()
+  if (typ.includes('kallelse') || typ.includes('stämma')) {
+    item.kallelseFaktaruta = {
+      bolagsnamn: k.company_name || '',
+      stammatyp: k.typ || 'Bolagsstämma',
+      datum: '',
+      tid: '',
+      plats: k.ort || '',
+    }
+  }
+
+  return item
 }
 
 export function getNewsValueColor(value?: number): string {
