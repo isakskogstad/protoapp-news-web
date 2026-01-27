@@ -436,15 +436,91 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
   const [cursorPosition, setCursorPosition] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
   const [lastActivity, setLastActivity] = useState<Date | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('chat-sound') !== 'false'
+    }
+    return true
+  })
+  const [panelHeight, setPanelHeight] = useState(500)
+  const [isResizing, setIsResizing] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
   const pollInterval = useRef<NodeJS.Timeout | null>(null)
   const typingTimeout = useRef<NodeJS.Timeout | null>(null)
+  const previousMessageCount = useRef(0)
 
   // Polling intervals
   const POLL_INTERVAL_ACTIVE = 3000 // 3 seconds when chat is open
   const POLL_INTERVAL_BACKGROUND = 15000 // 15 seconds when chat is closed
+
+  // Filter messages based on search query
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery.trim()) return messages
+    const query = searchQuery.toLowerCase()
+    return messages.filter(msg =>
+      msg.text.toLowerCase().includes(query) ||
+      msg.user.name.toLowerCase().includes(query)
+    )
+  }, [messages, searchQuery])
+
+  // Play notification sound using Web Audio API (no external file needed)
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabled || typeof window === 'undefined') return
+    try {
+      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      oscillator.frequency.value = 880 // A5 note
+      oscillator.type = 'sine'
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
+
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.2)
+    } catch {
+      // Ignore audio errors
+    }
+  }, [soundEnabled])
+
+  // Toggle sound setting
+  const toggleSound = () => {
+    const newValue = !soundEnabled
+    setSoundEnabled(newValue)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chat-sound', String(newValue))
+    }
+  }
+
+  // Handle resize drag
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const startY = e.clientY
+    const startHeight = panelHeight
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaY = startY - e.clientY
+      const newHeight = Math.min(Math.max(300, startHeight + deltaY), window.innerHeight - 150)
+      setPanelHeight(newHeight)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
 
   // Handle input changes and detect @ mentions
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -528,7 +604,15 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
         throw new Error('Failed to fetch messages')
       }
       const data = await response.json()
-      setMessages(data.messages || [])
+      const newMessages = data.messages || []
+
+      // Play sound if new messages arrived (not initial load)
+      if (newMessages.length > previousMessageCount.current && previousMessageCount.current > 0) {
+        playNotificationSound()
+      }
+      previousMessageCount.current = newMessages.length
+
+      setMessages(newMessages)
 
       // Update user map
       if (data.users) {
@@ -648,7 +732,17 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
     <div className={`fixed bottom-6 right-6 z-40 ${className}`}>
       {/* Chat Panel */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-96 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in flex flex-col max-h-[70vh]">
+        <div
+          className="absolute bottom-16 right-0 w-96 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in flex flex-col"
+          style={{ height: panelHeight, maxHeight: 'calc(100vh - 150px)' }}
+        >
+          {/* Resize handle */}
+          <div
+            onMouseDown={handleResizeStart}
+            className={`absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-purple-500/20 transition-colors z-10 ${isResizing ? 'bg-purple-500/30' : ''}`}
+            title="Dra för att ändra storlek"
+          />
+
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-between flex-shrink-0">
             <div className="flex flex-col">
@@ -673,15 +767,78 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
                 ) : null}
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Search toggle */}
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className={`p-1.5 rounded-lg transition-colors ${showSearch ? 'bg-white/30' : 'hover:bg-white/20'}`}
+                title="Sök i chatten"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+              {/* Sound toggle */}
+              <button
+                onClick={toggleSound}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                title={soundEnabled ? 'Stäng av ljud' : 'Sätt på ljud'}
+              >
+                {soundEnabled ? (
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                )}
+              </button>
+              {/* Close button */}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {/* Search bar */}
+          {showSearch && (
+            <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Sök i meddelanden..."
+                  className="w-full pl-8 pr-8 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border-0 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {filteredMessages.length} resultat
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950 min-h-0">
@@ -712,7 +869,7 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
               </div>
             ) : (
               <>
-                {messages.map((message) => (
+                {filteredMessages.map((message) => (
                   <div key={message.id} className="flex items-start gap-3 group">
                     {/* Avatar */}
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
