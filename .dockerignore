@@ -1,0 +1,24 @@
+# Supabase Edge Functions (deployed separately to Supabase)
+supabase/
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Local development
+.env.local
+.env.development.local
+
+# Build artifacts
+.next
+node_modules
+
+# Documentation
+*.md
+!README.md
