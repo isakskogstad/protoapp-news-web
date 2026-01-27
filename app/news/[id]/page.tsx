@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import NewsDetail from '@/components/NewsDetail'
-import ImpactLoopSidebar from '@/components/ImpactLoopSidebar'
+import NewsSidebar from '@/components/NewsSidebar'
 
 interface NewsPageProps {
   params: { id: string }
@@ -78,7 +78,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
           {/* Impact Loop sidebar */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-8">
-              <ImpactLoopSidebar companyName={newsItem.companyName} />
+              <NewsSidebar companyName={newsItem.companyName} />
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
           {/* Impact Loop sidebar */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-8">
-              <ImpactLoopSidebar companyName={newsItem.companyName} />
+              <NewsSidebar companyName={newsItem.companyName} />
             </div>
           </div>
         </div>

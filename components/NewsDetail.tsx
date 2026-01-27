@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
-import NewsCoverage from './NewsCoverage'
 import AddToCalendar from './AddToCalendar'
 
 interface NewsDetailProps {
@@ -79,9 +78,6 @@ export default function NewsDetail({ item }: NewsDetailProps) {
           </p>
         </div>
       )}
-
-      {/* News Coverage */}
-      <NewsCoverage companyName={item.companyName} />
 
       {/* Calculations */}
       {item.calculations && Object.keys(item.calculations).length > 0 && (
