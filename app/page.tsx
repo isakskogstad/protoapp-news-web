@@ -1,7 +1,7 @@
 import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import { NewsItem, ProtocolAnalysis, Kungorelse } from '@/lib/types'
-import NewsFeed from '@/components/NewsFeed'
+import DashboardPage from '@/components/DashboardPage'
 
 export const revalidate = 60
 
@@ -36,9 +36,5 @@ async function getInitialNews(): Promise<NewsItem[]> {
 export default async function HomePage() {
   const initialItems = await getInitialNews()
 
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <NewsFeed initialItems={initialItems} />
-    </div>
-  )
+  return <DashboardPage initialItems={initialItems} />
 }

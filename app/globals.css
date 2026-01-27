@@ -2,12 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* NewYorker custom font */
+@font-face {
+  font-family: 'NewYorker';
+  src: url('/fonts/NewYorker-Swedish-v3_1.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
+  /* Font stacks */
+  --font-heading: 'NewYorker', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-slack: 'Lato', system-ui, sans-serif;
   --foreground: #111;
   --background: #fafafa;
   --muted: #666;
   --border: #eaeaea;
   --accent: #0070f3;
+
+  /* Dynamic theme variables */
+  --bg-dynamic: #FAFAFA;
+  --text-dynamic: #1A1A1A;
+  --text-secondary: #666;
+  --spotlight-color: rgba(0, 0, 0, 0.02);
+  --blob-opacity: 0.4;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
 }
 
 .dark {
@@ -188,4 +211,59 @@ a:focus-visible {
     rgba(255, 255, 255, 0) 100%
   );
   background-size: 200% 100%;
+}
+
+/* Font classes */
+.font-heading {
+  font-family: var(--font-heading), serif;
+}
+
+.font-body {
+  font-family: var(--font-body), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+.font-slack {
+  font-family: var(--font-slack), sans-serif;
+}
+
+/* Liquid background filter */
+.liquid-bg-filter {
+  filter: url(#liquid-filter);
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, 20px); }
+}
+
+.animate-float {
+  animation: float 10s ease-in-out infinite;
+}
+
+/* Scale in animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Glass panel effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
 }
