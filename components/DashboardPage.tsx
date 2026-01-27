@@ -1331,20 +1331,6 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 onCountChange={setWatchlistCount}
               />
             </SidebarWidget>
-
-            {/* Quick Stats */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="text-2xl font-bold text-black dark:text-white">{newsWorthyItems.length}</div>
-                  <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Nyheter</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="text-2xl font-bold text-black dark:text-white">{upcomingEvents.length}</div>
-                  <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Händelser</div>
-                </div>
-              </div>
-            </div>
           </GlobalSidebar>
         </div>
       </div>

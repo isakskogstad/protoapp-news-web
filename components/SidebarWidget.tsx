@@ -29,16 +29,25 @@ export default function SidebarWidget({
   forceCollapsed,
   collapsible = true
 }: SidebarWidgetProps) {
-  // Default collapsed state: collapsed if no items, expanded if has items
-  const defaultCollapsed = forceCollapsed !== undefined ? forceCollapsed : itemCount === 0
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
+  // Default collapsed state:
+  // - If not collapsible, always expanded (never collapsed)
+  // - If forceCollapsed is set, use that
+  // - Otherwise: collapsed if no items, expanded if has items
+  const getDefaultCollapsed = () => {
+    if (!collapsible) return false // Non-collapsible widgets are always expanded
+    if (forceCollapsed !== undefined) return forceCollapsed
+    return itemCount === 0
+  }
+  const [isCollapsed, setIsCollapsed] = useState(getDefaultCollapsed)
 
   // Update collapsed state when itemCount changes (e.g., data loads)
   useEffect(() => {
-    if (forceCollapsed === undefined) {
+    if (!collapsible) {
+      setIsCollapsed(false) // Non-collapsible widgets stay expanded
+    } else if (forceCollapsed === undefined) {
       setIsCollapsed(itemCount === 0)
     }
-  }, [itemCount, forceCollapsed])
+  }, [itemCount, forceCollapsed, collapsible])
 
   const handleHeaderClick = () => {
     if (collapsible) {
