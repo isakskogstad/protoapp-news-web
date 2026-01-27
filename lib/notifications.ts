@@ -1,9 +1,13 @@
 'use client'
 
-// Check if notifications are supported
+// Check if basic notifications are supported (works in Safari and Chrome)
 export function isNotificationSupported(): boolean {
+  return typeof window !== 'undefined' && 'Notification' in window
+}
+
+// Check if push notifications are supported (Chrome, Firefox - not Safari)
+export function isPushSupported(): boolean {
   return typeof window !== 'undefined' &&
-         'Notification' in window &&
          'serviceWorker' in navigator &&
          'PushManager' in window
 }
@@ -27,21 +31,31 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
-// Register service worker and subscribe to push
-export async function subscribeToPush(): Promise<PushSubscription | null> {
-  if (!isNotificationSupported()) return null
+// Register service worker (for Chrome push notifications)
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!isPushSupported()) return null
 
   try {
-    // Register service worker
     const registration = await navigator.serviceWorker.register('/sw.js')
     await navigator.serviceWorker.ready
+    return registration
+  } catch (error) {
+    console.error('Failed to register service worker:', error)
+    return null
+  }
+}
 
-    // Check for existing subscription
+// Subscribe to push notifications (Chrome only)
+export async function subscribeToPush(): Promise<PushSubscription | null> {
+  if (!isPushSupported()) return null
+
+  try {
+    const registration = await registerServiceWorker()
+    if (!registration) return null
+
     let subscription = await registration.pushManager.getSubscription()
 
     if (!subscription) {
-      // Create new subscription (using a dummy VAPID key for demo)
-      // In production, you'd use a real VAPID key pair
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
@@ -50,9 +64,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
       })
     }
 
-    // Store subscription in localStorage (in production, send to server)
     localStorage.setItem('loopdesk_push_subscription', JSON.stringify(subscription))
-
     return subscription
   } catch (error) {
     console.error('Failed to subscribe to push:', error)
@@ -62,6 +74,11 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 
 // Unsubscribe from push
 export async function unsubscribeFromPush(): Promise<boolean> {
+  if (!isPushSupported()) {
+    localStorage.removeItem('loopdesk_notifications_enabled')
+    return true
+  }
+
   try {
     const registration = await navigator.serviceWorker.ready
     const subscription = await registration.pushManager.getSubscription()
@@ -71,6 +88,7 @@ export async function unsubscribeFromPush(): Promise<boolean> {
     }
 
     localStorage.removeItem('loopdesk_push_subscription')
+    localStorage.removeItem('loopdesk_notifications_enabled')
     return true
   } catch (error) {
     console.error('Failed to unsubscribe from push:', error)
@@ -78,37 +96,95 @@ export async function unsubscribeFromPush(): Promise<boolean> {
   }
 }
 
-// Check if user is subscribed
+// Check if user has notifications enabled
 export async function isSubscribed(): Promise<boolean> {
   if (!isNotificationSupported()) return false
+  if (Notification.permission !== 'granted') return false
 
-  try {
-    const registration = await navigator.serviceWorker.ready
-    const subscription = await registration.pushManager.getSubscription()
-    return !!subscription
-  } catch {
-    return false
+  // Check localStorage flag for Safari
+  const enabled = localStorage.getItem('loopdesk_notifications_enabled')
+  if (enabled === 'true') return true
+
+  // Check push subscription for Chrome
+  if (isPushSupported()) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      return !!subscription
+    } catch {
+      return false
+    }
   }
+
+  return false
 }
 
-// Show a local notification (for testing)
-export async function showLocalNotification(title: string, body: string, url?: string): Promise<void> {
+// Enable notifications (works for both Safari and Chrome)
+export async function enableNotifications(): Promise<boolean> {
+  if (!isNotificationSupported()) return false
+
+  const permission = await requestNotificationPermission()
+  if (permission !== 'granted') return false
+
+  // Try push subscription first (Chrome)
+  if (isPushSupported()) {
+    const subscription = await subscribeToPush()
+    if (subscription) {
+      localStorage.setItem('loopdesk_notifications_enabled', 'true')
+      return true
+    }
+  }
+
+  // Fallback: just enable local notifications (Safari)
+  localStorage.setItem('loopdesk_notifications_enabled', 'true')
+  return true
+}
+
+// Show a notification (works in both Safari and Chrome)
+export async function showNotification(title: string, body: string, url?: string): Promise<void> {
   if (!isNotificationSupported()) return
   if (Notification.permission !== 'granted') return
 
+  const options: NotificationOptions = {
+    body,
+    icon: '/icon-192.png',
+    badge: '/badge-72.png',
+    tag: 'loopdesk-' + Date.now(),
+    data: { url: url || '/' },
+  }
+
+  // Try service worker notification first (Chrome - better features)
+  if (isPushSupported()) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      await registration.showNotification(title, options)
+      return
+    } catch (error) {
+      console.log('Service worker notification failed, using fallback:', error)
+    }
+  }
+
+  // Fallback: native Notification API (Safari and fallback)
   try {
-    const registration = await navigator.serviceWorker.ready
-    await registration.showNotification(title, {
-      body,
-      icon: '/icon-192.png',
-      badge: '/badge-72.png',
-      tag: 'loopdesk-local',
-      data: { url: url || '/' },
-    })
+    const notification = new Notification(title, options)
+
+    notification.onclick = () => {
+      window.focus()
+      if (url) {
+        window.location.href = url
+      }
+      notification.close()
+    }
+
+    // Auto-close after 5 seconds
+    setTimeout(() => notification.close(), 5000)
   } catch (error) {
     console.error('Failed to show notification:', error)
   }
 }
+
+// Legacy alias for backward compatibility
+export const showLocalNotification = showNotification
 
 // Helper function to convert VAPID key
 function urlBase64ToUint8Array(base64String: string): Uint8Array {

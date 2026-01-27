@@ -16,30 +16,43 @@ export default function NewsCard({ item }: NewsCardProps) {
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
 
   return (
-    <article className="relative group bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 hover-lift cursor-pointer transition-colors">
-      <Link href={`/news/${item.id}`} className="block">
-        <div className="flex items-start gap-4">
-          {/* Logo */}
-          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0">
-            <Image
-              src={logoUrl}
-              alt=""
-              fill
-              className="object-contain p-1.5"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.style.display = 'none'
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center text-gray-300 dark:text-gray-600 font-medium text-sm">
-              {item.companyName.substring(0, 2).toUpperCase()}
+    <article className="relative group bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all cursor-pointer">
+      <Link href={`/news/${item.id}`} className="block p-5">
+        <div className="flex gap-5">
+          {/* Left column: Logo + Company info */}
+          <div className="flex flex-col items-center w-20 flex-shrink-0">
+            {/* Logo */}
+            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 mb-2">
+              <Image
+                src={logoUrl}
+                alt=""
+                fill
+                className="object-contain p-1.5"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-gray-300 dark:text-gray-600 font-semibold text-sm">
+                {item.companyName.substring(0, 2).toUpperCase()}
+              </div>
             </div>
+
+            {/* Company name */}
+            <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 text-center leading-tight line-clamp-2">
+              {item.companyName}
+            </p>
+
+            {/* Org number */}
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-0.5">
+              {item.orgNumber}
+            </p>
           </div>
 
-          {/* Content */}
+          {/* Main content: Headline + Notice */}
           <div className="flex-1 min-w-0">
-            {/* Meta row */}
-            <div className="flex items-center gap-2 mb-1.5">
+            {/* Top row: Badge + Time */}
+            <div className="flex items-center gap-2 mb-2">
               {eventConfig && (
                 <span
                   className="text-[10px] px-2 py-0.5 rounded-full font-medium text-white"
@@ -53,37 +66,31 @@ export default function NewsCard({ item }: NewsCardProps) {
               </span>
             </div>
 
-            {/* Company name */}
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-              {item.companyName}
-            </h3>
-
-            {/* Headline */}
+            {/* Headline - Bold and prominent */}
             {item.headline && (
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
+              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-snug mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {item.headline}
-              </p>
+              </h3>
             )}
 
-            {/* Notice text */}
+            {/* Notice text - Full focus */}
             {item.noticeText && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                 {item.noticeText}
               </p>
             )}
 
-            {/* Bottom row */}
-            <div className="flex items-center gap-3 mt-3">
-              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">
-                {item.orgNumber}
-              </span>
-            </div>
+            {/* Fallback if no headline/notice */}
+            {!item.headline && !item.noticeText && (
+              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Ny händelse för {item.companyName}
+              </h3>
+            )}
           </div>
-
         </div>
       </Link>
 
-      {/* Share button (outside link) */}
+      {/* Share button */}
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
         <ShareButton item={item} />
       </div>
