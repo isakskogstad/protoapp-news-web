@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useLayoutEffect, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 
 const TEAM_MEMBERS = [
@@ -239,13 +238,11 @@ function LoginContent() {
                   }}
                 >
                   <div className="relative w-[16vw] h-[16vw] md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-95 ring-1 ring-black/10 group-hover:ring-current bg-black/5 overflow-hidden">
-                    <Image
+                    <img
                       src={member.image}
                       alt={member.name}
-                      fill
-          unoptimized
                       className="object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500"
-                      sizes="(max-width: 768px) 80px, 120px"
+          style={{width: '100%', height: '100%'}}
                     />
                   </div>
 
@@ -337,11 +334,11 @@ const LoginModal = ({ profile, heroRect, onClose, onLogin, loginState }: LoginMo
           ref={imgRef}
           className="relative w-32 h-32 mb-8 rounded-full shadow-2xl overflow-hidden ring-4 ring-current z-20"
         >
-          <Image src={profile.image} alt={profile.name} fill unoptimized className="object-cover" />
+          <img src={profile.image} alt={profile.name} style={{width: '100%', height: '100%'}} className="object-cover"
         </div>
 
         <div className={`flex flex-col items-center transition-all duration-500 pointer-events-auto ${loginState === 'success' ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
-          <h2 className={`font-body font-bold text-4xl mb-2 transition-all duration-500 delay-100 ${animateIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <h2imgclassName={`font-body font-bold text-4xl mb-2 transition-all duration-500 delay-100 ${animateIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             {getGreeting()}, {profile.firstName}
           </h2>
           <p className={`text-sm mb-12 font-body opacity-60 transition-all duration-500 delay-200 ${animateIn ? 'opacity-60 translate-y-0' : 'opacity-0 translate-y-4'}`}>
