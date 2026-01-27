@@ -97,21 +97,21 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
     <div className="flex flex-col">
       {/* Search mode */}
       {showSearch && (
-        <div className="p-3 border-b border-gray-100">
+        <div className="p-3 border-b border-gray-100 dark:border-gray-800">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Sök bolag..."
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2 pl-8 pr-8 text-xs focus:outline-none focus:ring-1 focus:ring-black focus:border-black"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-8 pr-8 text-xs text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white"
               autoFocus
             />
             <button
               onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]) }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -124,20 +124,20 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
                 <button
                   key={company.id}
                   onClick={() => handleAddCompany(company)}
-                  className="w-full flex items-center justify-between p-2 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between p-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <div>
-                    <div className="text-xs font-medium text-black">{company.name}</div>
-                    <div className="text-[10px] font-mono text-gray-400">{company.orgNumber}</div>
+                    <div className="text-xs font-medium text-black dark:text-white">{company.name}</div>
+                    <div className="text-[10px] font-mono text-gray-400 dark:text-gray-500">{company.orgNumber}</div>
                   </div>
-                  <Plus className="w-3.5 h-3.5 text-gray-400" />
+                  <Plus className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                 </button>
               ))}
             </div>
           )}
 
           {searching && (
-            <div className="mt-2 text-center text-xs text-gray-400">Söker...</div>
+            <div className="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">Söker...</div>
           )}
         </div>
       )}
@@ -145,9 +145,9 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
       {/* Company list */}
       {companies.length === 0 && !showSearch ? (
         <div className="py-8 text-center">
-          <Eye className="w-6 h-6 mx-auto mb-2 text-gray-300" />
-          <p className="text-xs text-gray-400">Inga bevakade bolag</p>
-          <p className="text-[10px] text-gray-300 mt-1">Lägg till bolag för att följa dem</p>
+          <Eye className="w-6 h-6 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+          <p className="text-xs text-gray-400 dark:text-gray-500">Inga bevakade bolag</p>
+          <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Lägg till bolag för att följa dem</p>
         </div>
       ) : (
         companies.map((company, index) => {
@@ -158,15 +158,15 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
             <div
               key={company.id}
               className={`
-                flex items-center justify-between p-3 hover:bg-gray-50 transition-colors cursor-pointer group
-                ${index !== companies.length - 1 ? 'border-b border-gray-100' : ''}
+                flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group
+                ${index !== companies.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}
               `}
             >
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-xs text-black group-hover:text-blue-700 transition-colors truncate">
+                <span className="font-bold text-xs text-black dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">
                   {company.name}
                 </span>
-                <span className="text-[10px] font-mono text-gray-400">{company.orgNumber}</span>
+                <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">{company.orgNumber}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
 
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRemove(company.id) }}
-                  className="p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  className="p-1 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                   title="Ta bort bevakning"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -194,7 +194,7 @@ export default function WatchList({ companies: propCompanies, onAddCompany }: Wa
       {/* Add button */}
       <button
         onClick={() => setShowSearch(true)}
-        className="w-full py-3 text-xs font-mono font-medium text-gray-400 hover:text-black hover:bg-gray-50 transition-colors border-t border-gray-100 flex items-center justify-center gap-2"
+        className="w-full py-3 text-xs font-mono font-medium text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2"
       >
         <Plus className="w-3 h-3" />
         LÄGG TILL BOLAG

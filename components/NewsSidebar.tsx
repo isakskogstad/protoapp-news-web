@@ -94,19 +94,19 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
     >
       {/* News Coverage Module - Only show if articles exist */}
       {!newsLoading && newsArticles.length > 0 && (
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Newspaper className="w-3.5 h-3.5 text-blue-600" />
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <Newspaper className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-sm font-bold text-black">
+            <h3 className="text-sm font-bold text-black dark:text-white">
               Nyheter om {companyName}
             </h3>
           </div>
 
           {/* Articles */}
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-gray-100 dark:divide-gray-800">
             {newsArticles.map((article, i) => (
               <li
                 key={i}
@@ -120,21 +120,21 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-3 hover:bg-gray-50 transition-colors group"
+                  className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                 >
-                  <p className="text-sm font-medium text-black line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors">
+                  <p className="text-sm font-medium text-black dark:text-white line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                     {article.title}
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
                     {article.source && (
-                      <span className="text-[10px] font-mono text-gray-500">
+                      <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400">
                         {article.source}
                       </span>
                     )}
                     {article.publishedDate && (
                       <>
-                        <span className="text-gray-300">·</span>
-                        <span className="text-[10px] font-mono text-gray-400">
+                        <span className="text-gray-300 dark:text-gray-600">·</span>
+                        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">
                           {article.publishedDate}
                         </span>
                       </>
@@ -149,11 +149,11 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
 
       {/* Impact Loop Module - Only show if articles exist */}
       {!impactLoading && impactArticles.length > 0 && (
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
           {/* Expandable button */}
           <button
             onClick={() => setImpactExpanded(!impactExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             <div className="flex items-center gap-2">
               <Image
@@ -161,16 +161,16 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
                 alt="Impact Loop"
                 width={18}
                 height={18}
-                className="opacity-70"
+                className="opacity-70 dark:opacity-50"
               />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Impact Loop
               </span>
-              <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
                 {impactArticles.length}
               </span>
             </div>
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${impactExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${impactExpanded ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Expandable content */}
@@ -180,20 +180,20 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
               ${impactExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
             `}
           >
-            <ul className="divide-y divide-gray-100 border-t border-gray-100">
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-100 dark:border-gray-800">
               {impactArticles.map((article, i) => (
                 <li key={i}>
                   <a
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-4 py-3 hover:bg-gray-50 transition-colors group"
+                    className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                   >
-                    <p className="text-sm font-medium text-black line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors">
+                    <p className="text-sm font-medium text-black dark:text-white line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                       {article.title}
                     </p>
                     {article.publishedDate && (
-                      <p className="text-[10px] font-mono text-gray-400 mt-1">
+                      <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-1">
                         {article.publishedDate}
                       </p>
                     )}
@@ -203,12 +203,12 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
             </ul>
 
             {/* Link to full search */}
-            <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+            <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
               <a
                 href={`https://www.impactloop.se/search?query=${encodeURIComponent(companyName)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 Visa alla på impactloop.se
                 <ExternalLink className="w-3 h-3" />

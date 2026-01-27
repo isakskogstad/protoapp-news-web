@@ -67,10 +67,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       {/* Header */}
       <header className="mb-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-200">
+          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700">
             {/* Skeleton shimmer while loading */}
             {logoLoading && !logoError && (
-              <div className="absolute inset-0 bg-gray-200 skeleton-shimmer rounded-xl" />
+              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 skeleton-shimmer rounded-xl" />
             )}
             {!logoError ? (
               <img
@@ -84,7 +84,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 }}
               />
             ) : (
-              <span className="text-gray-400 font-bold text-sm">
+              <span className="text-gray-400 dark:text-gray-500 font-bold text-sm">
                 {item.companyName.substring(0, 2).toUpperCase()}
               </span>
             )}
@@ -101,15 +101,15 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </span>
               </div>
             )}
-            <h1 className="text-xl font-bold text-black leading-tight">
+            <h1 className="text-xl font-bold text-black dark:text-white leading-tight">
               {item.companyName}
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-xs font-mono text-gray-500">
+            <div className="flex items-center gap-3 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <Building2 className="w-3 h-3" />
                 {formatOrgNumber(item.orgNumber)}
               </span>
-              <span className="w-px h-3 bg-gray-300" />
+              <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatDate(item.timestamp)}
@@ -121,7 +121,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* Headline */}
       {item.headline && (
-        <h2 className="text-lg font-bold text-black mb-3 leading-snug">
+        <h2 className="text-lg font-bold text-black dark:text-white mb-3 leading-snug">
           {item.headline}
         </h2>
       )}
@@ -129,7 +129,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       {/* Notice text */}
       {item.noticeText && (
         <div className="mb-6">
-          <p className="text-gray-600 leading-[1.75] text-sm whitespace-pre-wrap">
+          <p className="text-gray-600 dark:text-gray-400 leading-[1.75] text-sm whitespace-pre-wrap">
             {item.noticeText}
           </p>
         </div>
@@ -149,19 +149,19 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
           <div className="space-y-4">
             {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
             {hasPdf && pdfExists && (
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
                 {/* PDF Header */}
                 <button
                   onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
-                  className="w-full px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
-                      <FileText className="w-3.5 h-3.5 text-red-600" />
+                    <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                      <FileText className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="text-left">
-                      <h3 className="text-sm font-bold text-black">Protokoll</h3>
-                      <p className="text-[10px] font-mono text-gray-500">{item.companyName}</p>
+                      <h3 className="text-sm font-bold text-black dark:text-white">Protokoll</h3>
+                      <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400">{item.companyName}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -170,31 +170,31 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Ladda ner
                     </a>
                     {pdfExpanded ? (
-                      <Minimize2 className="w-4 h-4 text-gray-400" />
+                      <Minimize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     ) : (
-                      <Maximize2 className="w-4 h-4 text-gray-400" />
+                      <Maximize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     )}
                   </div>
                 </button>
 
                 {/* PDF Content - 200px collapsed, 600px expanded */}
                 <div
-                  className="relative bg-gray-100 transition-all duration-300 ease-in-out cursor-pointer"
+                  className="relative bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out cursor-pointer"
                   style={{ height: pdfExpanded ? '600px' : '200px' }}
                   onClick={() => !pdfExpanded && setPdfExpanded(true)}
                 >
                   {/* Loading state */}
                   {pdfLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
                       <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-                        <p className="text-xs text-gray-500 font-mono">Laddar...</p>
+                        <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">Laddar...</p>
                       </div>
                     </div>
                   )}
@@ -213,8 +213,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
                   {/* Expand overlay when collapsed */}
                   {!pdfExpanded && !pdfLoading && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
-                      <span className="text-xs font-medium text-gray-500 bg-white/80 px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 dark:from-gray-900/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
                         Klicka för att visa hela dokumentet
                       </span>
                     </div>
@@ -225,15 +225,15 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
             {/* Inline Kungörelse text (if source type is kungorelse) */}
             {hasKungorelse && (
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-sm font-bold text-black">Kungörelse</h3>
+                  <h3 className="text-sm font-bold text-black dark:text-white">Kungörelse</h3>
                 </div>
                 <div className="p-4">
-                  <p className="text-sm text-gray-700 leading-[1.75] whitespace-pre-wrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap">
                     {item.noticeText}
                   </p>
                 </div>
@@ -257,18 +257,18 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       )}
 
       {/* Actions */}
-      <section className="pt-4 border-t border-gray-200 flex flex-wrap items-center gap-3">
+      <section className="pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-3">
         <ShareToChat
           companyName={item.companyName}
           headline={item.headline}
           newsId={item.id}
         />
-        <span className="text-gray-300">·</span>
+        <span className="text-gray-300 dark:text-gray-600">·</span>
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-black transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
         >
           <span>Visa på Allabolag</span>
           <ExternalLink className="w-3 h-3" />

@@ -11,13 +11,13 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
   if (!data) return null
 
   return (
-    <div className="bg-white border border-red-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-red-200 dark:border-red-900 rounded-xl overflow-hidden shadow-sm">
       {/* Header with warning */}
-      <div className="px-4 py-3 border-b border-red-100 bg-red-50 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
-          <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+      <div className="px-4 py-3 border-b border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/30 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+          <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
         </div>
-        <h3 className="text-sm font-bold text-red-900">Konkursbeslut</h3>
+        <h3 className="text-sm font-bold text-red-900 dark:text-red-300">Konkursbeslut</h3>
       </div>
 
       <div className="p-4">
@@ -25,12 +25,12 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
         <div className="space-y-3">
           {/* Beslutsdatum */}
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-4 h-4 text-gray-500" />
+            <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-mono text-gray-500 uppercase">Beslutsdatum</p>
-              <p className="text-sm font-bold text-black">
+              <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Beslutsdatum</p>
+              <p className="text-sm font-bold text-black dark:text-white">
                 {data.beslutsdatum}
               </p>
             </div>
@@ -38,12 +38,12 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
 
           {/* Tingsrätt */}
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-4 h-4 text-gray-500" />
+            <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-mono text-gray-500 uppercase">Tingsrätt</p>
-              <p className="text-sm font-bold text-black">
+              <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Tingsrätt</p>
+              <p className="text-sm font-bold text-black dark:text-white">
                 {data.tingsratt}
               </p>
             </div>
@@ -51,12 +51,12 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
 
           {/* Konkursförvaltare */}
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
-              <User className="w-4 h-4 text-gray-500" />
+            <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-mono text-gray-500 uppercase">Konkursförvaltare</p>
-              <p className="text-sm font-bold text-black">
+              <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Konkursförvaltare</p>
+              <p className="text-sm font-bold text-black dark:text-white">
                 {data.konkursforvaltare}
               </p>
             </div>
@@ -65,12 +65,12 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
           {/* Förvaltarbyrå */}
           {data.forvaltarbyra && (
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="w-4 h-4 text-gray-500" />
+              <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] font-mono text-gray-500 uppercase">Förvaltarbyrå</p>
-                <p className="text-sm font-bold text-black">
+                <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Förvaltarbyrå</p>
+                <p className="text-sm font-bold text-black dark:text-white">
                   {data.forvaltarbyra}
                 </p>
               </div>
@@ -80,13 +80,13 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
           {/* Bevakningsfrist - highlighted */}
           {data.bevakningsfrist && (
             <>
-              <div className="border-t border-gray-200 my-2" />
-              <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+              <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2.5">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-red-600" />
+                  <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
                   <div>
-                    <p className="text-[10px] font-mono text-red-600 uppercase">Bevakningsfrist</p>
-                    <p className="text-sm font-bold text-red-800">
+                    <p className="text-[10px] font-mono text-red-600 dark:text-red-400 uppercase">Bevakningsfrist</p>
+                    <p className="text-sm font-bold text-red-800 dark:text-red-300">
                       {data.bevakningsfrist}
                     </p>
                   </div>

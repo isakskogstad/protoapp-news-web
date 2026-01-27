@@ -10,6 +10,7 @@ import {
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from './ThemeProvider'
 // Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
@@ -66,49 +67,32 @@ function showNotification(title: string, body: string, url?: string) {
 
 // Settings Modal
 function SettingsModal({ onClose }: { onClose: () => void }) {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
-
-  useEffect(() => {
-    // Load saved theme
-    const saved = localStorage.getItem('loopdesk_theme') as 'light' | 'dark' | 'system' | null
-    if (saved) setTheme(saved)
-  }, [])
-
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme)
-    localStorage.setItem('loopdesk_theme', newTheme)
-    // Apply theme (for now just light mode)
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }
+  const { theme, setTheme } = useTheme()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold">Inställningar</h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-md transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+      <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+          <h2 className="text-lg font-bold text-black dark:text-white">Inställningar</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors">
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Theme */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Tema</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tema</label>
             <div className="grid grid-cols-3 gap-2">
               {(['light', 'dark', 'system'] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => handleThemeChange(t)}
+                  onClick={() => setTheme(t)}
                   className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
                     theme === t
-                      ? 'border-black bg-black text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
                   {t === 'light' ? 'Ljust' : t === 'dark' ? 'Mörkt' : 'System'}
@@ -119,17 +103,17 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
 
           {/* Notifications info */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notiser</label>
-            <p className="text-sm text-gray-500">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notiser</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Hantera notiser via klocksymbolen i headern.
             </p>
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="w-full py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >
             Stäng
           </button>
@@ -155,9 +139,9 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50 min-w-[240px]">
+      <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2 z-50 min-w-[240px]">
         {/* User info */}
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3">
             {userImage && !imgError ? (
               <img
@@ -169,13 +153,13 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
                 onError={() => setImgError(true)}
               />
             ) : (
-              <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
+              <div className="w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center text-sm font-medium">
                 {initials}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 truncate">{userName}</div>
-              <div className="text-xs text-gray-500 truncate">{userEmail}</div>
+              <div className="font-medium text-gray-900 dark:text-white truncate">{userName}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{userEmail}</div>
             </div>
           </div>
         </div>
@@ -184,18 +168,18 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
         <div className="py-1">
           <button
             onClick={() => { onOpenSettings(); onClose() }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
-            <Settings className="w-4 h-4 text-gray-400" />
+            <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
             Inställningar
           </button>
         </div>
 
         {/* Logout */}
-        <div className="border-t border-gray-100 pt-1">
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-1">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -222,37 +206,37 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
   const [imageError, setImageError] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Left: Logo */}
         <div className="flex items-center gap-8">
           <Link href="/" className="group flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold text-lg transition-transform group-hover:scale-105">
+            <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center font-bold text-lg transition-transform group-hover:scale-105">
               L
             </div>
-            <span className="text-xl tracking-tight text-black">
-              LOOP<span className="text-gray-400">DESK</span>
+            <span className="text-xl tracking-tight text-black dark:text-white">
+              LOOP<span className="text-gray-400 dark:text-gray-500">DESK</span>
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-gray-500">
-            <span className="text-gray-300">/</span>
-            <span className="text-black font-medium">ÖVERSIKT</span>
+          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-gray-500 dark:text-gray-400">
+            <span className="text-gray-300 dark:text-gray-600">/</span>
+            <span className="text-black dark:text-white font-medium">ÖVERSIKT</span>
           </div>
         </div>
 
         {/* Center: Search */}
         <div className="hidden md:block flex-1 max-w-md mx-8">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-black transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
             <input
               type="text"
               placeholder="Sök bolag, person eller nyckelord..."
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition-all placeholder:text-gray-400 text-black"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1">
-              <span className="text-[10px] font-mono text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">⌘K</span>
+              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5">⌘K</span>
             </div>
           </div>
         </div>
@@ -263,34 +247,34 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
             onClick={onNotificationToggle}
             className={`p-2 rounded-md transition-colors relative ${
               notificationsEnabled
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'hover:bg-gray-100 text-gray-500 hover:text-black'
+                ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
+                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
             }`}
             title={notificationsEnabled ? 'Notiser på' : 'Aktivera notiser'}
           >
             <Bell className="w-5 h-5" />
             {notificationsEnabled && (
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900"></span>
             )}
           </button>
 
           <button
             onClick={onOpenSettings}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-black hidden sm:block"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hidden sm:block"
           >
             <Settings className="w-5 h-5" />
           </button>
 
-          <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
 
           <div className="relative">
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-full transition-all border border-transparent hover:border-gray-200 group"
+              className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 group"
             >
               <div className="text-right hidden sm:block group-hover:opacity-80">
-                <div className="text-xs font-bold leading-none text-black">{userName.split(' ')[0]}</div>
-                <div className="text-[10px] font-mono text-gray-500 leading-none mt-0.5">REDAKTÖR</div>
+                <div className="text-xs font-bold leading-none text-black dark:text-white">{userName.split(' ')[0]}</div>
+                <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 leading-none mt-0.5">REDAKTÖR</div>
               </div>
               {userImage && !imageError ? (
                 <img
@@ -302,7 +286,7 @@ function DashboardHeader({ onNotificationToggle, notificationsEnabled, onOpenSet
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
+                <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center text-sm font-medium">
                   {initials}
                 </div>
               )}
@@ -581,6 +565,40 @@ function formatSmartTime(dateString: string): SmartTime {
   }
 }
 
+// Allowed kungörelse categories (only Konkurs and Kallelse are news-worthy)
+const ALLOWED_KUNGORELSE_CATEGORIES = ['konkurs', 'kallelse']
+
+// Filter function: only show news-worthy items
+// Kungörelser with "Ändringar" or other non-news categories are excluded
+function isNewsWorthy(item: NewsItem): boolean {
+  // Protocol analyses are always news-worthy
+  if (item.type === 'protocol') return true
+
+  // For kungörelser, check the category
+  if (item.type === 'kungorelse') {
+    const amnesomrade = (item.kungorelse?.amnesomrade || '').toLowerCase()
+
+    // Only show Konkurs and Kallelse kungörelser
+    if (ALLOWED_KUNGORELSE_CATEGORIES.some(cat => amnesomrade.includes(cat))) {
+      return true
+    }
+
+    // Also check headline/protocolType as fallback
+    const headline = (item.headline || '').toLowerCase()
+    const pType = (item.protocolType || '').toLowerCase()
+
+    if (headline.includes('konkurs') || pType.includes('konkurs')) return true
+    if (headline.includes('kallelse') || pType.includes('kallelse')) return true
+    if (headline.includes('stämma') || pType.includes('stämma')) return true
+
+    // Exclude everything else (Ändringar, Registreringar, etc.)
+    return false
+  }
+
+  // Unknown types - show by default
+  return true
+}
+
 // Get category from item
 function getCategory(item: NewsItem): string {
   // Check protocol type first
@@ -653,7 +671,7 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150 py-4">
+      <article className="relative bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors duration-150 py-4">
         <div className="flex gap-4">
           {/* Left column: Logo + Company info (fixed width) */}
           <div className="w-44 shrink-0 flex items-start gap-3">
@@ -664,10 +682,10 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
               size="md"
             />
             <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-black truncate leading-tight">
+              <h4 className="text-sm font-bold text-black dark:text-white truncate leading-tight">
                 {item.companyName}
               </h4>
-              <p className="text-[10px] font-mono text-gray-400 mt-0.5">
+              <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
                 {formatOrgNumber(item.orgNumber)}
               </p>
             </div>
@@ -675,11 +693,11 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
           {/* Middle: Headline + Notice text (flexible, max 50 words) */}
           <div className="flex-1 min-w-0 pr-4">
-            <h3 className="text-sm font-bold text-black leading-snug group-hover:text-blue-700 transition-colors">
+            <h3 className="text-sm font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 leading-[1.75] mt-1.5">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-1.5">
                 {truncateWords(item.noticeText, 50)}
               </p>
             )}
@@ -690,10 +708,10 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
             {/* Time with visual hierarchy: bold + larger for recent, normal for today, muted for older */}
             <span className={`font-mono ${
               timeInfo.isRecent
-                ? 'text-sm font-bold text-black'
+                ? 'text-sm font-bold text-black dark:text-white'
                 : timeInfo.isToday
-                  ? 'text-sm font-medium text-gray-700'
-                  : 'text-xs text-gray-400'
+                  ? 'text-sm font-medium text-gray-700 dark:text-gray-300'
+                  : 'text-xs text-gray-400 dark:text-gray-500'
             }`}>
               {timeInfo.text}
             </span>
@@ -707,8 +725,8 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
                 onClick={handleBookmark}
                 className={`p-1 rounded transition-all ${
                   isBookmarked
-                    ? 'text-yellow-600'
-                    : 'text-gray-300 hover:text-gray-500'
+                    ? 'text-yellow-600 dark:text-yellow-500'
+                    : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'
                 }`}
                 title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
               >
@@ -717,7 +735,7 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
               <button
                 onClick={handleShare}
-                className="p-1 rounded text-gray-300 hover:text-gray-500 transition-all relative"
+                className="p-1 rounded text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-all relative"
                 title="Dela"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -868,24 +886,32 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
     return () => observer.disconnect()
   }, [loadMore, hasMore, loading])
 
-  // Filter items
+  // Filter items - apply news-worthy filter + user filter (all/bookmarks)
+  const newsWorthyItems = items.filter(isNewsWorthy)
   const filteredItems = filter === 'bookmarks'
-    ? items.filter(item => getBookmarks().has(item.id))
-    : items
+    ? newsWorthyItems.filter(item => getBookmarks().has(item.id))
+    : newsWorthyItems
 
-  // Extract upcoming events from news items (kallelser)
-  const upcomingEvents: UpcomingEvent[] = items
+  // Extract upcoming events from news-worthy items (kallelser)
+  const upcomingEvents: UpcomingEvent[] = newsWorthyItems
     .filter(item => {
+      // Check for kallelseFaktaruta first (more reliable)
+      if (item.kallelseFaktaruta?.datum) return true
+      // Fallback to headline matching
       const headline = item.headline?.toLowerCase() || ''
-      return headline.includes('kallelse') || headline.includes('stämma') || headline.includes('årsstämma')
+      const protocolType = item.protocolType?.toLowerCase() || ''
+      return headline.includes('kallelse') || headline.includes('stämma') || headline.includes('årsstämma') ||
+             protocolType.includes('kallelse') || protocolType.includes('stämma')
     })
     .map(item => ({
       id: item.id,
-      title: item.protocolType || 'Bolagsstämma',
+      title: item.kallelseFaktaruta?.stammatyp || item.protocolType || 'Bolagsstämma',
       company: item.companyName,
       date: item.kallelseFaktaruta?.datum || item.timestamp,
-      location: item.kallelseFaktaruta?.plats,
-      type: 'stamma' as const
+      time: item.kallelseFaktaruta?.tid || undefined,
+      location: item.kallelseFaktaruta?.plats || undefined,
+      type: 'kallelse' as const,
+      noticeText: item.noticeText || undefined
     }))
     .slice(0, 10)
 
@@ -893,7 +919,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const sampleWatchedCompanies: WatchedCompany[] = []
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] pb-20">
+    <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
       <DashboardHeader
         onNotificationToggle={handleNotificationToggle}
         notificationsEnabled={notificationsEnabled}
@@ -910,8 +936,8 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             <section>
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-            <h2 className="text-2xl font-bold flex items-center gap-3">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <h2 className="text-2xl font-bold flex items-center gap-3 text-black dark:text-white">
               <LiveIndicator connected={sseConnected} />
               Live Feed
             </h2>
@@ -920,8 +946,8 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 onClick={() => setFilter('all')}
                 className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg shadow-sm transition-all ${
                   filter === 'all'
-                    ? 'border border-black bg-black text-white'
-                    : 'border border-gray-200 text-gray-500 bg-white hover:border-black hover:text-black'
+                    ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
                 }`}
               >
                 ALLA
@@ -930,8 +956,8 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 onClick={() => { setFilter('bookmarks'); forceUpdate({}) }}
                 className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg transition-all flex items-center gap-1.5 ${
                   filter === 'bookmarks'
-                    ? 'border border-black bg-black text-white'
-                    : 'border border-gray-200 text-gray-500 bg-white hover:border-black hover:text-black'
+                    ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
                 }`}
               >
                 <Bookmark className="w-3 h-3" />
@@ -942,12 +968,12 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
 
           <div className="flex flex-col">
             {filteredItems.length === 0 ? (
-              <div className="py-16 text-center text-gray-500">
+              <div className="py-16 text-center text-gray-500 dark:text-gray-400">
                 {filter === 'bookmarks' ? (
                   <>
-                    <Bookmark className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                    <Bookmark className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                     <p className="text-sm">Inga sparade nyheter än</p>
-                    <p className="text-xs text-gray-400 mt-1">Klicka på bokmärkesikonen för att spara</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Klicka på bokmärkesikonen för att spara</p>
                   </>
                 ) : (
                   <p className="text-sm">Inga nyheter att visa</p>
@@ -968,7 +994,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
           {filter === 'all' && hasMore && (
             <div ref={loaderRef} className="py-8 flex justify-center">
               {loading ? (
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
                   <Activity className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-mono">Laddar...</span>
                 </div>
@@ -979,7 +1005,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
           )}
 
           {filter === 'all' && !hasMore && items.length > 0 && (
-            <div className="py-8 text-center text-sm font-mono text-gray-400">
+            <div className="py-8 text-center text-sm font-mono text-gray-400 dark:text-gray-500">
               — SLUT PÅ FLÖDET —
             </div>
           )}
@@ -1007,15 +1033,15 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </SidebarWidget>
 
             {/* Quick Stats */}
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-black">{items.length}</div>
-                  <div className="text-[10px] font-mono text-gray-500 uppercase">Nyheter</div>
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-2xl font-bold text-black dark:text-white">{newsWorthyItems.length}</div>
+                  <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Nyheter</div>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-black">{upcomingEvents.length}</div>
-                  <div className="text-[10px] font-mono text-gray-500 uppercase">Händelser</div>
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-2xl font-bold text-black dark:text-white">{upcomingEvents.length}</div>
+                  <div className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Händelser</div>
                 </div>
               </div>
             </div>

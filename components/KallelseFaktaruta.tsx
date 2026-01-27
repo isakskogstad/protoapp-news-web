@@ -37,43 +37,43 @@ END:VCALENDAR`
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-          <Calendar className="w-3.5 h-3.5 text-blue-600" />
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
         </div>
-        <h3 className="text-sm font-bold text-black">Kallelse till stämma</h3>
+        <h3 className="text-sm font-bold text-black dark:text-white">Kallelse till stämma</h3>
       </div>
 
       <div className="p-4">
         {/* Meeting type badge */}
         <div className="mb-4">
-          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
             {data.stammatyp}
           </span>
         </div>
 
         {/* Main info card */}
-        <div className="bg-gray-50 rounded-lg px-4 py-3 mb-3 border border-gray-100">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3 mb-3 border border-gray-100 dark:border-gray-700">
           <div className="flex items-start gap-3">
             {/* Calendar visual */}
-            <div className="w-12 h-12 bg-white rounded-lg flex flex-col items-center justify-center shadow-sm flex-shrink-0 border border-gray-200">
-              <span className="text-[9px] font-mono font-bold text-blue-600 uppercase">
+            <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-lg flex flex-col items-center justify-center shadow-sm flex-shrink-0 border border-gray-200 dark:border-gray-700">
+              <span className="text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase">
                 {getMonthAbbr(data.datum)}
               </span>
-              <span className="text-lg font-bold text-black -mt-0.5">
+              <span className="text-lg font-bold text-black dark:text-white -mt-0.5">
                 {getDayNumber(data.datum)}
               </span>
             </div>
 
             <div className="flex-1 min-w-0">
               {/* Date and time */}
-              <p className="text-sm font-bold text-black">
+              <p className="text-sm font-bold text-black dark:text-white">
                 {data.datum}
               </p>
               {data.tid && (
-                <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5 font-mono">
+                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5 font-mono">
                   <Clock className="w-3 h-3" />
                   {data.tid}
                 </p>
@@ -85,10 +85,10 @@ END:VCALENDAR`
         {/* Location */}
         {data.plats && (
           <div className="flex items-start gap-2.5 mb-3">
-            <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-mono text-gray-500 uppercase">Plats</p>
-              <p className="text-sm font-medium text-black">
+              <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase">Plats</p>
+              <p className="text-sm font-medium text-black dark:text-white">
                 {data.plats}
               </p>
             </div>
@@ -96,10 +96,10 @@ END:VCALENDAR`
         )}
 
         {/* Add to calendar button */}
-        <div className="pt-3 border-t border-gray-100">
+        <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
           <button
             onClick={handleAddToCalendar}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Lägg till i kalender
