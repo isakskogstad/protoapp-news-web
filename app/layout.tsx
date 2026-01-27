@@ -4,6 +4,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import Providers from '@/components/Providers'
 import OfflineBanner from '@/components/OfflineBanner'
+import EditorialChat from '@/components/EditorialChat'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
             {children}
           </main>
           <OfflineBanner />
+          <EditorialChat />
         </Providers>
       </body>
     </html>
