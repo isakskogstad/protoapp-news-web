@@ -816,7 +816,7 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors duration-150 py-4">
+      <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-4">
         <div className="flex gap-4">
           {/* Left column: Logo + Company info (fixed width) */}
           <div className="w-44 shrink-0 flex items-start gap-3">
@@ -1130,7 +1130,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-3">
             {filteredItems.length === 0 ? (
               <div className="py-16 text-center text-gray-500 dark:text-gray-400">
                 {filter === 'bookmarks' ? (
