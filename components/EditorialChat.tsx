@@ -1,683 +1,119 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { parseSlackMessage, parseEmoji, extractUrls } from '@/lib/slack-utils'
-
-interface ChatReaction {
-  name: string
-  count: number
-  users: string[]
-}
+import { Send, Loader2, Hash, ChevronDown } from 'lucide-react'
 
 interface ChatMessage {
   id: string
   text: string
   timestamp: string
-  threadTs?: string
   user: {
     id: string
     name: string
     avatar: string | null
   }
-  reactions: ChatReaction[]
 }
 
-interface EditorialChatProps {
-  className?: string
-}
-
-// Common emoji reactions for quick picker
-const QUICK_REACTIONS = [
-  { name: 'thumbsup', emoji: '👍' },
-  { name: 'heart', emoji: '❤️' },
-  { name: 'joy', emoji: '😂' },
-  { name: 'fire', emoji: '🔥' },
-  { name: 'eyes', emoji: '👀' },
-  { name: 'tada', emoji: '🎉' },
-  { name: 'thinking_face', emoji: '🤔' },
-  { name: 'white_check_mark', emoji: '✅' },
-]
-
-// Simple markdown renderer component
-function MarkdownText({ text, userMap }: { text: string; userMap: Map<string, string> }) {
-  // Parse Slack formatting first
-  const parsed = parseSlackMessage(text, userMap)
-
-  // Convert markdown to JSX
-  const renderMarkdown = (content: string) => {
-    const elements: React.ReactNode[] = []
-    let key = 0
-
-    // Split by code blocks first
-    const codeBlockRegex = /```([\s\S]*?)```/g
-    const parts = content.split(codeBlockRegex)
-
-    parts.forEach((part, index) => {
-      if (index % 2 === 1) {
-        // Code block
-        elements.push(
-          <pre key={key++} className="bg-gray-800 text-gray-100 rounded-md px-3 py-2 my-2 text-xs overflow-x-auto font-mono">
-            {part.trim()}
-          </pre>
-        )
-      } else {
-        // Regular text - process inline formatting
-        const lines = part.split('\n')
-        lines.forEach((line, lineIndex) => {
-          if (lineIndex > 0) {
-            elements.push(<br key={key++} />)
-          }
-
-          // Process inline elements
-          let remaining = line
-          const lineElements: React.ReactNode[] = []
-          let lineKey = 0
-
-          // Process bold **text**
-          remaining = remaining.replace(/\*\*([^*]+)\*\*/g, (_, text) => {
-            return `__BOLD_START__${text}__BOLD_END__`
-          })
-
-          // Process italic *text*
-          remaining = remaining.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, (_, text) => {
-            return `__ITALIC_START__${text}__ITALIC_END__`
-          })
-
-          // Process strikethrough ~~text~~
-          remaining = remaining.replace(/~~([^~]+)~~/g, (_, text) => {
-            return `__STRIKE_START__${text}__STRIKE_END__`
-          })
-
-          // Process inline code `text`
-          remaining = remaining.replace(/`([^`]+)`/g, (_, text) => {
-            return `__CODE_START__${text}__CODE_END__`
-          })
-
-          // Process links [text](url)
-          remaining = remaining.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
-            return `__LINK_START__${text}__LINK_SEP__${url}__LINK_END__`
-          })
-
-          // Now split and render
-          const tokens = remaining.split(/(__(?:BOLD|ITALIC|STRIKE|CODE|LINK)_(?:START|END|SEP)__)/g)
-          let inBold = false
-          let inItalic = false
-          let inStrike = false
-          let inCode = false
-          let inLink = false
-          let linkText = ''
-
-          tokens.forEach((token) => {
-            if (token === '__BOLD_START__') { inBold = true; return }
-            if (token === '__BOLD_END__') { inBold = false; return }
-            if (token === '__ITALIC_START__') { inItalic = true; return }
-            if (token === '__ITALIC_END__') { inItalic = false; return }
-            if (token === '__STRIKE_START__') { inStrike = true; return }
-            if (token === '__STRIKE_END__') { inStrike = false; return }
-            if (token === '__CODE_START__') { inCode = true; return }
-            if (token === '__CODE_END__') { inCode = false; return }
-            if (token === '__LINK_START__') { inLink = true; return }
-            if (token === '__LINK_SEP__') { return }
-            if (token === '__LINK_END__') { inLink = false; linkText = ''; return }
-
-            if (!token) return
-
-            if (inLink && !linkText) {
-              linkText = token
-              return
-            }
-
-            if (inLink && linkText) {
-              lineElements.push(
-                <a
-                  key={lineKey++}
-                  href={token}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-600 dark:text-purple-400 hover:underline break-all"
-                >
-                  {linkText}
-                </a>
-              )
-              return
-            }
-
-            let element: React.ReactNode = token
-
-            if (inCode) {
-              element = (
-                <code key={lineKey++} className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono text-pink-600 dark:text-pink-400">
-                  {token}
-                </code>
-              )
-            } else if (inBold) {
-              element = <strong key={lineKey++} className="font-semibold">{token}</strong>
-            } else if (inItalic) {
-              element = <em key={lineKey++}>{token}</em>
-            } else if (inStrike) {
-              element = <s key={lineKey++} className="opacity-60">{token}</s>
-            } else {
-              element = <span key={lineKey++}>{token}</span>
-            }
-
-            lineElements.push(element)
-          })
-
-          elements.push(<span key={key++}>{lineElements}</span>)
-        })
-      }
-    })
-
-    return <>{elements}</>
-  }
-
-  return <>{renderMarkdown(parsed)}</>
-}
-
-// Emoji reaction component
-function EmojiReaction({ reaction }: { reaction: ChatReaction }) {
-  const emoji = parseEmoji(`:${reaction.name}:`)
-
-  return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs">
-      <span>{emoji}</span>
-      <span className="text-gray-600 dark:text-gray-400">{reaction.count}</span>
-    </span>
-  )
-}
-
-// Link preview data type
-interface LinkPreviewData {
-  url: string
-  title?: string
-  description?: string
-  image?: string
-  siteName?: string
-  favicon?: string
-}
-
-// Link preview cache
-const linkPreviewCache = new Map<string, LinkPreviewData | null>()
-
-// Link preview component
-function LinkPreview({ url }: { url: string }) {
-  const [preview, setPreview] = useState<LinkPreviewData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    // Check cache first
-    if (linkPreviewCache.has(url)) {
-      const cached = linkPreviewCache.get(url)
-      setPreview(cached || null)
-      setLoading(false)
-      return
-    }
-
-    const fetchPreview = async () => {
-      try {
-        const response = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`)
-        if (!response.ok) throw new Error('Failed to fetch')
-        const data = await response.json()
-        linkPreviewCache.set(url, data)
-        setPreview(data)
-      } catch {
-        linkPreviewCache.set(url, null)
-        setError(true)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPreview()
-  }, [url])
-
-  if (loading) {
-    return (
-      <div className="mt-2 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden animate-pulse">
-        <div className="p-3 flex gap-3">
-          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !preview || !preview.title) {
-    return null
-  }
-
-  // Check if it's an internal LoopDesk news link
-  const isInternalNews = url.includes('/news/')
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-2 block rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-purple-300 dark:hover:border-purple-700 transition-colors group"
-    >
-      <div className="flex gap-0">
-        {/* Image */}
-        {preview.image && (
-          <div className="w-20 h-20 flex-shrink-0 bg-gray-100 dark:bg-gray-800">
-            <img
-              src={preview.image}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="flex-1 p-2.5 min-w-0">
-          {/* Site info */}
-          <div className="flex items-center gap-1.5 mb-1">
-            {preview.favicon && (
-              <img
-                src={preview.favicon}
-                alt=""
-                className="w-3 h-3"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
-            )}
-            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              {isInternalNews ? 'LoopDesk' : preview.siteName}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-            {preview.title}
-          </h4>
-
-          {/* Description */}
-          {preview.description && (
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
-              {preview.description}
-            </p>
-          )}
-        </div>
-      </div>
-    </a>
-  )
-}
-
-// Reaction picker component
-function ReactionPicker({
-  messageTs,
-  onReactionAdded
-}: {
-  messageTs: string
-  onReactionAdded: () => void
-}) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [adding, setAdding] = useState<string | null>(null)
-
-  const addReaction = async (emojiName: string) => {
-    setAdding(emojiName)
-    try {
-      const response = await fetch('/api/slack/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timestamp: messageTs, emoji: emojiName }),
-      })
-      if (response.ok) {
-        onReactionAdded()
-      }
-    } catch (error) {
-      console.error('Error adding reaction:', error)
-    } finally {
-      setAdding(null)
-      setIsOpen(false)
-    }
-  }
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-all"
-        title="Lägg till reaktion"
-      >
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <div className="absolute bottom-full right-0 mb-1 p-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex gap-0.5 z-10">
-          {QUICK_REACTIONS.map((reaction) => (
-            <button
-              key={reaction.name}
-              onClick={() => addReaction(reaction.name)}
-              disabled={adding === reaction.name}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-base disabled:opacity-50"
-              title={`:${reaction.name}:`}
-            >
-              {adding === reaction.name ? (
-                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                reaction.emoji
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Mention autocomplete component
-function MentionAutocomplete({
-  query,
-  users,
-  onSelect,
-  onClose,
-}: {
-  query: string
-  users: Map<string, string>
-  onSelect: (userId: string, userName: string) => void
-  onClose: () => void
-}) {
-  const filteredUsers = useMemo(() => {
-    const entries = Array.from(users.entries())
-    if (!query) return entries.slice(0, 5)
-
-    const lowerQuery = query.toLowerCase()
-    return entries
-      .filter(([_, name]) => name.toLowerCase().includes(lowerQuery))
-      .slice(0, 5)
-  }, [query, users])
-
-  if (filteredUsers.length === 0) return null
-
-  return (
-    <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-20">
-      {filteredUsers.map(([userId, userName]) => (
-        <button
-          key={userId}
-          onClick={() => {
-            onSelect(userId, userName)
-            onClose()
-          }}
-          className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors"
-        >
-          <span className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-medium text-white">
-              {userName.substring(0, 1).toUpperCase()}
-            </span>
-          </span>
-          <span className="text-gray-900 dark:text-gray-100">{userName}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-
-export default function EditorialChat({ className = '' }: EditorialChatProps) {
+export default function EditorialChat() {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [newMessage, setNewMessage] = useState('')
+  const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [userMap, setUserMap] = useState<Map<string, string>>(new Map())
-  const [showMentions, setShowMentions] = useState(false)
-  const [mentionQuery, setMentionQuery] = useState('')
-  const [cursorPosition, setCursorPosition] = useState(0)
-  const [isTyping, setIsTyping] = useState(false)
-  const [lastActivity, setLastActivity] = useState<Date | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('chat-sound') !== 'false'
-    }
-    return true
-  })
-  const [panelHeight, setPanelHeight] = useState(500)
-  const [isResizing, setIsResizing] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
-  const pollInterval = useRef<NodeJS.Timeout | null>(null)
-  const typingTimeout = useRef<NodeJS.Timeout | null>(null)
   const previousMessageCount = useRef(0)
 
-  // Polling intervals
-  const POLL_INTERVAL_ACTIVE = 3000 // 3 seconds when chat is open
-  const POLL_INTERVAL_BACKGROUND = 15000 // 15 seconds when chat is closed
-
-  // Filter messages based on search query
-  const filteredMessages = useMemo(() => {
-    if (!searchQuery.trim()) return messages
-    const query = searchQuery.toLowerCase()
-    return messages.filter(msg =>
-      msg.text.toLowerCase().includes(query) ||
-      msg.user.name.toLowerCase().includes(query)
-    )
-  }, [messages, searchQuery])
-
-  // Play notification sound using Web Audio API (no external file needed)
-  const playNotificationSound = useCallback(() => {
-    if (!soundEnabled || typeof window === 'undefined') return
-    try {
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-
-      oscillator.frequency.value = 880 // A5 note
-      oscillator.type = 'sine'
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
-
-      oscillator.start(audioContext.currentTime)
-      oscillator.stop(audioContext.currentTime + 0.2)
-    } catch {
-      // Ignore audio errors
-    }
-  }, [soundEnabled])
-
-  // Toggle sound setting
-  const toggleSound = () => {
-    const newValue = !soundEnabled
-    setSoundEnabled(newValue)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('chat-sound', String(newValue))
-    }
-  }
-
-  // Handle resize drag
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsResizing(true)
-    const startY = e.clientY
-    const startHeight = panelHeight
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaY = startY - e.clientY
-      const newHeight = Math.min(Math.max(300, startHeight + deltaY), window.innerHeight - 150)
-      setPanelHeight(newHeight)
-    }
-
-    const handleMouseUp = () => {
-      setIsResizing(false)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }
-
-  // Handle input changes and detect @ mentions
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    const cursor = e.target.selectionStart || 0
-    setNewMessage(value)
-    setCursorPosition(cursor)
-
-    // Show typing indicator
-    if (value.trim().length > 0) {
-      setIsTyping(true)
-      // Clear previous timeout
-      if (typingTimeout.current) {
-        clearTimeout(typingTimeout.current)
-      }
-      // Stop typing indicator after 2 seconds of no input
-      typingTimeout.current = setTimeout(() => {
-        setIsTyping(false)
-      }, 2000)
-    } else {
-      setIsTyping(false)
-    }
-
-    // Check for @ mention
-    const textBeforeCursor = value.substring(0, cursor)
-    const atMatch = textBeforeCursor.match(/@(\w*)$/)
-
-    if (atMatch) {
-      setShowMentions(true)
-      setMentionQuery(atMatch[1])
-    } else {
-      setShowMentions(false)
-      setMentionQuery('')
-    }
-  }
-
-  // Insert mention when selected
-  const handleMentionSelect = (userId: string, userName: string) => {
-    const textBeforeCursor = newMessage.substring(0, cursorPosition)
-    const textAfterCursor = newMessage.substring(cursorPosition)
-
-    // Find and replace the @query with the Slack mention format
-    const newTextBefore = textBeforeCursor.replace(/@\w*$/, `<@${userId}> `)
-    const newText = newTextBefore + textAfterCursor
-
-    setNewMessage(newText)
-    setShowMentions(false)
-    setMentionQuery('')
-
-    // Focus back on input
-    setTimeout(() => {
-      inputRef.current?.focus()
-    }, 0)
-  }
-
-  // Format timestamp to readable time
+  // Format timestamp
   const formatTime = (ts: string) => {
     const date = new Date(parseFloat(ts) * 1000)
-    const now = new Date()
-    const isToday = date.toDateString() === now.toDateString()
-
-    if (isToday) {
-      return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
-    }
-    return date.toLocaleDateString('sv-SE', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
   }
 
-  // Fetch messages from API
+  // Get initials from name
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+
+  // Fetch messages
   const fetchMessages = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch('/api/slack/messages?limit=100')
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages')
-      }
-      const data = await response.json()
+      const res = await fetch('/api/slack/messages?limit=50')
+      if (!res.ok) throw new Error()
+      const data = await res.json()
       const newMessages = data.messages || []
 
-      // Play sound if new messages arrived (not initial load)
-      if (newMessages.length > previousMessageCount.current && previousMessageCount.current > 0) {
-        playNotificationSound()
+      // Play sound if new messages (not initial load)
+      if (newMessages.length > previousMessageCount.current && previousMessageCount.current > 0 && !isOpen) {
+        // Simple beep
+        try {
+          const ctx = new AudioContext()
+          const osc = ctx.createOscillator()
+          const gain = ctx.createGain()
+          osc.connect(gain)
+          gain.connect(ctx.destination)
+          osc.frequency.value = 880
+          gain.gain.setValueAtTime(0.1, ctx.currentTime)
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
+          osc.start()
+          osc.stop(ctx.currentTime + 0.1)
+        } catch {}
       }
       previousMessageCount.current = newMessages.length
 
       setMessages(newMessages)
 
-      // Update user map
-      if (data.users) {
-        setUserMap(new Map(Object.entries(data.users)))
-      }
-
-      // Update unread count if panel is closed
-      if (!isOpen && lastReadTimestamp.current && data.messages) {
-        const newMessages = data.messages.filter(
+      // Update unread count
+      if (!isOpen && lastReadTimestamp.current && newMessages.length > 0) {
+        const unread = newMessages.filter(
           (m: ChatMessage) => parseFloat(m.timestamp) > parseFloat(lastReadTimestamp.current!)
         )
-        setUnreadCount(newMessages.length)
+        setUnreadCount(unread.length)
       }
-    } catch (err) {
-      console.error('Error fetching messages:', err)
-      if (!silent) {
-        setError('Kunde inte ladda meddelanden')
-      }
+    } catch {
+      // Silently fail
     } finally {
       if (!silent) setLoading(false)
     }
   }, [isOpen])
 
   // Send message
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage.trim() || sending) return
-
+  const handleSend = async () => {
+    if (!input.trim() || sending) return
     setSending(true)
-    setError(null)
 
     try {
-      const response = await fetch('/api/slack/messages', {
+      const res = await fetch('/api/slack/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newMessage.trim() }),
+        body: JSON.stringify({ text: input.trim() }),
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to send message')
+      if (res.ok) {
+        setInput('')
+        await fetchMessages(true)
       }
-
-      setNewMessage('')
-      // Refresh messages to show the new one
-      await fetchMessages(true)
-    } catch (err) {
-      console.error('Error sending message:', err)
-      setError('Kunde inte skicka meddelande')
+    } catch {
+      // Silently fail
     } finally {
       setSending(false)
     }
   }
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom
   useEffect(() => {
-    if (isOpen && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (isOpen && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, isOpen])
 
-  // Load messages when panel opens
+  // Load messages when opening
   useEffect(() => {
     if (isOpen) {
       fetchMessages()
-      // Mark as read
       if (messages.length > 0) {
         lastReadTimestamp.current = messages[messages.length - 1].timestamp
       }
@@ -685,40 +121,14 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
     }
   }, [isOpen, fetchMessages])
 
-  // Poll for new messages with adaptive interval
+  // Poll for new messages
   useEffect(() => {
-    // Clear any existing interval
-    if (pollInterval.current) {
-      clearInterval(pollInterval.current)
-    }
-
-    // Use faster polling when chat is open
-    const interval = isOpen ? POLL_INTERVAL_ACTIVE : POLL_INTERVAL_BACKGROUND
-
-    pollInterval.current = setInterval(() => {
-      fetchMessages(true)
-    }, interval)
-
-    // Initial fetch
+    const interval = setInterval(() => fetchMessages(true), isOpen ? 3000 : 15000)
     fetchMessages(true)
-
-    return () => {
-      if (pollInterval.current) {
-        clearInterval(pollInterval.current)
-      }
-    }
+    return () => clearInterval(interval)
   }, [fetchMessages, isOpen])
 
-  // Track last activity for "last seen" indicator
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      const messageDate = new Date(parseFloat(lastMessage.timestamp) * 1000)
-      setLastActivity(messageDate)
-    }
-  }, [messages])
-
-  // Update last read timestamp when viewing messages
+  // Mark as read
   useEffect(() => {
     if (isOpen && messages.length > 0) {
       lastReadTimestamp.current = messages[messages.length - 1].timestamp
@@ -729,263 +139,100 @@ export default function EditorialChat({ className = '' }: EditorialChatProps) {
   if (!session) return null
 
   return (
-    <div className={`fixed bottom-6 right-6 z-40 ${className}`}>
+    <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Panel */}
       {isOpen && (
-        <div
-          className="absolute bottom-16 right-0 w-96 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in flex flex-col"
-          style={{ height: panelHeight, maxHeight: 'calc(100vh - 150px)' }}
-        >
-          {/* Resize handle */}
-          <div
-            onMouseDown={handleResizeStart}
-            className={`absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-purple-500/20 transition-colors z-10 ${isResizing ? 'bg-purple-500/30' : ''}`}
-            title="Dra för att ändra storlek"
-          />
-
+        <div className="absolute bottom-16 right-0 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-between flex-shrink-0">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <h3 className="font-semibold text-white">Redaktionen</h3>
-                <span className="text-xs text-white/70">#{messages.length}</span>
-              </div>
-              {/* Typing indicator or last activity */}
-              <div className="text-xs text-white/60 h-3.5">
-                {isTyping ? (
-                  <span className="flex items-center gap-1">
-                    <span className="flex gap-0.5">
-                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                    <span>Skriver...</span>
-                  </span>
-                ) : lastActivity ? (
-                  <span>Senaste aktivitet: {lastActivity.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
-                ) : null}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              {/* Search toggle */}
-              <button
-                onClick={() => setShowSearch(!showSearch)}
-                className={`p-1.5 rounded-lg transition-colors ${showSearch ? 'bg-white/30' : 'hover:bg-white/20'}`}
-                title="Sök i chatten"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-              {/* Sound toggle */}
-              <button
-                onClick={toggleSound}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
-                title={soundEnabled ? 'Stäng av ljud' : 'Sätt på ljud'}
-              >
-                {soundEnabled ? (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                  </svg>
-                )}
-              </button>
-              {/* Close button */}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          <div className="px-4 py-2.5 border-b border-gray-100 bg-white flex items-center gap-2">
+            <Hash className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-medium text-gray-900">redaktion-general</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-auto" />
+            <span className="text-[10px] font-mono text-gray-400">{messages.length}</span>
           </div>
 
-          {/* Search bar */}
-          {showSearch && (
-            <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-              <div className="relative">
-                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Sök i meddelanden..."
-                  className="w-full pl-8 pr-8 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border-0 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {searchQuery && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {filteredMessages.length} resultat
-                </p>
-              )}
-            </div>
-          )}
-
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950 min-h-0">
+          <div ref={scrollRef} className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
             {loading && messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full min-h-[200px]">
-                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : error && messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{error}</p>
-                <button
-                  onClick={() => fetchMessages()}
-                  className="mt-2 text-sm text-purple-600 hover:text-purple-700"
-                >
-                  Försök igen
-                </button>
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Inga meddelanden än</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">Var först att skriva!</p>
+              <div className="text-center py-8 text-sm text-gray-400">
+                Inga meddelanden än
               </div>
             ) : (
-              <>
-                {filteredMessages.map((message) => (
-                  <div key={message.id} className="flex items-start gap-3 group">
-                    {/* Avatar */}
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {message.user.avatar ? (
-                        <img
-                          src={message.user.avatar}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-medium text-white">
-                          {message.user.name.substring(0, 1).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+              messages.map((msg) => (
+                <div key={msg.id} className="flex gap-2.5 group">
+                  {/* Avatar */}
+                  <div className="w-7 h-7 rounded-md bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 shrink-0 overflow-hidden">
+                    {msg.user.avatar ? (
+                      <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      getInitials(msg.user.name)
+                    )}
+                  </div>
 
-                    {/* Message content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {message.user.name}
-                        </span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                          {formatTime(message.timestamp)}
-                        </span>
-                        <ReactionPicker
-                          messageTs={message.timestamp}
-                          onReactionAdded={() => fetchMessages(true)}
-                        />
-                      </div>
-                      <div className="text-sm text-gray-700 dark:text-gray-300 break-words">
-                        <MarkdownText text={message.text} userMap={userMap} />
-                      </div>
-                      {/* Link previews */}
-                      {extractUrls(message.text).slice(0, 1).map((url, idx) => (
-                        <LinkPreview key={idx} url={url} />
-                      ))}
-                      {/* Reactions */}
-                      {message.reactions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {message.reactions.map((reaction, idx) => (
-                            <EmojiReaction key={idx} reaction={reaction} />
-                          ))}
-                        </div>
-                      )}
+                  {/* Content */}
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="text-xs font-semibold text-gray-900 truncate">{msg.user.name}</span>
+                      <span className="text-[10px] text-gray-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                        {formatTime(msg.timestamp)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-700 leading-relaxed break-words">
+                      {msg.text}
                     </div>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </>
+                </div>
+              ))
             )}
           </div>
 
           {/* Input */}
-          <form onSubmit={sendMessage} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0 relative">
-            {/* Mention autocomplete */}
-            {showMentions && (
-              <MentionAutocomplete
-                query={mentionQuery}
-                users={userMap}
-                onSelect={handleMentionSelect}
-                onClose={() => setShowMentions(false)}
-              />
-            )}
-            {error && messages.length > 0 && (
-              <p className="text-xs text-red-500 mb-2">{error}</p>
-            )}
-            <div className="flex items-center gap-2">
+          <div className="p-3 border-t border-gray-100 bg-white">
+            <div className="relative">
               <input
-                ref={inputRef}
                 type="text"
-                value={newMessage}
-                onChange={handleInputChange}
-                placeholder="Skriv ett meddelande... (@ för att nämna)"
-                className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 border-0 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Skriv ett meddelande..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-gray-300 transition-all placeholder:text-gray-400"
                 disabled={sending}
               />
               <button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 rounded-lg transition-colors"
+                onClick={handleSend}
+                disabled={sending || !input.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-black disabled:opacity-40 disabled:hover:text-gray-400 transition-colors"
               >
-                {sending ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                )}
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+        className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
           isOpen
-            ? 'bg-gray-200 dark:bg-gray-700 rotate-0'
-            : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-105'
+            ? 'bg-gray-100 hover:bg-gray-200'
+            : 'bg-black hover:bg-gray-800 hover:scale-105'
         }`}
       >
         {isOpen ? (
-          <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDown className="w-5 h-5 text-gray-600" />
         ) : (
           <>
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
             {/* Unread badge */}
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs font-bold text-white flex items-center justify-center animate-bounce">
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
