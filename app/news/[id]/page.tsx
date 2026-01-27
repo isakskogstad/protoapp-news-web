@@ -67,7 +67,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
           Tillbaka till nyhetsflödet
         </Link>
 
-        <NewsDetail item={protocolToNewsItem(protocol)} raw={protocol} />
+        <NewsDetail item={protocolToNewsItem(protocol)} />
       </div>
     )
   }
