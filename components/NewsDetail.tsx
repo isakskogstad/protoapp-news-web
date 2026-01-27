@@ -125,10 +125,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       </header>
 
       {/* Headline with Share button */}
-      <div className="flex items-start justify-between gap-4 mb-3">
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1">
           {item.headline && (
-            <h2 className="text-lg font-bold text-black dark:text-white leading-snug">
+            <h2 className="text-2xl font-bold text-black dark:text-white leading-tight">
               {item.headline}
             </h2>
           )}
@@ -141,10 +141,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         />
       </div>
 
-      {/* Notice text */}
+      {/* Notice text - prominent */}
       {item.noticeText && (
-        <div className="mb-6">
-          <p className="text-gray-600 dark:text-gray-400 leading-[1.75] text-sm whitespace-pre-wrap">
+        <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-800">
+          <p className="text-gray-700 dark:text-gray-300 leading-[1.8] text-base whitespace-pre-wrap">
             {item.noticeText}
           </p>
         </div>
@@ -163,20 +163,15 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         <div className="flex flex-col min-h-[200px]">
           {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
           {hasPdf && pdfExists && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
               {/* PDF Header */}
               <button
                 onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
-                className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer shrink-0"
+                className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <FileText className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-sm font-bold text-black dark:text-white">Protokoll</h3>
-                    <p className="text-[10px] font-mono text-gray-500 dark:text-gray-400">{item.companyName}</p>
-                  </div>
+                  <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Protokoll</h3>
                 </div>
                 <div className="flex items-center gap-2">
                   <a
@@ -239,15 +234,13 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
           {/* Inline Kungörelse text (if source type is kungorelse) */}
           {hasKungorelse && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
-                <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h3 className="text-sm font-bold text-black dark:text-white">Kungörelse</h3>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
+                <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Kungörelse</h3>
               </div>
               <div className="p-4 flex-1">
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.75] whitespace-pre-wrap">
                   {item.noticeText}
                 </p>
               </div>

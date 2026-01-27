@@ -61,12 +61,10 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-            <Building2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-          </div>
-          <h3 className="text-sm font-bold text-black dark:text-white">Bolagsfakta</h3>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
+          <Building2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Bolagsfakta</h3>
         </div>
         <div className="p-8 flex items-center justify-center flex-1">
           <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
@@ -79,13 +77,11 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
   const hasData = data && (data.vd || data.ordforande || data.anstallda || data.omsattning || data.startat || data.bransch || data.stad || data.storstAgare)
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-          <Building2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-        </div>
-        <h3 className="text-sm font-bold text-black dark:text-white">Bolagsfakta</h3>
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
+        <Building2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Bolagsfakta</h3>
       </div>
 
       <div className="p-4 flex-1">
@@ -100,7 +96,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* VD */}
             {data.vd && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <User className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -113,7 +109,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Ordförande */}
             {data.ordforande && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <Crown className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -126,7 +122,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Omsättning */}
             {data.omsattning && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <DollarSign className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -141,7 +137,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Anställda */}
             {data.anstallda !== undefined && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <Users className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -154,7 +150,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Grundat */}
             {data.startat && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -167,7 +163,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Bransch */}
             {data.bransch && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <Briefcase className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -180,7 +176,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Stad */}
             {data.stad && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
@@ -193,7 +189,7 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
             {/* Största ägare */}
             {data.storstAgare && (
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                   <UserCheck className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="min-w-0">
