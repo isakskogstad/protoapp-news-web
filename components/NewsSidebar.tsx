@@ -102,14 +102,9 @@ export default function NewsSidebar({ companyName }: NewsSidebarProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                 </svg>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                  Nyhetsbevakning
-                </h3>
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  {newsArticles.length} artikel{newsArticles.length !== 1 ? 'ar' : ''} senaste dygnet
-                </p>
-              </div>
+              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                Nyheter om {companyName}
+              </h3>
             </div>
           </div>
 
