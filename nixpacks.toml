@@ -1,2 +1,11 @@
+# Force Node.js build, ignore Deno files in supabase/
+providers = ["node"]
+
 [phases.setup]
 nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
