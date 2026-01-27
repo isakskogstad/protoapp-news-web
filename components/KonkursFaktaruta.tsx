@@ -48,7 +48,7 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-[11px] text-red-600 dark:text-red-400">Tingsratt</p>
+            <p className="text-[11px] text-red-600 dark:text-red-400">Tingsrätt</p>
             <p className="text-sm font-semibold text-red-900 dark:text-red-100">
               {data.tingsratt}
             </p>
@@ -63,7 +63,7 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-[11px] text-red-600 dark:text-red-400">Konkursforvaltare</p>
+            <p className="text-[11px] text-red-600 dark:text-red-400">Konkursförvaltare</p>
             <p className="text-sm font-semibold text-red-900 dark:text-red-100">
               {data.konkursforvaltare}
             </p>
@@ -79,7 +79,7 @@ export default function KonkursFaktaruta({ data }: KonkursFaktarutaProps) {
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-[11px] text-red-600 dark:text-red-400">Forvaltarbyra</p>
+              <p className="text-[11px] text-red-600 dark:text-red-400">Förvaltarbyrå</p>
               <p className="text-sm font-semibold text-red-900 dark:text-red-100">
                 {data.forvaltarbyra}
               </p>

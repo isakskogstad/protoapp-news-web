@@ -153,6 +153,8 @@ export interface NewsItem {
   konkursFaktaruta?: KonkursFaktaruta
   nyemissionFaktaruta?: NyemissionFaktaruta
   styrelseFaktaruta?: StyrelseFaktaruta
+  sourceUrl?: string
+  sourceType?: 'pdf' | 'kungorelse' | 'external'
 }
 
 export interface ImpactLoopArticle {

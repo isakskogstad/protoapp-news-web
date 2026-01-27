@@ -25,7 +25,7 @@ export default function BolagsInfoCard({ data }: BolagsInfoCardProps) {
           </div>
           <div className="min-w-0">
             <p className="text-[11px] text-gray-500 dark:text-gray-400">
-              Omsattning {data.omsattningAr}
+              Omsättning {data.omsattningAr}
             </p>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
               {data.omsattning}
@@ -41,7 +41,7 @@ export default function BolagsInfoCard({ data }: BolagsInfoCardProps) {
             </svg>
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] text-gray-500 dark:text-gray-400">Anstallda</p>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400">Anställda</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               {data.anstallda}
             </p>

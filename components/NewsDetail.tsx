@@ -3,48 +3,34 @@
 import { useState } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType } from '@/lib/utils'
-import AddToCalendar from './AddToCalendar'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
 import StyrelseFaktaruta from './StyrelseFaktaruta'
 import KallelseFaktaruta from './KallelseFaktaruta'
+import SourceViewerModal from './SourceViewerModal'
 
 interface NewsDetailProps {
   item: NewsItem
 }
 
-// Check if this is a future event that should show calendar option
-function isFutureEvent(item: NewsItem): boolean {
-  const headline = (item.headline || '').toLowerCase()
-  const noticeText = (item.noticeText || '').toLowerCase()
-  const protocolType = (item.protocolType || '').toLowerCase()
-
-  const futureEventKeywords = [
-    'kallelse',
-    'inbjudan',
-    'kommande',
-    'planerad',
-    'årsstämma',
-    'extra bolagsstämma',
-    'bolagsstämma',
-    'stämma',
-  ]
-
-  return futureEventKeywords.some(keyword =>
-    headline.includes(keyword) ||
-    noticeText.includes(keyword) ||
-    protocolType.includes(keyword)
-  )
-}
-
 export default function NewsDetail({ item }: NewsDetailProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
+  const [showSourceModal, setShowSourceModal] = useState(false)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
-  const showCalendar = isFutureEvent(item)
+
+  // Determine if we have a viewable source
+  const hasSource = item.sourceType === 'pdf' ? !!item.sourceUrl : item.sourceType === 'kungorelse'
+
+  // Get button text based on source type
+  const getSourceButtonText = () => {
+    if (item.sourceType === 'pdf') return 'Se protokoll'
+    if (item.sourceType === 'kungorelse') return 'Se kungörelse'
+    return 'Se källa'
+  }
 
   return (
     <article className="animate-fade-in">
@@ -104,10 +90,31 @@ export default function NewsDetail({ item }: NewsDetailProps) {
 
       {/* Notice text */}
       {item.noticeText && (
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
             {item.noticeText}
           </p>
+        </div>
+      )}
+
+      {/* Source button */}
+      {hasSource && (
+        <div className="mb-8">
+          <button
+            onClick={() => setShowSourceModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            {item.sourceType === 'pdf' ? (
+              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            )}
+            {getSourceButtonText()}
+          </button>
         </div>
       )}
 
@@ -129,53 +136,8 @@ export default function NewsDetail({ item }: NewsDetailProps) {
         <StyrelseFaktaruta data={item.styrelseFaktaruta} />
       </div>
 
-      {/* Calculations */}
-      {item.calculations && Object.keys(item.calculations).length > 0 && (
-        <section className="mb-8">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-            Beräkningar
-          </h3>
-          <div className="grid grid-cols-3 gap-4">
-            {item.calculations.utspädning_procent !== undefined && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Utspädning</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {item.calculations.utspädning_procent.toFixed(1)}%
-                </p>
-              </div>
-            )}
-            {item.calculations.värdering_pre !== undefined && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Pre-money</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {(item.calculations.värdering_pre / 1e6).toFixed(1)}M
-                </p>
-              </div>
-            )}
-            {item.calculations.värdering_post !== undefined && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Post-money</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {(item.calculations.värdering_post / 1e6).toFixed(1)}M
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* Actions */}
       <section className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-3">
-        {showCalendar && (
-          <AddToCalendar
-            title={item.headline || `Händelse för ${item.companyName}`}
-            description={item.noticeText}
-            date={item.timestamp}
-            companyName={item.companyName}
-            eventType={eventConfig?.label}
-          />
-        )}
-
         <a
           href={`https://www.allabolag.se/${item.orgNumber.replace(/-/g, '')}`}
           target="_blank"
@@ -188,6 +150,16 @@ export default function NewsDetail({ item }: NewsDetailProps) {
           </svg>
         </a>
       </section>
+
+      {/* Source Viewer Modal */}
+      <SourceViewerModal
+        isOpen={showSourceModal}
+        onClose={() => setShowSourceModal(false)}
+        sourceUrl={item.sourceUrl}
+        sourceType={item.sourceType}
+        kungorelseText={item.noticeText}
+        companyName={item.companyName}
+      />
     </article>
   )
 }

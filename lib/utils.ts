@@ -1,4 +1,4 @@
-import { formatDistanceToNow, format, parseISO } from 'date-fns'
+import { formatDistanceToNow, format, parseISO, isFuture, isValid } from 'date-fns'
 import { sv } from 'date-fns/locale'
 import { EventType, NewsItem, ProtocolAnalysis, Kungorelse } from './types'
 
@@ -87,6 +87,20 @@ export function detectEventType(item: NewsItem): EventType | null {
 }
 
 export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
+  // Generate PDF source URL
+  const cleanOrg = (analysis.org_number || '').replace(/-/g, '')
+  const protocolDate = analysis.protocol_date || ''
+  // Determine category based on protocol type
+  let category = 'ovrigt'
+  const pType = (analysis.protocol_type || '').toLowerCase()
+  if (pType.includes('årsstämma') || pType.includes('arsstamma')) category = 'arsstamma'
+  else if (pType.includes('extra')) category = 'extra_stamma'
+  else if (pType.includes('styrelse')) category = 'styrelsemote'
+
+  const sourceUrl = cleanOrg && protocolDate
+    ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
+    : undefined
+
   const item: NewsItem = {
     id: analysis.id,
     type: 'protocol',
@@ -101,6 +115,8 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     signals: analysis.signals,
     extractedData: analysis.extracted_data,
     calculations: analysis.calculations,
+    sourceUrl,
+    sourceType: 'pdf',
   }
 
   // Extract nyemission faktaruta from extracted_data
@@ -130,14 +146,19 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
   }
 
   // Extract kallelse faktaruta if protocol type indicates meeting invitation
+  // ONLY if the meeting date is in the future
   const protocolType = (analysis.protocol_type || '').toLowerCase()
   if (protocolType.includes('kallelse') || protocolType.includes('stämma')) {
-    item.kallelseFaktaruta = {
-      bolagsnamn: analysis.company_name || '',
-      stammatyp: analysis.protocol_type || 'Bolagsstämma',
-      datum: analysis.protocol_date || '',
-      tid: '',
-      plats: analysis.extracted_data?.bolag?.säte || '',
+    const meetingDate = analysis.protocol_date || ''
+    // Only show kallelse faktaruta for future meetings
+    if (isFutureDate(meetingDate)) {
+      item.kallelseFaktaruta = {
+        bolagsnamn: analysis.company_name || '',
+        stammatyp: analysis.protocol_type || 'Bolagsstämma',
+        datum: meetingDate,
+        tid: '',
+        plats: analysis.extracted_data?.bolag?.säte || '',
+      }
     }
   }
 
@@ -145,6 +166,8 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
 }
 
 export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
+  // For kungörelser, we don't have a direct PDF link but can link to PoIT
+  // The kungorelsetext itself is the source content
   const item: NewsItem = {
     id: k.id,
     type: 'kungorelse',
@@ -156,6 +179,7 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
     newsValue: k.amnesomrade?.toLowerCase().includes('konkurs') ? 9 : 5,
     timestamp: k.publicerad || new Date().toISOString(),
     kungorelse: k,
+    sourceType: 'kungorelse',
   }
 
   // Extract konkurs faktaruta from kungörelse
@@ -172,14 +196,22 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
   }
 
   // Extract kallelse faktaruta if kungörelse is about meeting invitation
+  // ONLY if the meeting date is in the future
   const typ = (k.typ || '').toLowerCase()
   if (typ.includes('kallelse') || typ.includes('stämma')) {
-    item.kallelseFaktaruta = {
-      bolagsnamn: k.company_name || '',
-      stammatyp: k.typ || 'Bolagsstämma',
-      datum: '',
-      tid: '',
-      plats: k.ort || '',
+    // Try to extract date from stamma_data if available
+    const stammaData = k as { stamma_data?: { datum?: string } }
+    const meetingDate = stammaData.stamma_data?.datum || ''
+
+    // Only show kallelse faktaruta for future meetings
+    if (isFutureDate(meetingDate)) {
+      item.kallelseFaktaruta = {
+        bolagsnamn: k.company_name || '',
+        stammatyp: k.typ || 'Bolagsstämma',
+        datum: meetingDate,
+        tid: '',
+        plats: k.ort || '',
+      }
     }
   }
 
@@ -202,4 +234,46 @@ export function getEventTypeColor(type: EventType): string {
     rekonstruktion: 'bg-yellow-500',
   }
   return colors[type] || 'bg-gray-500'
+}
+
+// Parse various Swedish date formats and check if the date is in the future
+export function isFutureDate(dateStr?: string): boolean {
+  if (!dateStr) return false
+
+  try {
+    // Try ISO format first (2024-03-15 or 2024-03-15T...)
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+      const parsed = parseISO(dateStr.split('T')[0])
+      return isValid(parsed) && isFuture(parsed)
+    }
+
+    // Try Swedish format: "15 mars 2024"
+    const swedishMonths: Record<string, number> = {
+      januari: 0, februari: 1, mars: 2, april: 3, maj: 4, juni: 5,
+      juli: 6, augusti: 7, september: 8, oktober: 9, november: 10, december: 11
+    }
+
+    const swedishMatch = dateStr.match(/(\d{1,2})\s*(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)\s*(\d{4})/i)
+    if (swedishMatch) {
+      const day = parseInt(swedishMatch[1], 10)
+      const month = swedishMonths[swedishMatch[2].toLowerCase()]
+      const year = parseInt(swedishMatch[3], 10)
+      const parsed = new Date(year, month, day)
+      return isValid(parsed) && isFuture(parsed)
+    }
+
+    // Try slash format: 15/3/2024
+    const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+    if (slashMatch) {
+      const day = parseInt(slashMatch[1], 10)
+      const month = parseInt(slashMatch[2], 10) - 1
+      const year = parseInt(slashMatch[3], 10)
+      const parsed = new Date(year, month, day)
+      return isValid(parsed) && isFuture(parsed)
+    }
+
+    return false
+  } catch {
+    return false
+  }
 }
