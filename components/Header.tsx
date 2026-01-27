@@ -11,7 +11,7 @@ export default function Header() {
     <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold text-gray-900 tracking-tight">
-          ProtoApp News
+          LoopDesk
         </Link>
 
         <div className="flex items-center gap-4">

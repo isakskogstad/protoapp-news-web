@@ -13,7 +13,7 @@ function LoginContent() {
     <div className="max-w-sm w-full px-4">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-          ProtoApp News
+          LoopDesk
         </h1>
         <p className="text-gray-500 text-sm">
           Logga in för att se nyhetsflödet

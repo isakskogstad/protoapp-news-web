@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: NewsPageProps) {
 
   if (protocol) {
     return {
-      title: `${protocol.company_name} - ${protocol.news_content?.rubrik || 'Nyhetsartikel'} | ProtoApp News`,
+      title: `${protocol.company_name} - ${protocol.news_content?.rubrik || 'Nyhetsartikel'} | LoopDesk`,
       description: protocol.news_content?.notistext?.substring(0, 160),
     }
   }
@@ -34,13 +34,13 @@ export async function generateMetadata({ params }: NewsPageProps) {
 
   if (kungorelse) {
     return {
-      title: `${kungorelse.company_name} - Kungörelse | ProtoApp News`,
+      title: `${kungorelse.company_name} - Kungörelse | LoopDesk`,
       description: kungorelse.kungorelsetext?.substring(0, 160),
     }
   }
 
   return {
-    title: 'Nyhetsartikel | ProtoApp News',
+    title: 'Nyhetsartikel | LoopDesk',
   }
 }
 
