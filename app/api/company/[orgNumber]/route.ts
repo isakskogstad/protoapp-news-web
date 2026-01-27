@@ -8,19 +8,23 @@ export async function GET(
   const { orgNumber } = await params
   const supabase = createServerClient()
 
-  // Clean org number - remove dashes for query
+  // Clean org number - remove dashes
   const cleanOrgNumber = orgNumber.replace(/-/g, '')
 
-  // Try to find company data from LoopBrowse_Protokoll table
-  // Column is 'orgnummer' (not 'org_number')
+  // Format with dash in position 6 (XXXXXX-XXXX)
+  const formattedOrgNumber = cleanOrgNumber.length === 10
+    ? `${cleanOrgNumber.slice(0, 6)}-${cleanOrgNumber.slice(6)}`
+    : orgNumber
+
+  // Try formatted version first (database stores with dash: 556666-0170)
   const { data: company, error } = await supabase
     .from('LoopBrowse_Protokoll')
     .select('*')
-    .eq('orgnummer', cleanOrgNumber)
+    .eq('orgnummer', formattedOrgNumber)
     .single()
 
   if (error || !company) {
-    // Also try with dashes
+    // Also try original input as-is
     const { data: company2 } = await supabase
       .from('LoopBrowse_Protokoll')
       .select('*')
@@ -28,7 +32,18 @@ export async function GET(
       .single()
 
     if (!company2) {
-      return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+      // Finally try without dashes
+      const { data: company3 } = await supabase
+        .from('LoopBrowse_Protokoll')
+        .select('*')
+        .eq('orgnummer', cleanOrgNumber)
+        .single()
+
+      if (!company3) {
+        return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+      }
+
+      return NextResponse.json(formatCompanyData(company3))
     }
 
     return NextResponse.json(formatCompanyData(company2))
