@@ -46,7 +46,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
           'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
-        ),
+        ) as BufferSource,
       })
     }
 
