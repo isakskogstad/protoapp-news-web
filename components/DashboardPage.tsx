@@ -840,9 +840,20 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-4">
+      <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-5">
+        {/* Time - top left */}
+        <p className={`absolute top-3 left-4 font-mono ${
+          timeInfo.isRecent
+            ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
+            : timeInfo.isToday
+              ? 'text-[10px] text-gray-500 dark:text-gray-500'
+              : 'text-[9px] text-gray-400 dark:text-gray-600'
+        }`}>
+          {timeInfo.text}
+        </p>
+
         {/* Action buttons - top right, always visible */}
-        <div className="absolute top-3 right-3 flex items-center gap-1">
+        <div className="absolute top-3 right-4 flex items-center gap-1">
           <button
             onClick={handleBookmark}
             className={`p-1.5 rounded-md transition-all ${
@@ -874,8 +885,8 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
           </div>
         </div>
 
-        <div className="flex gap-5">
-          {/* Left column: Vertical stack - Logo, Company, Org, Time, Category */}
+        <div className="flex gap-5 mt-5">
+          {/* Left column: Vertical stack - Logo, Company, Org, Category */}
           <div className="w-36 shrink-0 flex flex-col">
             {/* Logo - top, left-aligned */}
             <CompanyLogo
@@ -895,19 +906,8 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
               {formatOrgNumber(item.orgNumber)}
             </p>
 
-            {/* Time */}
-            <p className={`mt-2 font-mono ${
-              timeInfo.isRecent
-                ? 'text-[11px] font-semibold text-gray-700 dark:text-gray-300'
-                : timeInfo.isToday
-                  ? 'text-[11px] text-gray-500 dark:text-gray-400'
-                  : 'text-[10px] text-gray-400 dark:text-gray-500'
-            }`}>
-              {timeInfo.text}
-            </p>
-
             {/* Category badge */}
-            <span className={`mt-2 text-[10px] font-medium px-2 py-1 rounded-md w-fit ${categoryColor}`}>
+            <span className={`mt-3 text-[10px] font-medium px-2 py-1 rounded-md w-fit ${categoryColor}`}>
               {formattedCategory}
             </span>
           </div>
@@ -918,7 +918,7 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-2">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-3">
                 {truncateWords(item.noticeText, 50)}
               </p>
             )}
@@ -1229,7 +1229,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </div>
           )}
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-5">
             {filteredItems.length === 0 ? (
               <div className="py-16 text-center text-gray-500 dark:text-gray-400">
                 {debouncedSearch ? (
