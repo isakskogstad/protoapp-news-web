@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType, formatOrgNumber } from '@/lib/utils'
-import { FileText, Clock, Building2, Download, Loader2, Maximize2, Minimize2 } from 'lucide-react'
+import { FileText, Clock, Building2, Download, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
@@ -16,7 +16,7 @@ import NewsSidebar from './NewsSidebar'
 
 interface NewsDetailProps {
   item: NewsItem
-  showNewsSidebar?: boolean // Enable two-column layout with news sidebar
+  showNewsSidebar?: boolean
 }
 
 export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailProps) {
@@ -25,15 +25,18 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   const [pdfLoading, setPdfLoading] = useState(true)
   const [pdfError, setPdfError] = useState(false)
   const [pdfExists, setPdfExists] = useState<boolean | null>(null)
-  const [pdfExpanded, setPdfExpanded] = useState(false)
+  const [sourceExpanded, setSourceExpanded] = useState(false)
+  const [fullscreenPdf, setFullscreenPdf] = useState(false)
+  const [kungorelseExpanded, setKungorelseExpanded] = useState(false)
+
+  const expandedContentRef = useRef<HTMLDivElement>(null)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
 
-  // Check if PDF exists before trying to display it
+  // Check if PDF exists
   useEffect(() => {
     if (item.sourceType === 'pdf' && item.sourceUrl) {
-      // Use HEAD request to check if PDF exists
       fetch(item.sourceUrl, { method: 'HEAD' })
         .then(res => {
           if (res.ok) {
@@ -52,20 +55,50 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
     }
   }, [item.sourceUrl, item.sourceType])
 
-  // Determine what content is available
+  // Close fullscreen PDF on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (fullscreenPdf && expandedContentRef.current && !expandedContentRef.current.contains(e.target as Node)) {
+        setFullscreenPdf(false)
+      }
+    }
+
+    if (fullscreenPdf) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = ''
+    }
+  }, [fullscreenPdf])
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFullscreenPdf(false)
+        setSourceExpanded(false)
+        setKungorelseExpanded(false)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [])
+
+  // Determine content availability
   const hasPdf = item.sourceType === 'pdf' && !!item.sourceUrl && pdfExists !== false
-  const hasKungorelse = item.sourceType === 'kungorelse' && !!item.noticeText
+  const hasKungorelse = item.sourceType === 'kungorelse'
   const hasBolagsInfo = !!item.bolagsInfo
   const hasKallelse = !!item.kallelseFaktaruta
   const hasNyemission = !!item.nyemissionFaktaruta
   const hasKonkurs = !!item.konkursFaktaruta
   const hasStyrelse = !!item.styrelseFaktaruta
 
-  // Check if we have any specific left column content (faktarutor)
-  const hasSpecificLeftContent = hasPdf || hasKungorelse || hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
-
-  // Always show two-column layout - use BolagsfaktaModule as fallback
-  const hasLeftColumnContent = true // Always true - we show BolagsfaktaModule if nothing else
+  // Get the primary faktaruta (first one that exists)
+  const hasFaktaruta = hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
+  const hasSource = hasPdf || hasKungorelse
 
   return (
     <article className="animate-fade-in">
@@ -73,7 +106,6 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       <header className="mb-6">
         <div className="flex items-start gap-4 mb-4">
           <div className="relative w-14 h-14 flex-shrink-0 flex items-center justify-center">
-            {/* Skeleton shimmer while loading */}
             {logoLoading && !logoError && (
               <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
             )}
@@ -144,7 +176,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       </div>
 
       {/* Notice text - prominent */}
-      {item.noticeText && (
+      {item.noticeText && !hasKungorelse && (
         <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-800">
           <p className="text-gray-700 dark:text-gray-300 leading-[1.8] text-base whitespace-pre-wrap">
             {item.noticeText}
@@ -159,48 +191,53 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
       )}
 
-      {/* Two-column layout for modules - always show */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-        {/* Left column */}
-        <div className="flex flex-col min-h-[200px]">
-          {/* Inline PDF Viewer - Only if PDF exists and is accessible */}
-          {hasPdf && pdfExists && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
-              {/* PDF Header */}
-              <button
-                onClick={() => !pdfError && setPdfExpanded(!pdfExpanded)}
-                className="w-full px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0"
-              >
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Protokoll</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={item.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    Ladda ner
-                  </a>
-                  {pdfExpanded ? (
-                    <Minimize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  ) : (
-                    <Maximize2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  )}
-                </div>
-              </button>
+      {/* ========== COLLAPSIBLE SOURCE BAR (Protokoll/Kungörelse) ========== */}
+      {hasSource && (
+        <div className="mb-6">
+          {/* Collapsible header bar - full width, thin */}
+          <button
+            onClick={() => hasPdf ? setSourceExpanded(!sourceExpanded) : setKungorelseExpanded(!kungorelseExpanded)}
+            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {hasPdf ? 'Visa protokoll' : 'Visa kungörelse'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {hasPdf && (
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Ladda ner
+                </a>
+              )}
+              {(hasPdf ? sourceExpanded : kungorelseExpanded) ? (
+                <ChevronUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              )}
+            </div>
+          </button>
 
-              {/* PDF Content - 200px collapsed, 600px expanded */}
+          {/* Expanded content - PDF viewer */}
+          {hasPdf && sourceExpanded && (
+            <div
+              className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down"
+            >
               <div
-                className="relative bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out cursor-pointer flex-1"
-                style={{ minHeight: pdfExpanded ? '600px' : '200px' }}
-                onClick={() => !pdfExpanded && setPdfExpanded(true)}
+                className="relative bg-gray-100 dark:bg-gray-800 cursor-pointer"
+                style={{ height: '300px' }}
+                onClick={() => setFullscreenPdf(true)}
               >
-                {/* Loading state */}
                 {pdfLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
                     <div className="flex flex-col items-center gap-2">
@@ -209,11 +246,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                     </div>
                   </div>
                 )}
-
-                {/* PDF iframe */}
                 <iframe
                   src={`${item.sourceUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className={`w-full h-full border-0 transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
+                  className={`w-full h-full border-0 pointer-events-none transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
                   onLoad={() => setPdfLoading(false)}
                   onError={() => {
                     setPdfLoading(false)
@@ -221,42 +256,80 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                   }}
                   title="PDF-dokument"
                 />
-
-                {/* Expand overlay when collapsed */}
-                {!pdfExpanded && !pdfLoading && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-white/90 dark:from-gray-900/90 via-transparent to-transparent flex items-end justify-center pb-3 pointer-events-none">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
-                      Klicka för att visa hela dokumentet
-                    </span>
-                  </div>
-                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent flex items-end justify-center pb-4 pointer-events-none">
+                  <span className="text-xs font-medium text-white bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
+                    Klicka för att läsa i helskärm
+                  </span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Inline Kungörelse text (if source type is kungorelse) */}
-          {hasKungorelse && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden flex-1 flex flex-col">
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
-                <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Kungörelse</h3>
-              </div>
-              <div className="p-4 flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.75] whitespace-pre-wrap">
-                  {item.noticeText}
+          {/* Expanded content - Kungörelse text */}
+          {hasKungorelse && kungorelseExpanded && (
+            <div className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down">
+              <div className="p-6 max-h-[400px] overflow-y-auto">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.8] whitespace-pre-wrap">
+                  {item.kungorelse?.kungorelsetext || item.noticeText}
                 </p>
               </div>
             </div>
           )}
+        </div>
+      )}
 
-          {/* Faktarutor - only render if data exists */}
+      {/* ========== FULLSCREEN PDF OVERLAY ========== */}
+      {fullscreenPdf && hasPdf && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div
+            ref={expandedContentRef}
+            className="relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl w-full max-w-5xl h-[85vh]"
+          >
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Protokoll</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Ladda ner
+                </a>
+                <button
+                  onClick={() => setFullscreenPdf(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            {/* PDF iframe - full height */}
+            <iframe
+              src={`${item.sourceUrl}#toolbar=1&navpanes=1`}
+              className="w-full h-full border-0 pt-14"
+              title="PDF-dokument helskärm"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ========== TWO-COLUMN MODULES (Faktaruta + Nyheter) ========== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Left column - Faktaruta or Bolagsfakta */}
+        <div className="flex flex-col">
           {hasKallelse && <KallelseFaktaruta data={item.kallelseFaktaruta} />}
           {hasNyemission && <NyemissionFaktaruta data={item.nyemissionFaktaruta} />}
           {hasKonkurs && <KonkursFaktaruta data={item.konkursFaktaruta} />}
           {hasStyrelse && <StyrelseFaktaruta data={item.styrelseFaktaruta} />}
 
-          {/* Bolagsfakta - show when no specific content */}
-          {!hasSpecificLeftContent && (
+          {/* Fallback to Bolagsfakta if no faktaruta */}
+          {!hasFaktaruta && (
             <BolagsfaktaModule
               orgNumber={item.orgNumber}
               companyName={item.companyName}
@@ -271,23 +344,18 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
           )}
         </div>
 
-        {/* Right column */}
-        <div className="flex flex-col min-h-[200px]">
-          {/* Show Årsredovisningar when no specific content (side by side with Bolagsfakta) */}
-          {!hasSpecificLeftContent && (
+        {/* Right column - News sidebar or Årsredovisningar */}
+        <div className="flex flex-col">
+          {showNewsSidebar ? (
+            <NewsSidebar companyName={item.companyName} matchHeight />
+          ) : (
             <ArsredovisningarModule
               orgNumber={item.orgNumber}
               companyName={item.companyName}
             />
           )}
-
-          {/* Show NewsSidebar when there IS specific content */}
-          {hasSpecificLeftContent && showNewsSidebar && (
-            <NewsSidebar companyName={item.companyName} matchHeight />
-          )}
         </div>
       </div>
-
     </article>
   )
 }
