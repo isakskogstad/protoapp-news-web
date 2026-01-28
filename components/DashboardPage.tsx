@@ -3,9 +3,8 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Bell, Search, Settings, Calendar, Eye,
-  Clock, ArrowUpRight, Globe, FileText, Activity,
-  Bookmark, BookmarkCheck, Share2, Link2, Check, X, BellOff
+  Search, Settings, Calendar,
+  Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
@@ -15,8 +14,8 @@ import { useNotifications } from '@/lib/hooks/useNotifications'
 // Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
-import WatchList, { WatchedCompany } from './WatchList'
 import GlobalSidebar from './GlobalSidebar'
+import NotificationDropdown from './NotificationDropdown'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -171,85 +170,12 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
   )
 }
 
-// Notification button with tooltip
-function NotificationButton({
-  enabled,
-  supported,
-  permission,
-  loading,
-  browserInfo,
-  onToggle
-}: {
-  enabled: boolean
-  supported: boolean
-  permission: NotificationPermission | 'unsupported'
-  loading: boolean
-  browserInfo: { name: string; supportLevel: 'full' | 'partial' | 'none' }
-  onToggle: () => void
-}) {
-  const [showTooltip, setShowTooltip] = useState(false)
-
-  const getStatusText = () => {
-    if (!supported) return 'Notiser stöds inte i denna webbläsare'
-    if (permission === 'denied') return 'Notiser blockerade - ändra i webbläsarens inställningar'
-    if (enabled) return `Notiser på (${browserInfo.name})`
-    return 'Aktivera notiser'
-  }
-
-  const getIcon = () => {
-    if (!supported || permission === 'denied') return <BellOff className="w-5 h-5" />
-    return <Bell className="w-5 h-5" />
-  }
-
-  return (
-    <div className="relative">
-      <button
-        onClick={onToggle}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        disabled={loading || !supported || permission === 'denied'}
-        className={`p-2 rounded-md transition-colors relative ${
-          enabled
-            ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
-            : !supported || permission === 'denied'
-              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-        }`}
-        title={getStatusText()}
-      >
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : (
-          getIcon()
-        )}
-        {enabled && (
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900"></span>
-        )}
-      </button>
-
-      {/* Tooltip */}
-      {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg shadow-lg whitespace-nowrap z-50">
-          {getStatusText()}
-          {browserInfo.supportLevel === 'full' && enabled && (
-            <div className="text-gray-400 dark:text-gray-600 mt-1">
-              Fungerar även när webbläsaren är stängd
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // Dashboard Header
 function DashboardHeader({
-  notifications,
   onOpenSettings,
   searchQuery,
   onSearchChange
 }: {
-  notifications: ReturnType<typeof useNotifications>
   onOpenSettings: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -306,14 +232,7 @@ function DashboardHeader({
 
         {/* Right: Profile & Notifications */}
         <div className="flex items-center gap-2">
-          <NotificationButton
-            enabled={notifications.enabled}
-            supported={notifications.supported}
-            permission={notifications.permission}
-            loading={notifications.loading}
-            browserInfo={notifications.browserInfo}
-            onToggle={notifications.toggle}
-          />
+          <NotificationDropdown />
 
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
 
@@ -944,7 +863,6 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   const [sseConnected, setSseConnected] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [, forceUpdate] = useState({})
-  const [watchlistCount, setWatchlistCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [isOnline, setIsOnline] = useState(true)
@@ -1137,13 +1055,9 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
     }))
     .slice(0, 10)
 
-  // Sample watched companies (will be populated from localStorage in WatchList)
-  const sampleWatchedCompanies: WatchedCompany[] = []
-
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
       <DashboardHeader
-        notifications={notifications}
         onOpenSettings={() => setShowSettingsModal(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -1311,19 +1225,6 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
               <UpcomingEvents events={upcomingEvents} maxItems={5} />
             </SidebarWidget>
 
-            {/* Watchlist */}
-            <SidebarWidget
-              title="Bevakningslista"
-              icon={<Eye className="w-4 h-4" />}
-              actionLabel="Alla"
-              itemCount={watchlistCount}
-              collapsible={true}
-            >
-              <WatchList
-                companies={sampleWatchedCompanies}
-                onCountChange={setWatchlistCount}
-              />
-            </SidebarWidget>
           </GlobalSidebar>
         </div>
       </div>
