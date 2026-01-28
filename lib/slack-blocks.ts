@@ -141,10 +141,16 @@ interface NewsItem {
   protocolDate?: string
   logoUrl?: string
   newsValue?: number
+  sharedBy?: string  // Name of user who shared
 }
 
 export function buildNewsBlocks(news: NewsItem, baseUrl: string): Block[] {
   const blocks: Block[] = []
+
+  // Show who shared the news
+  if (news.sharedBy) {
+    blocks.push(context([`📤 *${news.sharedBy}* delade en nyhet`]))
+  }
 
   // Header section with company info
   const headerText = news.headline

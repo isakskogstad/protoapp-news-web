@@ -43,8 +43,21 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account }) {
       // Save Slack access token to JWT on initial sign in
       if (account) {
-        token.slackAccessToken = account.access_token
+        // Slack OAuth v2 returns both bot token (access_token) and user token (in authed_user)
+        // We need the user token to post as the user
+        // The user token might be in different places depending on NextAuth version
+        const userToken = (account as Record<string, unknown>).authed_user_token
+          || (account as Record<string, unknown>).access_token
+
+        token.slackAccessToken = userToken
         token.slackUserId = account.providerAccountId
+
+        // Debug logging
+        console.log('Slack account data:', {
+          hasAccessToken: !!account.access_token,
+          tokenType: account.token_type,
+          providerAccountId: account.providerAccountId,
+        })
       }
       return token
     },

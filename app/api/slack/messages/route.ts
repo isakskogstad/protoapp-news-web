@@ -295,27 +295,19 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { text, thread_ts, blocks, asUser } = body
+    const { text, thread_ts, blocks } = body
 
     if (!text?.trim()) {
       return NextResponse.json({ error: 'Message text is required' }, { status: 400 })
     }
 
     const userName = session.user?.name || session.user?.email || 'Anonym'
-    const userSlackToken = (session.user as any)?.slackAccessToken
 
-    // Determine which token to use
-    // Use user token if available and asUser is true (for ShareToChat etc.)
-    const useUserToken = asUser && userSlackToken
-    const token = useUserToken ? userSlackToken : SLACK_BOT_TOKEN
-
-    // If using bot token, prefix with username for regular messages (not blocks)
-    // If using user token, message will show as from the user automatically
-    const messageText = useUserToken
+    // Always use bot token - user attribution is shown in the message content
+    // (either via sharedBy in blocks, or *userName:* prefix for text messages)
+    const messageText = blocks
       ? text.trim()
-      : blocks
-        ? text.trim()
-        : `*${userName}:* ${text.trim()}`
+      : `*${userName}:* ${text.trim()}`
 
     const payload: Record<string, unknown> = {
       channel: SLACK_CHANNEL_ID,
@@ -337,7 +329,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -346,37 +338,11 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
 
     if (!data.ok) {
-      // If user token failed for ANY reason, try with bot token as fallback
-      if (useUserToken) {
-        console.log(`User token failed with error: ${data.error}, falling back to bot token`)
-
-        const botPayload = {
-          ...payload,
-          text: blocks ? text.trim() : `*${userName}:* ${text.trim()}`,
-        }
-
-        const botResponse = await fetch('https://slack.com/api/chat.postMessage', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(botPayload),
-        })
-
-        const botData = await botResponse.json()
-        if (!botData.ok) {
-          console.error(`Bot token also failed: ${botData.error}`)
-          return NextResponse.json({ error: botData.error }, { status: 500 })
-        }
-        return NextResponse.json({ success: true, ts: botData.ts, message: botData.message, sentAsBot: true })
-      }
-
       console.error(`Slack message failed: ${data.error}`)
       return NextResponse.json({ error: data.error }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, ts: data.ts, message: data.message, sentAsUser: useUserToken })
+    return NextResponse.json({ success: true, ts: data.ts, message: data.message })
 
   } catch (error) {
     console.error('Error sending Slack message:', error)

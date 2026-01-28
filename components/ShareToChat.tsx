@@ -44,8 +44,9 @@ export default function ShareToChat({
 
     try {
       const baseUrl = window.location.origin
+      const userName = session.user?.name || 'Någon'
 
-      // Build Block Kit message
+      // Build Block Kit message with sharer's name
       const blocks = buildNewsBlocks({
         id: newsId,
         companyName,
@@ -56,6 +57,7 @@ export default function ShareToChat({
         noticeText,
         logoUrl,
         newsValue,
+        sharedBy: userName,
       }, baseUrl)
 
       // Fallback text for notifications
@@ -69,7 +71,6 @@ export default function ShareToChat({
         body: JSON.stringify({
           text: fallbackText,
           blocks,
-          asUser: true, // Send as the logged-in user, not as bot
         }),
       })
 
