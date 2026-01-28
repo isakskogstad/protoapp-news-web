@@ -276,10 +276,6 @@ function DashboardHeader({
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-gray-500 dark:text-gray-400">
-            <span className="text-gray-300 dark:text-gray-600">/</span>
-            <span className="text-black dark:text-white font-medium">ÖVERSIKT</span>
-          </div>
         </div>
 
         {/* Center: Search */}
@@ -318,13 +314,6 @@ function DashboardHeader({
             browserInfo={notifications.browserInfo}
             onToggle={notifications.toggle}
           />
-
-          <button
-            onClick={onOpenSettings}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hidden sm:block"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
 
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
 
@@ -1183,10 +1172,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
           <main className="flex-1 min-w-0">
             <section>
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 className="text-2xl font-bold flex items-center gap-3 text-black dark:text-white">
-              <LiveIndicator connected={sseConnected} />
-              Live Feed
-            </h2>
+            <LiveIndicator connected={sseConnected} />
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter('all')}
