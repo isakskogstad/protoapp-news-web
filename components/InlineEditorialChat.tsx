@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { Send, Loader2, Hash, MessageSquare, Smile } from 'lucide-react'
 import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
+import { Block } from '@/lib/slack-types'
+import BlockKitRenderer from './BlockKitRenderer'
 
 interface ChatMessage {
   id: string
@@ -19,6 +21,7 @@ interface ChatMessage {
     count: number
     users: string[]
   }>
+  blocks?: Block[]
 }
 
 interface InlineEditorialChatProps {
@@ -154,6 +157,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
         ) : (
           messages.map((msg) => {
             const { html } = parseSlackMessage(msg.text, users)
+            const hasBlocks = msg.blocks && msg.blocks.length > 0
             return (
               <div key={msg.id} className="flex gap-2 group relative">
                 {/* Avatar */}
@@ -173,11 +177,17 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
                       {formatTime(msg.timestamp)}
                     </span>
                   </div>
-                  {/* Message with markdown/emoji support */}
-                  <div
-                    className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
+                  {/* Block Kit content (rich cards) or regular message */}
+                  {hasBlocks ? (
+                    <div className="text-xs">
+                      <BlockKitRenderer blocks={msg.blocks!} users={users} />
+                    </div>
+                  ) : (
+                    <div
+                      className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
+                      dangerouslySetInnerHTML={{ __html: html }}
+                    />
+                  )}
 
                   {/* Reactions */}
                   {msg.reactions && msg.reactions.length > 0 && (
