@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
-  Search, Settings, Calendar,
+  Search, Settings,
   Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X, Menu
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
@@ -14,8 +14,6 @@ import { useTheme } from './ThemeProvider'
 import { useNotifications } from '@/lib/hooks/useNotifications'
 import { useSSE } from '@/lib/hooks/useSSE'
 // Using native img for profile images with error handling
-import SidebarWidget from './SidebarWidget'
-import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
 import GlobalSidebar from './GlobalSidebar'
 import NotificationDropdown from './NotificationDropdown'
 
@@ -1102,29 +1100,6 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
     return searchFilteredItems
   }, [searchFilteredItems, filter])
 
-  // Extract upcoming events from news-worthy items (kallelser) - memoized
-  const upcomingEvents: UpcomingEvent[] = useMemo(() => newsWorthyItems
-    .filter(item => {
-      // Check for kallelseFaktaruta first (more reliable)
-      if (item.kallelseFaktaruta?.datum) return true
-      // Fallback to headline matching
-      const headline = item.headline?.toLowerCase() || ''
-      const protocolType = item.protocolType?.toLowerCase() || ''
-      return headline.includes('kallelse') || headline.includes('stämma') || headline.includes('årsstämma') ||
-             protocolType.includes('kallelse') || protocolType.includes('stämma')
-    })
-    .map(item => ({
-      id: item.id,
-      title: item.kallelseFaktaruta?.stammatyp || item.protocolType || 'Bolagsstämma',
-      company: item.companyName,
-      date: item.kallelseFaktaruta?.datum || item.timestamp,
-      time: item.kallelseFaktaruta?.tid || undefined,
-      location: item.kallelseFaktaruta?.plats || undefined,
-      type: 'kallelse' as const,
-      noticeText: item.noticeText || undefined
-    }))
-    .slice(0, 10), [newsWorthyItems])
-
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
       <DashboardHeader
@@ -1291,17 +1266,6 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
 
           {/* Right Sidebar with Chat */}
           <GlobalSidebar>
-            {/* Upcoming Events */}
-            <SidebarWidget
-              title="Kommande händelser"
-              icon={<Calendar className="w-4 h-4" />}
-              actionLabel="Kalender"
-              itemCount={upcomingEvents.length}
-              collapsible={true}
-            >
-              <UpcomingEvents events={upcomingEvents} maxItems={5} />
-            </SidebarWidget>
-
           </GlobalSidebar>
         </div>
       </div>
