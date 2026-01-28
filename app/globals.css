@@ -391,3 +391,263 @@ a:focus-visible {
 .dark .prose-chat del {
   color: #9ca3af;
 }
+
+/* Slide down animation for mobile search */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out forwards;
+}
+
+/* ===============================
+   Micro-interactions
+   =============================== */
+
+/* Button press effect */
+.btn-press {
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Card hover lift with subtle shadow */
+.card-interactive {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-interactive:hover {
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon rotation on hover */
+.icon-rotate-hover {
+  transition: transform 0.3s ease-out;
+}
+
+.group:hover .icon-rotate-hover,
+.icon-rotate-hover:hover {
+  transform: rotate(15deg);
+}
+
+/* Scale on hover */
+.scale-hover {
+  transition: transform 0.2s ease-out;
+}
+
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+/* Underline slide animation */
+.underline-slide {
+  position: relative;
+}
+
+.underline-slide::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: width 0.3s ease-out;
+}
+
+.underline-slide:hover::after {
+  width: 100%;
+}
+
+/* Focus ring animation */
+.focus-ring-animate {
+  transition: box-shadow 0.2s ease-out, outline 0.2s ease-out;
+}
+
+.focus-ring-animate:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.dark .focus-ring-animate:focus-visible {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* ===============================
+   Enhanced Stagger Animations
+   =============================== */
+
+/* Fade in up for lists */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* Stagger with longer delays for smoother appearance */
+.stagger-smooth > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.stagger-smooth > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-smooth > *:nth-child(2) { animation-delay: 75ms; }
+.stagger-smooth > *:nth-child(3) { animation-delay: 150ms; }
+.stagger-smooth > *:nth-child(4) { animation-delay: 225ms; }
+.stagger-smooth > *:nth-child(5) { animation-delay: 300ms; }
+.stagger-smooth > *:nth-child(6) { animation-delay: 375ms; }
+.stagger-smooth > *:nth-child(7) { animation-delay: 450ms; }
+.stagger-smooth > *:nth-child(8) { animation-delay: 525ms; }
+.stagger-smooth > *:nth-child(9) { animation-delay: 600ms; }
+.stagger-smooth > *:nth-child(10) { animation-delay: 675ms; }
+.stagger-smooth > *:nth-child(n+11) { animation-delay: 750ms; }
+
+/* Quick stagger for short lists */
+.stagger-quick > * {
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.stagger-quick > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-quick > *:nth-child(2) { animation-delay: 30ms; }
+.stagger-quick > *:nth-child(3) { animation-delay: 60ms; }
+.stagger-quick > *:nth-child(4) { animation-delay: 90ms; }
+.stagger-quick > *:nth-child(5) { animation-delay: 120ms; }
+
+/* ===============================
+   Touch-friendly Styles
+   =============================== */
+
+/* Ensure touch targets are at least 44x44px */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Improved tap highlight for mobile */
+@media (hover: none) {
+  .tap-highlight {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .tap-highlight {
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ===============================
+   Dark Mode Contrast Fixes
+   =============================== */
+
+/* Improved text contrast in dark mode */
+.dark .text-improved {
+  color: #e5e5e5;
+}
+
+.dark .text-muted-improved {
+  color: #a3a3a3;
+}
+
+/* Better border visibility in dark mode */
+.dark .border-improved {
+  border-color: #404040;
+}
+
+/* Improved placeholder contrast */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #737373;
+}
+
+/* ===============================
+   Loading States
+   =============================== */
+
+/* Skeleton with better shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e0e0e0 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1f1f1f 0%,
+    #2d2d2d 50%,
+    #1f1f1f 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ===============================
+   Reduced Motion Support
+   =============================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce,
+  .skeleton-shimmer,
+  .skeleton {
+    animation: none !important;
+  }
+}

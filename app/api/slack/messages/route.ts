@@ -171,13 +171,21 @@ export async function GET(request: NextRequest) {
     const oldest = searchParams.get('oldest')
     const latest = searchParams.get('latest')
     const threadTs = searchParams.get('thread_ts')
+    const channelParam = searchParams.get('channel')
+
+    // Use channel from query param or fall back to env variable
+    const channel = channelParam || SLACK_CHANNEL_ID
+
+    if (!channel) {
+      return NextResponse.json({ error: 'No channel specified' }, { status: 400 })
+    }
 
     const userMap = await fetchAllUsers()
 
     // Fetch thread replies if thread_ts is provided
     if (threadTs) {
       const url = new URL('https://slack.com/api/conversations.replies')
-      url.searchParams.set('channel', SLACK_CHANNEL_ID)
+      url.searchParams.set('channel', channel)
       url.searchParams.set('ts', threadTs)
       url.searchParams.set('limit', limit)
 
@@ -205,7 +213,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch channel history
     const url = new URL('https://slack.com/api/conversations.history')
-    url.searchParams.set('channel', SLACK_CHANNEL_ID)
+    url.searchParams.set('channel', channel)
     url.searchParams.set('limit', limit)
     if (oldest) url.searchParams.set('oldest', oldest)
     if (latest) url.searchParams.set('latest', latest)
@@ -254,7 +262,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { text, thread_ts } = body
+    const { text, thread_ts, blocks } = body
 
     if (!text?.trim()) {
       return NextResponse.json({ error: 'Message text is required' }, { status: 400 })
@@ -262,11 +270,18 @@ export async function POST(request: NextRequest) {
 
     const userName = session.user?.name || session.user?.email || 'Anonym'
 
+    // If blocks are provided, use them (for rich messages like ShareToChat)
+    // Otherwise, format as user message
     const payload: Record<string, unknown> = {
       channel: SLACK_CHANNEL_ID,
-      text: `*${userName}:* ${text.trim()}`,
+      text: blocks ? text.trim() : `*${userName}:* ${text.trim()}`,
       unfurl_links: true,
       unfurl_media: true,
+    }
+
+    // Add blocks if provided
+    if (blocks && Array.isArray(blocks)) {
+      payload.blocks = blocks
     }
 
     // Add thread_ts for thread replies
@@ -293,6 +308,97 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error sending Slack message:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+    return NextResponse.json({ error: 'Slack not configured' }, { status: 500 })
+  }
+
+  try {
+    const body = await request.json()
+    const { timestamp, text } = body
+
+    if (!timestamp || !text?.trim()) {
+      return NextResponse.json({ error: 'Timestamp and text are required' }, { status: 400 })
+    }
+
+    const userName = session.user?.name || session.user?.email || 'Anonym'
+
+    const response = await fetch('https://slack.com/api/chat.update', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel: SLACK_CHANNEL_ID,
+        ts: timestamp,
+        text: `*${userName}:* ${text.trim()}`,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!data.ok) {
+      return NextResponse.json({ error: data.error }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, ts: data.ts, message: data.message })
+
+  } catch (error) {
+    console.error('Error updating Slack message:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+    return NextResponse.json({ error: 'Slack not configured' }, { status: 500 })
+  }
+
+  try {
+    const body = await request.json()
+    const { timestamp } = body
+
+    if (!timestamp) {
+      return NextResponse.json({ error: 'Timestamp is required' }, { status: 400 })
+    }
+
+    const response = await fetch('https://slack.com/api/chat.delete', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel: SLACK_CHANNEL_ID,
+        ts: timestamp,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!data.ok) {
+      return NextResponse.json({ error: data.error }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+
+  } catch (error) {
+    console.error('Error deleting Slack message:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,16 +1,18 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   Search, Settings, Calendar,
-  Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X
+  Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X, Menu
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from './ThemeProvider'
 import { useNotifications } from '@/lib/hooks/useNotifications'
+import { useSSE } from '@/lib/hooks/useSSE'
 // Using native img for profile images with error handling
 import SidebarWidget from './SidebarWidget'
 import UpcomingEvents, { UpcomingEvent } from './UpcomingEvents'
@@ -48,13 +50,26 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   const { theme, setTheme } = useTheme()
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+    >
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-          <h2 className="text-lg font-bold text-black dark:text-white">Inställningar</h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors">
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <h2 id="settings-modal-title" className="text-lg font-bold text-black dark:text-white">Inställningar</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            aria-label="Stäng inställningar"
+          >
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" aria-hidden="true" />
           </button>
         </div>
 
@@ -62,15 +77,17 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           {/* Theme */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tema</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Välj tema">
               {(['light', 'dark', 'system'] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTheme(t)}
+                  role="radio"
+                  aria-checked={theme === t}
                   className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
                     theme === t
                       ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}
                 >
                   {t === 'light' ? 'Ljust' : t === 'dark' ? 'Mörkt' : 'System'}
@@ -116,8 +133,12 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2 z-50 min-w-[240px]">
+      <div className="fixed inset-0 z-40" onClick={onClose} aria-hidden="true" />
+      <div
+        className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2 z-50 min-w-[240px]"
+        role="menu"
+        aria-label="Profilmeny"
+      >
         {/* User info */}
         <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3">
@@ -143,23 +164,25 @@ function ProfileDropdown({ onClose, onOpenSettings }: { onClose: () => void; onO
         </div>
 
         {/* Menu items */}
-        <div className="py-1">
+        <div className="py-1" role="group">
           <button
             onClick={() => { onOpenSettings(); onClose() }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            role="menuitem"
           >
-            <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
             Inställningar
           </button>
         </div>
 
         {/* Logout */}
-        <div className="border-t border-gray-100 dark:border-gray-800 pt-1">
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-1" role="group">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            role="menuitem"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Logga ut
@@ -186,52 +209,64 @@ function DashboardHeader({
   const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800" role="banner">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Left: Logo */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="group flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center font-bold text-lg transition-transform group-hover:scale-105">
+          <Link href="/" className="group flex items-center gap-2.5" aria-label="LoopDesk - Gå till startsidan">
+            <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center font-bold text-lg transition-transform group-hover:scale-105" aria-hidden="true">
               L
             </div>
-            <span className="text-xl tracking-tight text-black dark:text-white">
+            <span className="text-xl tracking-tight text-black dark:text-white hidden sm:inline" aria-hidden="true">
               LOOP<span className="text-gray-400 dark:text-gray-500">DESK</span>
             </span>
           </Link>
 
         </div>
 
-        {/* Center: Search */}
-        <div className="hidden md:block flex-1 max-w-md mx-8">
+        {/* Center: Search - Desktop */}
+        <div className="hidden md:block flex-1 max-w-md mx-8" role="search">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" aria-hidden="true" />
             <input
-              type="text"
+              type="search"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Sök bolag, person eller nyckelord..."
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
+              aria-label="Sök i nyheter"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
             />
             {searchQuery ? (
               <button
                 onClick={() => onSearchChange('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Rensa sökning"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             ) : (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1" aria-hidden="true">
                 <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5">⌘K</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right: Profile & Notifications */}
+        {/* Right: Mobile Search + Profile & Notifications */}
         <div className="flex items-center gap-2">
+          {/* Mobile search button */}
+          <button
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            className="md:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            aria-label="Sök"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
           <NotificationDropdown />
 
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
@@ -240,6 +275,9 @@ function DashboardHeader({
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               className="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 group"
+              aria-expanded={showProfileDropdown}
+              aria-haspopup="menu"
+              aria-label="Öppna profilmeny"
             >
               <div className="text-right hidden sm:block group-hover:opacity-80">
                 <div className="text-xs font-bold leading-none text-black dark:text-white">{userName.split(' ')[0]}</div>
@@ -270,6 +308,33 @@ function DashboardHeader({
           </div>
         </div>
       </div>
+
+      {/* Mobile search bar - slides down when active */}
+      {showMobileSearch && (
+        <div className="md:hidden px-4 pb-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 animate-slide-down" role="search">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Sök bolag, person eller nyckelord..."
+              aria-label="Sök i nyheter"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2.5 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Rensa sökning"
+              >
+                <X className="w-4 h-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   )
 }
@@ -340,8 +405,8 @@ function getCachedLogo(orgNumber: string, url: string): string | null {
   return null
 }
 
-// Company Logo Component with caching
-function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
+// Company Logo Component with caching - memoized
+const CompanyLogo = React.memo(function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
   orgNumber: string
   companyName: string
   logoUrl?: string
@@ -431,7 +496,7 @@ function CompanyLogo({ orgNumber, companyName, logoUrl, size = 'md' }: {
       )}
     </div>
   )
-}
+})
 
 // Share Menu Component
 function ShareMenu({ url, title, onClose }: { url: string; title: string; onClose: () => void }) {
@@ -701,12 +766,13 @@ function formatCategory(category: string): string {
 }
 
 // News Item Component - Clean vertical layout in left column
+// Memoized to prevent re-renders when parent state changes
 interface NewsItemCardProps {
   item: NewsItem
   onBookmarkChange?: () => void
 }
 
-function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
+const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
 
@@ -749,27 +815,30 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
   return (
     <Link href={`/news/${item.id}`} className="block group">
       <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 px-5 py-3">
-        {/* Action buttons - vertical stack on far right */}
-        <div className="absolute right-3 top-3 flex flex-col gap-0.5">
+        {/* Action buttons - vertical stack on far right, visible on hover/focus */}
+        <div className="absolute right-3 top-3 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity md:opacity-100">
           <button
             onClick={handleBookmark}
-            className={`p-1.5 rounded-md transition-all ${
+            className={`p-2 rounded-md transition-all touch-manipulation ${
               isBookmarked
                 ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
             }`}
-            title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+            aria-label={isBookmarked ? 'Ta bort bokmärke' : 'Spara som bokmärke'}
+            aria-pressed={isBookmarked}
           >
-            {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+            {isBookmarked ? <BookmarkCheck className="w-4 h-4" aria-hidden="true" /> : <Bookmark className="w-4 h-4" aria-hidden="true" />}
           </button>
 
           <div className="relative">
             <button
               onClick={handleShare}
-              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              title="Dela"
+              className="p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all touch-manipulation"
+              aria-label="Dela nyhet"
+              aria-expanded={showShareMenu}
+              aria-haspopup="menu"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-4 h-4" aria-hidden="true" />
             </button>
 
             {showShareMenu && (
@@ -835,23 +904,29 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
       </article>
     </Link>
   )
-}
+})
 
-// SSE Connection indicator
-function LiveIndicator({ connected }: { connected: boolean }) {
+// SSE Connection indicator - memoized
+const LiveIndicator = React.memo(function LiveIndicator({ connected }: { connected: boolean }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-2.5 h-2.5 rounded-full ${
-        connected
-          ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]'
-          : 'bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]'
-      }`} />
-      <span className="text-xs font-mono text-gray-500">
+    <div className="flex items-center gap-2" role="status" aria-live="polite">
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${
+          connected
+            ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]'
+            : 'bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]'
+        }`}
+        aria-hidden="true"
+      />
+      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
         {connected ? 'LIVE' : 'OFFLINE'}
+      </span>
+      <span className="sr-only">
+        {connected ? 'Ansluten till realtidsuppdateringar' : 'Frånkopplad från realtidsuppdateringar'}
       </span>
     </div>
   )
-}
+})
 
 // Main Dashboard Page
 export default function DashboardPage({ initialItems }: DashboardPageProps) {
@@ -892,82 +967,63 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   // Use notifications hook
   const notifications = useNotifications()
 
-  // SSE Connection for real-time updates
-  useEffect(() => {
-    let reconnectAttempts = 0
-    let eventSource: EventSource | null = null
-    let reconnectTimeout: NodeJS.Timeout | null = null
+  // SSE message handler - memoized to prevent recreation
+  const handleSSEMessage = useCallback((data: unknown) => {
+    const message = data as {
+      type?: string
+      payload?: NewsItem
+      oldId?: string
+    }
 
-    const connect = () => {
-      eventSource = new EventSource('/api/news/stream')
+    // Handle connection/heartbeat messages
+    if (message.type === 'connected' || message.type === 'heartbeat') {
+      return
+    }
 
-      eventSource.onopen = () => {
-        setSseConnected(true)
-        reconnectAttempts = 0
-      }
+    // Handle INSERT - add new item to top
+    if (message.type === 'INSERT' && message.payload) {
+      setItems(prev => {
+        // Avoid duplicates
+        if (prev.some(item => item.id === message.payload!.id)) return prev
+        return [message.payload!, ...prev]
+      })
 
-      eventSource.onerror = () => {
-        setSseConnected(false)
-        eventSource?.close()
-
-        // Exponential backoff reconnect (max 30s)
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
-        reconnectAttempts++
-        reconnectTimeout = setTimeout(connect, delay)
-      }
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          // Handle connection/heartbeat messages
-          if (data.type === 'connected' || data.type === 'heartbeat') {
-            setSseConnected(true)
-            return
-          }
-
-          // Handle INSERT - add new item to top
-          if (data.type === 'INSERT' && data.payload) {
-            setItems(prev => {
-              // Avoid duplicates
-              if (prev.some(item => item.id === data.payload.id)) return prev
-              return [data.payload, ...prev]
-            })
-
-            // Show notification if enabled (with sound)
-            if (data.payload.headline) {
-              notifications.showNotificationWithSound(
-                data.payload.companyName || 'Ny nyhet',
-                data.payload.headline,
-                `/news/${data.payload.id}`
-              )
-            }
-          }
-
-          // Handle UPDATE - update existing item
-          if (data.type === 'UPDATE' && data.payload) {
-            setItems(prev => prev.map(item =>
-              item.id === data.payload.id ? data.payload : item
-            ))
-          }
-
-          // Handle DELETE - remove item
-          if (data.type === 'DELETE' && data.oldId) {
-            setItems(prev => prev.filter(item => item.id !== data.oldId))
-          }
-        } catch {
-          // Ignore parse errors
-        }
+      // Show notification if enabled (with sound)
+      if (message.payload.headline) {
+        notifications.showNotificationWithSound(
+          message.payload.companyName || 'Ny nyhet',
+          message.payload.headline,
+          `/news/${message.payload.id}`
+        )
       }
     }
 
-    connect()
+    // Handle UPDATE - update existing item
+    if (message.type === 'UPDATE' && message.payload) {
+      setItems(prev => prev.map(item =>
+        item.id === message.payload!.id ? message.payload! : item
+      ))
+    }
 
-    return () => {
-      if (reconnectTimeout) clearTimeout(reconnectTimeout)
-      eventSource?.close()
+    // Handle DELETE - remove item
+    if (message.type === 'DELETE' && message.oldId) {
+      setItems(prev => prev.filter(item => item.id !== message.oldId))
     }
   }, [notifications])
+
+  // Use the SSE hook with proper cleanup - fixes memory leak and race condition
+  const { status: sseStatus } = useSSE({
+    url: '/api/news/stream',
+    onMessage: handleSSEMessage,
+    onOpen: useCallback(() => setSseConnected(true), []),
+    onError: useCallback(() => setSseConnected(false), []),
+    enabled: true,
+  })
+
+  // Sync SSE status
+  useEffect(() => {
+    setSseConnected(sseStatus === 'connected')
+  }, [sseStatus])
 
   // Infinite scroll
   const loadMore = useCallback(async () => {
@@ -1011,28 +1067,34 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   }, [loadMore, hasMore, loading])
 
   // Filter items - apply news-worthy filter + search + user filter (all/bookmarks)
-  const newsWorthyItems = items.filter(isNewsWorthy)
+  // Memoized to prevent recalculation on every render
+  const newsWorthyItems = useMemo(() => items.filter(isNewsWorthy), [items])
 
-  // Apply search filter
-  const searchFilteredItems = debouncedSearch.trim()
-    ? newsWorthyItems.filter(item => {
-        const query = debouncedSearch.toLowerCase()
-        return (
-          item.companyName?.toLowerCase().includes(query) ||
-          item.orgNumber?.includes(query) ||
-          item.headline?.toLowerCase().includes(query) ||
-          item.noticeText?.toLowerCase().includes(query) ||
-          item.protocolType?.toLowerCase().includes(query)
-        )
-      })
-    : newsWorthyItems
+  // Apply search filter - memoized
+  const searchFilteredItems = useMemo(() => {
+    if (!debouncedSearch.trim()) return newsWorthyItems
 
-  const filteredItems = filter === 'bookmarks'
-    ? searchFilteredItems.filter(item => getBookmarks().has(item.id))
-    : searchFilteredItems
+    const query = debouncedSearch.toLowerCase()
+    return newsWorthyItems.filter(item =>
+      item.companyName?.toLowerCase().includes(query) ||
+      item.orgNumber?.includes(query) ||
+      item.headline?.toLowerCase().includes(query) ||
+      item.noticeText?.toLowerCase().includes(query) ||
+      item.protocolType?.toLowerCase().includes(query)
+    )
+  }, [newsWorthyItems, debouncedSearch])
 
-  // Extract upcoming events from news-worthy items (kallelser)
-  const upcomingEvents: UpcomingEvent[] = newsWorthyItems
+  // Final filtered items - memoized
+  const filteredItems = useMemo(() => {
+    if (filter === 'bookmarks') {
+      const bookmarks = getBookmarks()
+      return searchFilteredItems.filter(item => bookmarks.has(item.id))
+    }
+    return searchFilteredItems
+  }, [searchFilteredItems, filter])
+
+  // Extract upcoming events from news-worthy items (kallelser) - memoized
+  const upcomingEvents: UpcomingEvent[] = useMemo(() => newsWorthyItems
     .filter(item => {
       // Check for kallelseFaktaruta first (more reliable)
       if (item.kallelseFaktaruta?.datum) return true
@@ -1052,7 +1114,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
       type: 'kallelse' as const,
       noticeText: item.noticeText || undefined
     }))
-    .slice(0, 10)
+    .slice(0, 10), [newsWorthyItems])
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
@@ -1086,26 +1148,32 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             <section>
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
             <LiveIndicator connected={sseConnected} />
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="tablist" aria-label="Filtrera nyheter">
               <button
                 onClick={() => setFilter('all')}
+                role="tab"
+                aria-selected={filter === 'all'}
+                aria-controls="news-panel"
                 className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg shadow-sm transition-all ${
                   filter === 'all'
                     ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
                 }`}
               >
                 ALLA
               </button>
               <button
                 onClick={() => { setFilter('bookmarks'); forceUpdate({}) }}
+                role="tab"
+                aria-selected={filter === 'bookmarks'}
+                aria-controls="news-panel"
                 className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg transition-all flex items-center gap-1.5 ${
                   filter === 'bookmarks'
                     ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
                 }`}
               >
-                <Bookmark className="w-3 h-3" />
+                <Bookmark className="w-3 h-3" aria-hidden="true" />
                 SPARADE
               </button>
             </div>
@@ -1113,34 +1181,35 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
 
           {/* Search results indicator */}
           {debouncedSearch && (
-            <div className="mb-4 flex items-center gap-2">
+            <div className="mb-4 flex items-center gap-2" role="status" aria-live="polite">
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {filteredItems.length === 0 ? 'Inga resultat för' : `${filteredItems.length} träffar för`}
               </span>
               <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm font-medium text-black dark:text-white">
-                "{debouncedSearch}"
+                &ldquo;{debouncedSearch}&rdquo;
               </span>
               <button
                 onClick={() => setSearchQuery('')}
                 className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Rensa sökning"
               >
                 Rensa
               </button>
             </div>
           )}
 
-          <div className="flex flex-col gap-5">
+          <div id="news-panel" role="tabpanel" className="flex flex-col gap-5" aria-label="Nyhetsflöde">
             {filteredItems.length === 0 ? (
-              <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+              <div className="py-16 text-center text-gray-500 dark:text-gray-400" role="status">
                 {debouncedSearch ? (
                   <>
-                    <Search className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                    <Search className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" aria-hidden="true" />
                     <p className="text-sm">Inga nyheter hittades</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Prova ett annat sökord</p>
                   </>
                 ) : filter === 'bookmarks' ? (
                   <>
-                    <Bookmark className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                    <Bookmark className="w-8 h-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" aria-hidden="true" />
                     <p className="text-sm">Inga sparade nyheter än</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Klicka på bokmärkesikonen för att spara</p>
                   </>

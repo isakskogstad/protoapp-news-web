@@ -2,15 +2,33 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { buildNewsBlocks } from '@/lib/slack-blocks'
 
 interface ShareToChatProps {
   companyName: string
   headline?: string
   newsId: string
+  orgNumber?: string
+  protocolType?: string
+  protocolDate?: string
+  noticeText?: string
+  logoUrl?: string
+  newsValue?: number
   className?: string
 }
 
-export default function ShareToChat({ companyName, headline, newsId, className = '' }: ShareToChatProps) {
+export default function ShareToChat({
+  companyName,
+  headline,
+  newsId,
+  orgNumber,
+  protocolType,
+  protocolDate,
+  noticeText,
+  logoUrl,
+  newsValue,
+  className = ''
+}: ShareToChatProps) {
   const { data: session } = useSession()
   const [sharing, setSharing] = useState(false)
   const [shared, setShared] = useState(false)
@@ -25,16 +43,33 @@ export default function ShareToChat({ companyName, headline, newsId, className =
     setError(null)
 
     try {
-      // Create a formatted message for Slack
-      const newsUrl = `${window.location.origin}/news/${newsId}`
-      const message = headline
-        ? `📰 *${companyName}*: ${headline}\n${newsUrl}`
-        : `📰 Ny händelse för *${companyName}*\n${newsUrl}`
+      const baseUrl = window.location.origin
+
+      // Build Block Kit message
+      const blocks = buildNewsBlocks({
+        id: newsId,
+        companyName,
+        headline,
+        orgNumber,
+        protocolType,
+        protocolDate,
+        noticeText,
+        logoUrl,
+        newsValue,
+      }, baseUrl)
+
+      // Fallback text for notifications
+      const fallbackText = headline
+        ? `📰 ${companyName}: ${headline}`
+        : `📰 Ny händelse för ${companyName}`
 
       const response = await fetch('/api/slack/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: message }),
+        body: JSON.stringify({
+          text: fallbackText,
+          blocks,
+        }),
       })
 
       if (!response.ok) {

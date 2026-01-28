@@ -12,11 +12,16 @@ import {
   ArrowDown,
   RefreshCw,
 } from 'lucide-react'
-import { ChatMessage as ChatMessageType, ChatSettings } from '@/lib/slack-types'
+import { ChatMessage as ChatMessageType, ChatSettings, MessageStatus } from '@/lib/slack-types'
 import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
 import ThreadPanel from './ThreadPanel'
 import TypingIndicator from './TypingIndicator'
+import ChannelSelector from './ChannelSelector'
+import PinnedMessages from './PinnedMessages'
+
+const DEFAULT_CHANNEL_ID = process.env.NEXT_PUBLIC_SLACK_CHANNEL_ID || ''
+const DEFAULT_CHANNEL_NAME = 'redaktion-general'
 
 const DEFAULT_SETTINGS: ChatSettings = {
   soundEnabled: true,
@@ -55,6 +60,12 @@ export default function EditorialChat() {
   const [activeThread, setActiveThread] = useState<ChatMessageType | null>(null)
   const [settings, setSettings] = useState<ChatSettings>(DEFAULT_SETTINGS)
   const [showSettings, setShowSettings] = useState(false)
+  const [pendingMessages, setPendingMessages] = useState<ChatMessageType[]>([])
+  const [editingMessage, setEditingMessage] = useState<ChatMessageType | null>(null)
+  const [currentChannelId, setCurrentChannelId] = useState(DEFAULT_CHANNEL_ID)
+  const [currentChannelName, setCurrentChannelName] = useState(DEFAULT_CHANNEL_NAME)
+  const [userPresence, setUserPresence] = useState<Record<string, string>>({})
+  const [pinnedTimestamps, setPinnedTimestamps] = useState<Set<string>>(new Set())
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastReadTimestamp = useRef<string | null>(null)
@@ -62,13 +73,49 @@ export default function EditorialChat() {
   const isAtBottom = useRef(true)
   const eventSourceRef = useRef<EventSource | null>(null)
 
-  // Load settings
+  // Load settings and channel
   useEffect(() => {
     const saved = localStorage.getItem('chat-settings')
     if (saved) {
       try { setSettings(JSON.parse(saved)) } catch {}
     }
+
+    // Load saved channel
+    const savedChannelId = localStorage.getItem('slack-channel-id')
+    const savedChannelName = localStorage.getItem('slack-channel-name')
+    if (savedChannelId && savedChannelName) {
+      setCurrentChannelId(savedChannelId)
+      setCurrentChannelName(savedChannelName)
+    }
   }, [])
+
+  // Handle channel change
+  const handleChannelChange = (channelId: string, channelName: string) => {
+    setCurrentChannelId(channelId)
+    setCurrentChannelName(channelName)
+    setMessages([])
+    setPendingMessages([])
+    setActiveThread(null)
+    // Fetch messages for new channel
+    fetchMessagesForChannel(channelId)
+  }
+
+  // Fetch messages for specific channel
+  const fetchMessagesForChannel = async (channelId: string) => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/slack/messages?limit=50&channel=${channelId}`)
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setMessages(data.messages || [])
+      setUsers(data.users || {})
+      setHasMore(data.has_more || false)
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const updateSettings = (newSettings: Partial<ChatSettings>) => {
     const updated = { ...settings, ...newSettings }
@@ -104,7 +151,7 @@ export default function EditorialChat() {
     if (older) setLoadingMore(true)
 
     try {
-      let url = '/api/slack/messages?limit=50'
+      let url = `/api/slack/messages?limit=50&channel=${currentChannelId}`
 
       if (older && messages.length > 0) {
         url += `&latest=${messages[0].timestamp}`
@@ -152,9 +199,32 @@ export default function EditorialChat() {
     }
   }, [isOpen, messages, settings.soundEnabled])
 
-  // Send message
+  // Send message with optimistic UI
   const handleSend = async (text: string) => {
     if (!text.trim() || sending) return
+
+    const localId = `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const userName = session?.user?.name || session?.user?.email || 'Anonym'
+
+    // Create optimistic message
+    const pendingMsg: ChatMessageType = {
+      id: localId,
+      localId,
+      text: text.trim(),
+      status: 'pending',
+      timestamp: String(Date.now() / 1000),
+      user: {
+        id: session?.user?.email || 'unknown',
+        name: userName,
+        avatar: session?.user?.image || null,
+      },
+      reactions: [],
+    }
+
+    // Add to pending messages immediately
+    setPendingMessages(prev => [...prev, pendingMsg])
+    scrollToBottom()
+
     setSending(true)
 
     try {
@@ -165,13 +235,98 @@ export default function EditorialChat() {
       })
 
       if (res.ok) {
+        // Remove pending message and fetch real messages
+        setPendingMessages(prev => prev.filter(m => m.localId !== localId))
         await fetchMessages({ silent: true })
         scrollToBottom()
+      } else {
+        // Mark as failed
+        setPendingMessages(prev => prev.map(m =>
+          m.localId === localId ? { ...m, status: 'failed' as MessageStatus } : m
+        ))
       }
     } catch (error) {
       console.error('Error sending message:', error)
+      // Mark as failed
+      setPendingMessages(prev => prev.map(m =>
+        m.localId === localId ? { ...m, status: 'failed' as MessageStatus } : m
+      ))
     } finally {
       setSending(false)
+    }
+  }
+
+  // Retry failed message
+  const handleRetry = async (localId: string) => {
+    const failedMsg = pendingMessages.find(m => m.localId === localId)
+    if (!failedMsg) return
+
+    // Reset status to pending
+    setPendingMessages(prev => prev.map(m =>
+      m.localId === localId ? { ...m, status: 'pending' as MessageStatus } : m
+    ))
+
+    try {
+      const res = await fetch('/api/slack/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: failedMsg.text }),
+      })
+
+      if (res.ok) {
+        setPendingMessages(prev => prev.filter(m => m.localId !== localId))
+        await fetchMessages({ silent: true })
+      } else {
+        setPendingMessages(prev => prev.map(m =>
+          m.localId === localId ? { ...m, status: 'failed' as MessageStatus } : m
+        ))
+      }
+    } catch {
+      setPendingMessages(prev => prev.map(m =>
+        m.localId === localId ? { ...m, status: 'failed' as MessageStatus } : m
+      ))
+    }
+  }
+
+  // Delete pending message
+  const handleDeletePending = (localId: string) => {
+    setPendingMessages(prev => prev.filter(m => m.localId !== localId))
+  }
+
+  // Edit message
+  const handleEdit = async (timestamp: string, newText: string) => {
+    try {
+      const res = await fetch('/api/slack/messages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp, text: newText }),
+      })
+
+      if (res.ok) {
+        setEditingMessage(null)
+        await fetchMessages({ silent: true })
+      }
+    } catch (error) {
+      console.error('Error editing message:', error)
+    }
+  }
+
+  // Delete message
+  const handleDelete = async (timestamp: string) => {
+    if (!confirm('Vill du ta bort detta meddelande?')) return
+
+    try {
+      const res = await fetch('/api/slack/messages', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp }),
+      })
+
+      if (res.ok) {
+        await fetchMessages({ silent: true })
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error)
     }
   }
 
@@ -209,6 +364,64 @@ export default function EditorialChat() {
         setTypingUsers(data.typing || [])
       }
     } catch {}
+  }
+
+  // Fetch user presence
+  const fetchPresence = useCallback(async () => {
+    // Get unique user IDs from messages
+    const userIds = Array.from(new Set(messages.map(m => m.user.id).filter(Boolean)))
+    if (userIds.length === 0) return
+
+    try {
+      const res = await fetch(`/api/slack/presence?users=${userIds.join(',')}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUserPresence(data.presence || {})
+      }
+    } catch (error) {
+      console.error('Error fetching presence:', error)
+    }
+  }, [messages])
+
+  // Fetch pinned messages
+  const fetchPins = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/slack/pins?channel=${currentChannelId}`)
+      if (res.ok) {
+        const data = await res.json()
+        const timestamps = new Set<string>(data.pins?.map((p: { timestamp: string }) => p.timestamp) || [])
+        setPinnedTimestamps(timestamps)
+      }
+    } catch (error) {
+      console.error('Error fetching pins:', error)
+    }
+  }, [currentChannelId])
+
+  // Handle pin/unpin
+  const handlePin = async (timestamp: string) => {
+    const isPinned = pinnedTimestamps.has(timestamp)
+
+    try {
+      const res = await fetch('/api/slack/pins', {
+        method: isPinned ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp, channel: currentChannelId }),
+      })
+
+      if (res.ok) {
+        setPinnedTimestamps(prev => {
+          const newSet = new Set(prev)
+          if (isPinned) {
+            newSet.delete(timestamp)
+          } else {
+            newSet.add(timestamp)
+          }
+          return newSet
+        })
+      }
+    } catch (error) {
+      console.error('Error pinning/unpinning:', error)
+    }
   }
 
   // Load more (older messages)
@@ -292,6 +505,26 @@ export default function EditorialChat() {
     return () => clearInterval(pollInterval)
   }, [fetchMessages, isOpen])
 
+  // Fetch presence periodically when open
+  useEffect(() => {
+    if (!isOpen || messages.length === 0) return
+
+    // Initial fetch
+    fetchPresence()
+
+    // Poll every 60 seconds
+    const presenceInterval = setInterval(fetchPresence, 60000)
+
+    return () => clearInterval(presenceInterval)
+  }, [isOpen, fetchPresence, messages.length])
+
+  // Fetch pins when channel changes
+  useEffect(() => {
+    if (isOpen && currentChannelId) {
+      fetchPins()
+    }
+  }, [isOpen, currentChannelId, fetchPins])
+
   // Mark as read
   useEffect(() => {
     if (isOpen && messages.length > 0) {
@@ -310,11 +543,23 @@ export default function EditorialChat() {
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-gray-50 dark:from-gray-800 to-white dark:to-gray-900 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Hash className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">redaktion-general</span>
+              <ChannelSelector
+                currentChannelId={currentChannelId}
+                currentChannelName={currentChannelName}
+                onChannelChange={handleChannelChange}
+              />
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             </div>
             <div className="flex items-center gap-1">
+              <PinnedMessages
+                channelId={currentChannelId}
+                users={users}
+                onUnpin={(ts) => setPinnedTimestamps(prev => {
+                  const newSet = new Set(prev)
+                  newSet.delete(ts)
+                  return newSet
+                })}
+              />
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -385,20 +630,41 @@ export default function EditorialChat() {
                 <div className="flex justify-center py-12">
                   <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
                 </div>
-              ) : messages.length === 0 ? (
+              ) : messages.length === 0 && pendingMessages.length === 0 ? (
                 <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">
                   Inga meddelanden än
                 </div>
               ) : (
-                messages.map((msg) => (
-                  <ChatMessage
-                    key={msg.id}
-                    message={msg}
-                    users={users}
-                    onReact={handleReact}
-                    onOpenThread={setActiveThread}
-                  />
-                ))
+                <>
+                  {messages.map((msg) => (
+                    <ChatMessage
+                      key={msg.id}
+                      message={msg}
+                      users={users}
+                      onReact={handleReact}
+                      onOpenThread={setActiveThread}
+                      onEdit={setEditingMessage}
+                      onDelete={handleDelete}
+                      currentUserId={session?.user?.email || ''}
+                      userPresence={userPresence}
+                      onPin={handlePin}
+                      isPinned={pinnedTimestamps.has(msg.id)}
+                    />
+                  ))}
+                  {/* Pending messages */}
+                  {pendingMessages.map((msg) => (
+                    <ChatMessage
+                      key={msg.localId}
+                      message={msg}
+                      users={users}
+                      onReact={handleReact}
+                      onOpenThread={setActiveThread}
+                      onRetry={handleRetry}
+                      onDeletePending={handleDeletePending}
+                      currentUserId={session?.user?.email || ''}
+                    />
+                  ))}
+                </>
               )}
             </div>
 
@@ -425,9 +691,11 @@ export default function EditorialChat() {
           <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <ChatInput
               users={users}
-              onSend={handleSend}
+              onSend={editingMessage ? (text) => handleEdit(editingMessage.id, text) : handleSend}
               onTyping={handleTyping}
               sending={sending}
+              editingMessage={editingMessage}
+              onCancelEdit={() => setEditingMessage(null)}
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { NewsItem, ProtocolAnalysis, Kungorelse } from '@/lib/types'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import { showLocalNotification, isSubscribed } from '@/lib/notifications'
@@ -8,6 +8,7 @@ import NewsCard from './NewsCard'
 import FollowCompanies from './FollowCompanies'
 import SSEStatusIndicator from './SSEStatusIndicator'
 import { NewsCardSkeleton } from './Skeleton'
+import { useSSE, SSEStatus } from '@/lib/hooks/useSSE'
 
 interface NewsFeedProps {
   initialItems: NewsItem[]
@@ -19,9 +20,22 @@ interface FollowSettings {
   selectedCompanies: { org_number: string; company_name: string }[]
 }
 
+// Get follow settings from localStorage - moved outside component to avoid recreation
+function getFollowSettings(): FollowSettings | null {
+  if (typeof window === 'undefined') return null
+  const stored = localStorage.getItem('loopdesk_follow_settings')
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
 export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const [items, setItems] = useState<NewsItem[]>(initialItems)
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting')
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
 
@@ -29,22 +43,8 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  // Get follow settings from localStorage
-  const getFollowSettings = (): FollowSettings | null => {
-    if (typeof window === 'undefined') return null
-    const stored = localStorage.getItem('loopdesk_follow_settings')
-    if (stored) {
-      try {
-        return JSON.parse(stored)
-      } catch {
-        return null
-      }
-    }
-    return null
-  }
-
-  // Check if we should notify for this item
-  const shouldNotify = (item: NewsItem): boolean => {
+  // Check if we should notify for this item - memoized
+  const shouldNotify = useCallback((item: NewsItem): boolean => {
     const settings = getFollowSettings()
     if (!settings || !settings.enabled) return false
 
@@ -54,82 +54,66 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     return settings.selectedCompanies.some(
       c => c.org_number === item.orgNumber || c.org_number.replace('-', '') === item.orgNumber.replace('-', '')
     )
-  }
+  }, [])
 
-  // Connect to SSE stream
-  useEffect(() => {
-    let eventSource: EventSource | null = null
-    let reconnectTimeout: NodeJS.Timeout | null = null
+  // SSE message handler - memoized to prevent recreation
+  const handleSSEMessage = useCallback((data: unknown) => {
+    const message = data as {
+      operation?: string
+      type?: string
+      record?: ProtocolAnalysis | Kungorelse
+      old?: { id: string }
+    }
 
-    const connect = () => {
-      eventSource = new EventSource('/api/news/stream')
+    if (message.operation === 'INSERT' && message.record) {
+      const newItem = message.type === 'protocol'
+        ? protocolToNewsItem(message.record as ProtocolAnalysis)
+        : kungorelseToNewsItem(message.record as Kungorelse)
 
-      eventSource.addEventListener('connected', () => {
-        setConnectionStatus('connected')
+      setItems(prev => {
+        if (prev.some(item => item.id === newItem.id)) return prev
+        return [newItem, ...prev].slice(0, 100)
       })
 
-      eventSource.addEventListener('change', (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          if (data.operation === 'INSERT') {
-            const newItem = data.type === 'protocol'
-              ? protocolToNewsItem(data.record as ProtocolAnalysis)
-              : kungorelseToNewsItem(data.record as Kungorelse)
-
-            setItems(prev => {
-              if (prev.some(item => item.id === newItem.id)) return prev
-              return [newItem, ...prev].slice(0, 100)
-            })
-
-            // Show notification if settings allow
-            if (shouldNotify(newItem)) {
-              isSubscribed().then(subscribed => {
-                if (subscribed) {
-                  showLocalNotification(
-                    newItem.companyName,
-                    newItem.headline || 'Ny händelse',
-                    `/news/${newItem.id}`
-                  )
-                }
-              })
-            }
-          } else if (data.operation === 'UPDATE') {
-            const updatedItem = data.type === 'protocol'
-              ? protocolToNewsItem(data.record as ProtocolAnalysis)
-              : kungorelseToNewsItem(data.record as Kungorelse)
-
-            setItems(prev =>
-              prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      // Show notification if settings allow
+      if (shouldNotify(newItem)) {
+        isSubscribed().then(subscribed => {
+          if (subscribed) {
+            showLocalNotification(
+              newItem.companyName,
+              newItem.headline || 'Ny händelse',
+              `/news/${newItem.id}`
             )
-          } else if (data.operation === 'DELETE') {
-            const deletedId = data.old?.id
-            if (deletedId) {
-              setItems(prev => prev.filter(item => item.id !== deletedId))
-            }
           }
-        } catch (err) {
-          console.error('SSE parse error:', err)
-        }
-      })
+        })
+      }
+    } else if (message.operation === 'UPDATE' && message.record) {
+      const updatedItem = message.type === 'protocol'
+        ? protocolToNewsItem(message.record as ProtocolAnalysis)
+        : kungorelseToNewsItem(message.record as Kungorelse)
 
-      eventSource.onerror = () => {
-        setConnectionStatus('disconnected')
-        eventSource?.close()
-        reconnectTimeout = setTimeout(() => {
-          setConnectionStatus('connecting')
-          connect()
-        }, 5000)
+      setItems(prev =>
+        prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      )
+    } else if (message.operation === 'DELETE') {
+      const deletedId = message.old?.id
+      if (deletedId) {
+        setItems(prev => prev.filter(item => item.id !== deletedId))
       }
     }
+  }, [shouldNotify])
 
-    connect()
+  // Use the SSE hook with proper cleanup
+  const { status: sseStatus } = useSSE({
+    url: '/api/news/stream',
+    onMessage: handleSSEMessage,
+    enabled: true,
+  })
 
-    return () => {
-      eventSource?.close()
-      if (reconnectTimeout) clearTimeout(reconnectTimeout)
-    }
-  }, [])
+  // Map SSE status to component's expected format
+  const connectionStatus = useMemo((): 'connected' | 'connecting' | 'disconnected' | 'error' => {
+    return sseStatus as 'connected' | 'connecting' | 'disconnected' | 'error'
+  }, [sseStatus])
 
   // Load more
   const loadMore = useCallback(async () => {
