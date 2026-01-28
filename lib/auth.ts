@@ -50,10 +50,16 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       // Add user ID and Slack token to session
-      if (session.user) {
-        (session.user as any).id = token.sub
-        (session.user as any).slackAccessToken = token.slackAccessToken
-        (session.user as any).slackUserId = token.slackUserId
+      if (session.user && token) {
+        if (token.sub) {
+          (session.user as Record<string, unknown>).id = token.sub
+        }
+        if (token.slackAccessToken) {
+          (session.user as Record<string, unknown>).slackAccessToken = token.slackAccessToken
+        }
+        if (token.slackUserId) {
+          (session.user as Record<string, unknown>).slackUserId = token.slackUserId
+        }
       }
       return session
     },
