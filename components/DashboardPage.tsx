@@ -875,41 +875,41 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
           </div>
         </div>
 
-        <div className="flex gap-5">
+        <div className="flex gap-4">
           {/* Left column: Vertical stack - Logo, Company, Org, Category */}
-          <div className="w-36 shrink-0 flex flex-col">
+          <div className="w-28 shrink-0 flex flex-col">
             {/* Logo - top, left-aligned */}
             <CompanyLogo
               orgNumber={item.orgNumber}
               companyName={item.companyName}
               logoUrl={item.logoUrl}
-              size="lg"
+              size="md"
             />
 
             {/* Company name */}
-            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-2.5 leading-tight line-clamp-2">
+            <h4 className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-2 leading-tight line-clamp-2">
               {item.companyName}
             </h4>
 
             {/* Org number */}
-            <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-[9px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
               {formatOrgNumber(item.orgNumber)}
             </p>
 
             {/* Category badge */}
-            <span className={`mt-3 text-[10px] font-medium px-2 py-1 rounded-md w-fit ${categoryColor}`}>
+            <span className={`mt-2 text-[9px] font-medium px-1.5 py-0.5 rounded w-fit ${categoryColor}`}>
               {formattedCategory}
             </span>
           </div>
 
-          {/* Right: Headline + Notice text (full width now) */}
+          {/* Right: Headline + Notice text (expanded) */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-[15px] font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-base font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.75] mt-3">
-                {truncateWords(item.noticeText, 50)}
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.7] mt-2">
+                {truncateWords(item.noticeText, 60)}
               </p>
             )}
           </div>
