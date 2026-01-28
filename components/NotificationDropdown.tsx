@@ -135,13 +135,31 @@ export default function NotificationDropdown() {
   const isCompanyWatched = (id: string) => watchedCompanies.some(c => c.id === id)
 
   const handleToggleClick = async () => {
-    if (!notifications.supported || notifications.permission === 'denied') return
+    if (!notifications.supported) {
+      alert('Din webbläsare stöder inte notiser.')
+      return
+    }
 
-    if (notifications.enabled) {
+    if (notifications.permission === 'denied') {
+      alert('Notiser är blockerade. Ändra i webbläsarens inställningar (klicka på hänglåset i adressfältet).')
+      return
+    }
+
+    if (notifications.enabled || Notification.permission === 'granted') {
       setIsOpen(!isOpen)
     } else {
-      await notifications.enable()
-      setIsOpen(true)
+      // Request permission
+      const success = await notifications.enable()
+      if (success) {
+        // Show confirmation notification
+        new Notification('LoopDesk', {
+          body: 'Notiser aktiverade! Du får nu notiser om nya händelser.',
+          icon: '/icon-192.png',
+        })
+        setIsOpen(true)
+      } else {
+        alert('Kunde inte aktivera notiser. Försök igen.')
+      }
     }
   }
 
@@ -304,8 +322,24 @@ export default function NotificationDropdown() {
             </div>
           )}
 
-          {/* Disable button */}
-          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+          {/* Test + Disable buttons */}
+          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+            <button
+              onClick={async () => {
+                // Test notification
+                if (Notification.permission === 'granted') {
+                  new Notification('Testnotis från LoopDesk', {
+                    body: 'Notiser fungerar! Du kommer få notiser om nya händelser.',
+                    icon: '/icon-192.png',
+                  })
+                } else {
+                  alert('Notisbehörighet saknas. Klicka på klockan för att aktivera.')
+                }
+              }}
+              className="w-full py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+            >
+              Skicka testnotis
+            </button>
             <button
               onClick={async () => {
                 await notifications.disable()

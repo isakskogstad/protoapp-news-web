@@ -129,15 +129,21 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, [enabled, enable, disable])
 
+  // Show notifications - check permission directly, not React state
+  // This allows notifications to work even when enabled in another component
   const show = useCallback(async (title: string, body: string, url?: string): Promise<void> => {
-    if (!enabled) return
+    // Check actual permission and localStorage, not React state
+    if (Notification.permission !== 'granted') return
+    if (localStorage.getItem('loopdesk_notifications_enabled') !== 'true') return
     await showNotification(title, body, url)
-  }, [enabled])
+  }, [])
 
   const showWithSound = useCallback(async (title: string, body: string, url?: string): Promise<void> => {
-    if (!enabled) return
+    // Check actual permission and localStorage, not React state
+    if (Notification.permission !== 'granted') return
+    if (localStorage.getItem('loopdesk_notifications_enabled') !== 'true') return
     await showNotificationWithSound(title, body, url)
-  }, [enabled])
+  }, [])
 
   return {
     supported,
