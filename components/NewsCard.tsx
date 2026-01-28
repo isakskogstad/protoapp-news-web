@@ -18,7 +18,7 @@ export default function NewsCard({ item }: NewsCardProps) {
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
 
   return (
-    <article className="relative group bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all cursor-pointer">
+    <article className="relative group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
       <Link href={`/news/${item.id}`} className="block p-5">
         <div className="flex gap-5">
           {/* Left column: Logo + Company info */}
