@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType, formatOrgNumber } from '@/lib/utils'
 import { FileText, Clock, Building2, Download, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react'
+import WatchCompanyButton from './WatchCompanyButton'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
 import KonkursFaktaruta from './KonkursFaktaruta'
@@ -13,7 +14,135 @@ import BolagsfaktaModule from './BolagsfaktaModule'
 import ArsredovisningarModule from './ArsredovisningarModule'
 import ShareToChat from './ShareToChat'
 import NewsSidebar from './NewsSidebar'
-import PDFPreview from './PDFPreview'
+import ImpactLoopModule from './ImpactLoopModule'
+import PDFPreview, { PDFKeyword } from './PDFPreview'
+
+// Helper function to extract keywords from NewsItem for PDF search
+function extractKeywords(item: NewsItem): PDFKeyword[] {
+  const keywords: PDFKeyword[] = []
+
+  // Company name
+  if (item.companyName) {
+    keywords.push({ label: 'Bolag', value: item.companyName, category: 'company' })
+  }
+
+  // Org number (formatted)
+  if (item.orgNumber) {
+    const formatted = item.orgNumber.replace(/(\d{6})(\d{4})/, '$1-$2')
+    keywords.push({ label: 'Org.nr', value: formatted, category: 'company' })
+  }
+
+  // Event date
+  if (item.eventDate) {
+    keywords.push({ label: 'Datum', value: item.eventDate, category: 'date' })
+  }
+
+  // Nyemission data
+  if (item.nyemissionFaktaruta) {
+    const nf = item.nyemissionFaktaruta
+    if (nf.antalAktier && nf.antalAktier !== '-') {
+      keywords.push({ label: 'Antal aktier', value: nf.antalAktier, category: 'amount' })
+    }
+    if (nf.teckningskurs && nf.teckningskurs !== '-') {
+      keywords.push({ label: 'Teckningskurs', value: nf.teckningskurs, category: 'amount' })
+    }
+    if (nf.emissionsbelopp && nf.emissionsbelopp !== '-') {
+      keywords.push({ label: 'Emissionsbelopp', value: nf.emissionsbelopp, category: 'amount' })
+    }
+    if (nf.utspädning && nf.utspädning !== '-') {
+      keywords.push({ label: 'Utspädning', value: nf.utspädning, category: 'amount' })
+    }
+  }
+
+  // Styrelse data - names
+  if (item.styrelseFaktaruta) {
+    const sf = item.styrelseFaktaruta
+    if (sf.nyaLedamoter && sf.nyaLedamoter.length > 0) {
+      sf.nyaLedamoter.forEach(name => {
+        if (name && name !== '-') {
+          keywords.push({ label: 'Ny ledamot', value: name, category: 'name' })
+        }
+      })
+    }
+    if (sf.avgaendeLedamoter && sf.avgaendeLedamoter.length > 0) {
+      sf.avgaendeLedamoter.forEach(name => {
+        if (name && name !== '-') {
+          keywords.push({ label: 'Avg. ledamot', value: name, category: 'name' })
+        }
+      })
+    }
+    if (sf.nyOrdforande && sf.nyOrdforande !== '-') {
+      keywords.push({ label: 'Ny ordforande', value: sf.nyOrdforande, category: 'name' })
+    }
+  }
+
+  // Kallelse data
+  if (item.kallelseFaktaruta) {
+    const kf = item.kallelseFaktaruta
+    if (kf.datum && kf.datum !== '-') {
+      keywords.push({ label: 'Stämmodatum', value: kf.datum, category: 'date' })
+    }
+    if (kf.plats && kf.plats !== '-') {
+      keywords.push({ label: 'Plats', value: kf.plats, category: 'other' })
+    }
+  }
+
+  // Konkurs data
+  if (item.konkursFaktaruta) {
+    const konk = item.konkursFaktaruta
+    if (konk.beslutsdatum && konk.beslutsdatum !== '-') {
+      keywords.push({ label: 'Beslutsdatum', value: konk.beslutsdatum, category: 'date' })
+    }
+    if (konk.konkursforvaltare && konk.konkursforvaltare !== '-') {
+      keywords.push({ label: 'Forvaltare', value: konk.konkursforvaltare, category: 'name' })
+    }
+  }
+
+  // Extract from extractedData if available
+  if (item.extractedData) {
+    const ed = item.extractedData
+
+    // Styrelse from extracted data
+    if (ed.styrelse) {
+      if (ed.styrelse.ordförande) {
+        keywords.push({ label: 'Ordforande', value: ed.styrelse.ordförande, category: 'name' })
+      }
+      ed.styrelse.tillträdande_ledamöter?.forEach(l => {
+        if (l.namn) {
+          keywords.push({ label: 'Tilltradande', value: l.namn, category: 'name' })
+        }
+      })
+      ed.styrelse.avgående_ledamöter?.forEach(l => {
+        if (l.namn) {
+          keywords.push({ label: 'Avgaende', value: l.namn, category: 'name' })
+        }
+      })
+    }
+
+    // Nyemission from extracted data
+    if (ed.kapitalåtgärder?.nyemission) {
+      const ne = ed.kapitalåtgärder.nyemission
+      if (ne.antal_nya_aktier) {
+        keywords.push({ label: 'Nya aktier', value: ne.antal_nya_aktier.toLocaleString('sv-SE'), category: 'amount' })
+      }
+      if (ne.teckningskurs_kr) {
+        keywords.push({ label: 'Teckningskurs', value: `${ne.teckningskurs_kr.toLocaleString('sv-SE')} kr`, category: 'amount' })
+      }
+      if (ne.emissionsbelopp_kr) {
+        keywords.push({ label: 'Emissionsbelopp', value: `${ne.emissionsbelopp_kr.toLocaleString('sv-SE')} kr`, category: 'amount' })
+      }
+    }
+  }
+
+  // Remove duplicates based on value
+  const seen = new Set<string>()
+  return keywords.filter(kw => {
+    const key = kw.value.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 interface NewsDetailProps {
   item: NewsItem
@@ -77,6 +206,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   const hasFaktaruta = hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
   const hasSource = hasPdf || hasKungorelse
 
+  // Extract keywords for PDF search
+  const pdfKeywords = hasPdf ? extractKeywords(item) : []
+
   return (
     <article className="animate-fade-in overflow-x-hidden">
       {/* Header - mobile responsive */}
@@ -117,9 +249,16 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </span>
               </div>
             )}
-            <h1 className="text-xl sm:text-2xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-tight truncate">
-              {item.companyName}
-            </h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-tight truncate">
+                {item.companyName}
+              </h1>
+              <WatchCompanyButton
+                orgNumber={item.orgNumber}
+                companyName={item.companyName}
+                className="flex-shrink-0"
+              />
+            </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-[11px] sm:text-xs font-mono text-[#64748b] dark:text-[#8b949e]">
               <span className="flex items-center gap-1 sm:gap-1.5">
                 <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -226,6 +365,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 url={item.sourceUrl!}
                 compact={true}
                 maxHeight={300}
+                keywords={pdfKeywords}
               />
             </div>
           )}
@@ -280,6 +420,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
               <PDFPreview
                 url={item.sourceUrl!}
                 compact={false}
+                keywords={pdfKeywords}
               />
             </div>
           </div>
@@ -312,13 +453,22 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         </div>
 
         {/* Right column - News sidebar or Årsredovisningar */}
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4">
           {showNewsSidebar ? (
             <NewsSidebar companyName={item.companyName} matchHeight />
           ) : (
             <ArsredovisningarModule
               orgNumber={item.orgNumber}
               companyName={item.companyName}
+            />
+          )}
+
+          {/* ImpactLoop omnämnanden - visas endast i detaljvy och om träffar finns */}
+          {showNewsSidebar && (
+            <ImpactLoopModule
+              companyName={item.companyName}
+              orgNumber={item.orgNumber}
+              maxItems={5}
             />
           )}
         </div>

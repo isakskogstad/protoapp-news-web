@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import NotificationToggle from './NotificationToggle'
+import NotificationHistory from './NotificationHistory'
 
 export default function Header() {
   const { data: session } = useSession()
@@ -48,6 +49,9 @@ export default function Header() {
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-subtle" />
             Live
           </div>
+
+          {/* Notification history dropdown */}
+          <NotificationHistory />
 
           {/* Notification toggle */}
           <NotificationToggle />
