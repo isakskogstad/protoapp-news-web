@@ -35,13 +35,22 @@ const ITEM_GAP_DESKTOP = 64 // gap-16 = 64px on desktop (md:space-y-16)
 const OVERSCAN_COUNT = 5 // Render 5 extra items above/below viewport
 // LOAD_MORE_THRESHOLD removed - using onRowsRendered instead
 
+// Default event types for filtering
+const DEFAULT_EVENT_TYPES: EventTypeFilter[] = ['konkurs', 'nyemission', 'styrelseforandring', 'vdbyte', 'rekonstruktion', 'other']
+
 // Get follow settings from localStorage - moved outside component to avoid recreation
 function getFollowSettings(): FollowSettings | null {
   if (typeof window === 'undefined') return null
   const stored = localStorage.getItem('loopdesk_follow_settings')
   if (stored) {
     try {
-      return JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      // Ensure eventTypes is always an array (migration for older settings)
+      return {
+        ...parsed,
+        eventTypes: parsed.eventTypes || DEFAULT_EVENT_TYPES,
+        compactView: parsed.compactView ?? false,
+      }
     } catch {
       return null
     }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType, formatOrgNumber } from '@/lib/utils'
-import { FileText, Clock, Building2, Download, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { FileText, Clock, Building2, Download, Loader2, ChevronDown, ChevronUp, X, FileX, AlertCircle } from 'lucide-react'
 import WatchCompanyButton from './WatchCompanyButton'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'

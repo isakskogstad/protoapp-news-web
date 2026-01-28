@@ -48,12 +48,24 @@ export default function FollowCompanies() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Load settings from localStorage
+  // Load settings from localStorage (with migration for new fields)
   useEffect(() => {
     const stored = localStorage.getItem('loopdesk_follow_settings')
     if (stored) {
       try {
-        setSettings(JSON.parse(stored))
+        const parsed = JSON.parse(stored)
+        // Merge with defaults to handle missing fields from older versions
+        const migrated: FollowSettings = {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          // Ensure eventTypes is always an array
+          eventTypes: parsed.eventTypes || DEFAULT_SETTINGS.eventTypes,
+        }
+        setSettings(migrated)
+        // Save migrated settings back if fields were missing
+        if (!parsed.eventTypes || parsed.compactView === undefined) {
+          localStorage.setItem('loopdesk_follow_settings', JSON.stringify(migrated))
+        }
       } catch (e) {
         console.error('Failed to parse follow settings:', e)
       }
