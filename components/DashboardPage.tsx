@@ -1184,7 +1184,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </div>
           )}
 
-          <div id="news-panel" role="tabpanel" className="flex flex-col gap-5" aria-label="Nyhetsflöde">
+          <div id="news-panel" role="tabpanel" className="flex flex-col gap-16" aria-label="Nyhetsflöde">
             {filteredItems.length === 0 ? (
               <div className="py-16 text-center text-gray-500 dark:text-gray-400" role="status">
                 {debouncedSearch ? (
