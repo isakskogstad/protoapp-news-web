@@ -748,54 +748,42 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 p-5">
-        {/* Top bar: Time (left) + Action buttons (right) */}
-        <div className="flex items-center justify-between mb-4">
-          <p className={`font-mono ${
-            timeInfo.isRecent
-              ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
-              : timeInfo.isToday
-                ? 'text-[10px] text-gray-500 dark:text-gray-500'
-                : 'text-[9px] text-gray-400 dark:text-gray-600'
-          }`}>
-            {timeInfo.text}
-          </p>
+      <article className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150 px-5 py-3">
+        {/* Action buttons - vertical stack on far right */}
+        <div className="absolute right-3 top-3 flex flex-col gap-0.5">
+          <button
+            onClick={handleBookmark}
+            className={`p-1.5 rounded-md transition-all ${
+              isBookmarked
+                ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+          >
+            {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+          </button>
 
-          <div className="flex items-center gap-1">
+          <div className="relative">
             <button
-              onClick={handleBookmark}
-              className={`p-1.5 rounded-md transition-all ${
-                isBookmarked
-                  ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-              title={isBookmarked ? 'Ta bort bokmärke' : 'Spara'}
+              onClick={handleShare}
+              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              title="Dela"
             >
-              {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+              <Share2 className="w-4 h-4" />
             </button>
 
-            <div className="relative">
-              <button
-                onClick={handleShare}
-                className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                title="Dela"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-
-              {showShareMenu && (
-                <ShareMenu
-                  url={newsUrl}
-                  title={item.headline || item.companyName}
-                  onClose={() => setShowShareMenu(false)}
-                />
-              )}
-            </div>
+            {showShareMenu && (
+              <ShareMenu
+                url={newsUrl}
+                title={item.headline || item.companyName}
+                onClose={() => setShowShareMenu(false)}
+              />
+            )}
           </div>
         </div>
 
-        <div className="flex gap-4">
-          {/* Left column: Vertical stack - Logo, Company, Org, Category */}
+        <div className="flex gap-4 pr-10">
+          {/* Left column: Vertical stack - Logo, Company, Org, Category, Time */}
           <div className="w-28 shrink-0 flex flex-col">
             {/* Logo - top, left-aligned */}
             <CompanyLogo
@@ -819,6 +807,17 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
             <span className={`mt-2 text-[9px] font-medium px-1.5 py-0.5 rounded w-fit ${categoryColor}`}>
               {formattedCategory}
             </span>
+
+            {/* Time - at bottom of left column */}
+            <p className={`mt-auto pt-2 font-mono ${
+              timeInfo.isRecent
+                ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
+                : timeInfo.isToday
+                  ? 'text-[10px] text-gray-500 dark:text-gray-500'
+                  : 'text-[9px] text-gray-400 dark:text-gray-600'
+            }`}>
+              {timeInfo.text}
+            </p>
           </div>
 
           {/* Right: Headline + Notice text (expanded) */}
@@ -827,7 +826,7 @@ function NewsItemCard({ item, onBookmarkChange }: NewsItemCardProps) {
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.7] mt-2">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.7] mt-1.5">
                 {truncateWords(item.noticeText, 60)}
               </p>
             )}
