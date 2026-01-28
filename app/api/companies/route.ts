@@ -9,14 +9,15 @@ export async function GET(request: NextRequest) {
   const supabase = createServerClient()
 
   try {
+    // Note: LoopBrowse_Protokoll uses 'orgnummer' and 'bolag' as column names
     let queryBuilder = supabase
       .from('LoopBrowse_Protokoll')
-      .select('org_number, company_name')
-      .order('company_name', { ascending: true })
+      .select('orgnummer, bolag')
+      .order('bolag', { ascending: true })
       .limit(limit)
 
     if (query) {
-      queryBuilder = queryBuilder.or(`company_name.ilike.%${query}%,org_number.ilike.%${query}%`)
+      queryBuilder = queryBuilder.or(`bolag.ilike.%${query}%,orgnummer.ilike.%${query}%`)
     }
 
     const { data, error } = await queryBuilder
@@ -26,11 +27,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 })
     }
 
-    // Transform to WatchList format
+    // Return companies with all formats for compatibility
     const companies = (data || []).map(item => ({
-      id: item.org_number,
-      name: item.company_name || 'Okänt bolag',
-      orgNumber: item.org_number,
+      // Format expected by FollowCompanies
+      org_number: item.orgnummer,
+      company_name: item.bolag || 'Okänt bolag',
+      // WatchList format
+      id: item.orgnummer,
+      name: item.bolag || 'Okänt bolag',
+      orgNumber: item.orgnummer,
       status: 'quiet' as const,
       activityCount: 0
     }))
