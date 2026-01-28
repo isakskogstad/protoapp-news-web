@@ -49,7 +49,7 @@ interface PinnedMessage {
 }
 
 interface InlineEditorialChatProps {
-  maxHeight?: number
+  maxHeight?: number | string
 }
 
 // Quick reaction emojis for inline buttons
@@ -634,8 +634,11 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
     )
   }
 
+  // Compute max height style
+  const maxHeightStyle = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight
+
   return (
-    <div className="flex flex-col">
+    <div className={`flex flex-col ${maxHeight === '100%' ? 'h-full' : ''}`}>
       {/* Pinned messages toggle */}
       {pinnedMessages.length > 0 && (
         <button
@@ -675,8 +678,8 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="overflow-y-auto space-y-3 mb-3 pr-1"
-        style={{ maxHeight: `${maxHeight}px` }}
+        className={`overflow-y-auto space-y-3 mb-3 pr-1 ${maxHeight === '100%' ? 'flex-1 min-h-0' : ''}`}
+        style={maxHeight === '100%' ? {} : { maxHeight: maxHeightStyle }}
       >
         {loading && messages.length === 0 ? (
           <div className="flex justify-center py-6">

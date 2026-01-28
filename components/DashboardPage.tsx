@@ -15,7 +15,6 @@ import { useNotifications } from '@/lib/hooks/useNotifications'
 import { useSSE } from '@/lib/hooks/useSSE'
 // Using native img for profile images with error handling
 import GlobalSidebar from './GlobalSidebar'
-import NotificationDropdown from './NotificationDropdown'
 import FollowCompanies from './FollowCompanies'
 
 interface DashboardPageProps {
@@ -99,7 +98,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notiser</label>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Hantera notiser via klocksymbolen i headern.
+              Följ bolag för att få notiser om nyheter.
             </p>
           </div>
         </div>
@@ -214,20 +213,13 @@ function DashboardHeader({
     <header className="sticky top-0 z-40 w-full bg-white/98 dark:bg-[#0d1117]/98 backdrop-blur-md border-b border-gray-200/80 dark:border-[#30363d]" role="banner">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
 
-        {/* Left: Logo - Editorial style */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="group flex items-center gap-3" aria-label="LoopDesk - Gå till startsidan">
-            <div className="w-9 h-9 bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] rounded-lg flex items-center justify-center font-heading text-xl transition-all group-hover:scale-105 group-hover:shadow-lg" aria-hidden="true">
-              L
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="font-heading text-2xl tracking-tight text-[#0f172a] dark:text-white leading-none" aria-hidden="true">
-                LoopDesk
-              </span>
-              <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mt-0.5">Redaktionen</span>
-            </div>
+        {/* Left: Logo - Minimal text only */}
+        <div className="flex items-center">
+          <Link href="/" className="group" aria-label="Loop Desk - Gå till startsidan">
+            <span className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-[#0f172a] dark:text-white transition-colors group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]">
+              LOOP DESK
+            </span>
           </Link>
-
         </div>
 
         {/* Center: Search - Desktop */}
@@ -258,7 +250,7 @@ function DashboardHeader({
           </div>
         </div>
 
-        {/* Right: Mobile Search + Profile & Notifications */}
+        {/* Right: Mobile Search + Profile */}
         <div className="flex items-center gap-2">
           {/* Mobile search button */}
           <button
@@ -268,8 +260,6 @@ function DashboardHeader({
           >
             <Search className="w-5 h-5" />
           </button>
-
-          <NotificationDropdown />
 
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
 
@@ -654,16 +644,16 @@ function getTimelinePeriodLabel(period: TimelinePeriod): string {
 function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
     <div className={`flex items-center ${isFirst ? '' : 'mt-6 md:mt-8'}`}>
-      {/* Time label - full width on mobile, fixed width on desktop */}
-      <div className="md:w-24 shrink-0 md:flex md:justify-end md:pr-5">
-        <span className="text-[11px] font-mono font-bold text-[#0f172a] dark:text-white uppercase tracking-[0.15em] bg-white dark:bg-[#161b22] px-3 py-1.5 rounded-md border border-gray-200 dark:border-[#30363d] shadow-sm">
+      {/* Time label - full width on mobile, fixed narrow width on desktop (pushed to left margin) */}
+      <div className="md:w-14 shrink-0 md:flex md:justify-end md:pr-3">
+        <span className="text-[10px] font-mono font-bold text-[#0f172a] dark:text-white uppercase tracking-[0.1em] bg-white dark:bg-[#161b22] px-2 py-1 rounded-md border border-gray-200 dark:border-[#30363d] shadow-sm">
           {label}
         </span>
       </div>
       {/* Marker dot on the line - hidden on mobile, visible on desktop */}
-      <div className="hidden md:block w-4 h-4 rounded-full bg-[#1e40af] dark:bg-[#58a6ff] ring-4 ring-white dark:ring-[#0d1117] relative z-10 shadow-[0_0_12px_rgba(30,64,175,0.3)] dark:shadow-[0_0_12px_rgba(88,166,255,0.3)]" />
+      <div className="hidden md:block w-3 h-3 rounded-full bg-[#1e40af] dark:bg-[#58a6ff] ring-2 ring-white dark:ring-[#0d1117] relative z-10 shadow-[0_0_8px_rgba(30,64,175,0.3)] dark:shadow-[0_0_8px_rgba(88,166,255,0.3)]" />
       {/* Horizontal line extending right - hidden on mobile */}
-      <div className="hidden md:block flex-1 h-[2px] bg-gradient-to-r from-[#1e40af]/30 dark:from-[#58a6ff]/30 to-transparent ml-3" />
+      <div className="hidden md:block flex-1 h-[1px] bg-gradient-to-r from-[#1e40af]/20 dark:from-[#58a6ff]/20 to-transparent ml-2" />
     </div>
   )
 }
@@ -680,20 +670,20 @@ function TimelineItemWrapper({
 }) {
   return (
     <div className="flex group/timeline">
-      {/* Timeline column - hidden on mobile, fixed width on desktop */}
-      <div className="hidden md:flex md:w-24 shrink-0 justify-end pr-5 relative">
+      {/* Timeline column - hidden on mobile, narrow fixed width on desktop (in left margin) */}
+      <div className="hidden md:flex md:w-14 shrink-0 justify-end pr-3 relative">
         {/* Empty space for time label alignment */}
       </div>
 
       {/* Dot on the timeline - hidden on mobile, animated on card hover on desktop */}
       <div className="hidden md:flex shrink-0 relative z-10 items-start">
         {showDot && (
-          <div className="w-2.5 h-2.5 mt-7 rounded-full bg-gray-300 dark:bg-[#30363d] border-2 border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-125" />
+          <div className="w-2 h-2 mt-7 rounded-full bg-gray-300 dark:bg-[#30363d] border border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-150" />
         )}
       </div>
 
       {/* Content - full width on mobile, with left padding on desktop */}
-      <div className="flex-1 w-full md:pl-5">
+      <div className="flex-1 w-full md:pl-4">
         {children}
       </div>
     </div>
@@ -706,14 +696,14 @@ function TimelineContainer({ children }: { children: React.ReactNode }) {
     <div className="relative">
       {/* Continuous vertical line - hidden on mobile, visible on desktop with gradient fade at bottom */}
       <div
-        className="hidden md:block absolute left-[103px] top-0 bottom-0 w-[2px]"
+        className="hidden md:block absolute left-[60px] top-0 bottom-0 w-[1px]"
         style={{
           background: 'linear-gradient(180deg, var(--accent) 0%, var(--accent) 70%, transparent 100%)',
-          opacity: 0.2
+          opacity: 0.15
         }}
       />
       {/* News items - tighter gap on mobile, larger on desktop */}
-      <div className="flex flex-col gap-4 md:gap-10">
+      <div className="flex flex-col gap-4 md:gap-8">
         {children}
       </div>
     </div>
