@@ -646,22 +646,25 @@ function getTimelinePeriodLabel(period: TimelinePeriod): string {
   }
 }
 
-// Timeline marker component
+// Timeline marker component - shows period label (IDAG, IGÅR, etc.)
 function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center gap-3 ${isFirst ? '' : 'mt-2'}`}>
-      <div className="w-16 flex justify-end">
-        <span className="text-[10px] font-mono font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+    <div className={`flex items-center ${isFirst ? '' : 'mt-4'}`}>
+      {/* Time label column */}
+      <div className="w-20 shrink-0 flex justify-end pr-4">
+        <span className="text-[10px] font-mono font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-950 px-2 py-0.5 rounded">
           {label}
         </span>
       </div>
-      <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 ring-4 ring-gray-100 dark:ring-gray-900" />
-      <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent" />
+      {/* Marker dot on the line */}
+      <div className="w-3 h-3 rounded-full bg-gray-400 dark:bg-gray-500 ring-4 ring-gray-50 dark:ring-gray-950 relative z-10" />
+      {/* Horizontal line extending right */}
+      <div className="flex-1 h-px bg-gradient-to-r from-gray-300 dark:from-gray-600 to-transparent ml-2" />
     </div>
   )
 }
 
-// Timeline item wrapper
+// Timeline item wrapper - wraps each news card with timeline dot
 function TimelineItemWrapper({
   children,
   isLast,
@@ -673,23 +676,34 @@ function TimelineItemWrapper({
 }) {
   return (
     <div className="flex">
-      {/* Timeline column */}
-      <div className="w-16 shrink-0 flex flex-col items-end pr-3 relative">
-        {/* Vertical line */}
-        {!isLast && (
-          <div className="absolute right-[11px] top-3 bottom-0 w-px bg-gray-200 dark:bg-gray-800" />
-        )}
+      {/* Timeline column - fixed width for alignment */}
+      <div className="w-20 shrink-0 flex justify-end pr-4 relative">
+        {/* Empty space for time label alignment */}
       </div>
 
-      {/* Dot */}
-      <div className="shrink-0 relative z-10">
+      {/* Dot on the timeline */}
+      <div className="shrink-0 relative z-10 flex items-start">
         {showDot && (
-          <div className="w-2 h-2 mt-5 rounded-full bg-gray-300 dark:bg-gray-700" />
+          <div className="w-2 h-2 mt-6 rounded-full bg-gray-300 dark:bg-gray-600" />
         )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 pl-3">
+      <div className="flex-1 pl-4">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// Timeline container - wraps the entire news list with a continuous vertical line
+function TimelineContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {/* Continuous vertical line - positioned to align with dots */}
+      <div className="absolute left-[83px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800" />
+      {/* News items */}
+      <div className="flex flex-col gap-8">
         {children}
       </div>
     </div>
@@ -1184,7 +1198,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </div>
           )}
 
-          <div id="news-panel" role="tabpanel" className="flex flex-col gap-16" aria-label="Nyhetsflöde">
+          <div id="news-panel" role="tabpanel" aria-label="Nyhetsflöde">
             {filteredItems.length === 0 ? (
               <div className="py-16 text-center text-gray-500 dark:text-gray-400" role="status">
                 {debouncedSearch ? (
@@ -1204,43 +1218,45 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 )}
               </div>
             ) : (
-              (() => {
-                // Group items by timeline period and render with markers
-                let lastPeriod: TimelinePeriod | null = null
-                const elements: React.ReactNode[] = []
+              <TimelineContainer>
+                {(() => {
+                  // Group items by timeline period and render with markers
+                  let lastPeriod: TimelinePeriod | null = null
+                  const elements: React.ReactNode[] = []
 
-                filteredItems.forEach((item, index) => {
-                  const period = getTimelinePeriod(item.timestamp)
-                  const isLastItem = index === filteredItems.length - 1
+                  filteredItems.forEach((item, index) => {
+                    const period = getTimelinePeriod(item.timestamp)
+                    const isLastItem = index === filteredItems.length - 1
 
-                  // Add period marker when period changes
-                  if (period !== lastPeriod) {
+                    // Add period marker when period changes
+                    if (period !== lastPeriod) {
+                      elements.push(
+                        <TimelineMarker
+                          key={`marker-${period}-${index}`}
+                          label={getTimelinePeriodLabel(period)}
+                          isFirst={lastPeriod === null}
+                        />
+                      )
+                      lastPeriod = period
+                    }
+
+                    // Add the news item wrapped in timeline
                     elements.push(
-                      <TimelineMarker
-                        key={`marker-${period}-${index}`}
-                        label={getTimelinePeriodLabel(period)}
-                        isFirst={lastPeriod === null}
-                      />
+                      <TimelineItemWrapper
+                        key={item.id}
+                        isLast={isLastItem}
+                      >
+                        <NewsItemCard
+                          item={item}
+                          onBookmarkChange={() => forceUpdate({})}
+                        />
+                      </TimelineItemWrapper>
                     )
-                    lastPeriod = period
-                  }
+                  })
 
-                  // Add the news item wrapped in timeline
-                  elements.push(
-                    <TimelineItemWrapper
-                      key={item.id}
-                      isLast={isLastItem}
-                    >
-                      <NewsItemCard
-                        item={item}
-                        onBookmarkChange={() => forceUpdate({})}
-                      />
-                    </TimelineItemWrapper>
-                  )
-                })
-
-                return elements
-              })()
+                  return elements
+                })()}
+              </TimelineContainer>
             )}
           </div>
 
