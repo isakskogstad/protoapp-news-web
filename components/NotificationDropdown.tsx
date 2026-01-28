@@ -134,6 +134,10 @@ export default function NotificationDropdown() {
 
   const isCompanyWatched = (id: string) => watchedCompanies.some(c => c.id === id)
 
+  // Detect Safari browser
+  const isSafari = typeof navigator !== 'undefined' &&
+    /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
   const handleToggleClick = async () => {
     // Check browser support directly
     if (typeof Notification === 'undefined') {
@@ -145,7 +149,11 @@ export default function NotificationDropdown() {
     const currentPermission = Notification.permission
 
     if (currentPermission === 'denied') {
-      alert('Notiser är blockerade. Ändra i webbläsarens inställningar (klicka på hänglåset i adressfältet).')
+      if (isSafari) {
+        alert('Notiser blockerade i Safari.\n\n1. Gå till Safari → Inställningar → Webbplatser → Meddelanden\n2. Hitta denna webbplats och välj "Tillåt"\n3. Ladda om sidan')
+      } else {
+        alert('Notiser är blockerade. Ändra i webbläsarens inställningar (klicka på hänglåset i adressfältet).')
+      }
       return
     }
 
@@ -167,12 +175,19 @@ export default function NotificationDropdown() {
           icon: '/icon-192.png',
         })
         setIsOpen(true)
+      } else if (isSafari) {
+        // Safari-specific guidance
+        alert('Safari kräver att appen läggs till i Dock för notiser.\n\n1. Gå till Arkiv → Lägg till i Dock (⇧⌘D)\n2. Öppna appen från Docken\n3. Klicka på klockan igen')
       } else {
         alert('Du behöver tillåta notiser för att använda denna funktion.')
       }
     } catch (error) {
       console.error('Notification permission error:', error)
-      alert('Kunde inte aktivera notiser. Försök igen.')
+      if (isSafari) {
+        alert('Safari kräver att appen läggs till i Dock för notiser.\n\n1. Gå till Arkiv → Lägg till i Dock (⇧⌘D)\n2. Öppna appen från Docken\n3. Klicka på klockan igen')
+      } else {
+        alert('Kunde inte aktivera notiser. Försök igen.')
+      }
     }
   }
 
