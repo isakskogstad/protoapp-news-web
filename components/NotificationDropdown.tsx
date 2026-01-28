@@ -135,22 +135,32 @@ export default function NotificationDropdown() {
   const isCompanyWatched = (id: string) => watchedCompanies.some(c => c.id === id)
 
   const handleToggleClick = async () => {
-    if (!notifications.supported) {
+    // Check browser support directly
+    if (typeof Notification === 'undefined') {
       alert('Din webbläsare stöder inte notiser.')
       return
     }
 
-    if (notifications.permission === 'denied') {
+    // Check actual browser permission (not React state which may be stale)
+    const currentPermission = Notification.permission
+
+    if (currentPermission === 'denied') {
       alert('Notiser är blockerade. Ändra i webbläsarens inställningar (klicka på hänglåset i adressfältet).')
       return
     }
 
-    if (notifications.enabled || Notification.permission === 'granted') {
+    // If already granted, just open dropdown and ensure localStorage is set
+    if (currentPermission === 'granted') {
+      localStorage.setItem('loopdesk_notifications_enabled', 'true')
       setIsOpen(!isOpen)
-    } else {
-      // Request permission
-      const success = await notifications.enable()
-      if (success) {
+      return
+    }
+
+    // Permission is 'default' - need to request
+    try {
+      const permission = await Notification.requestPermission()
+      if (permission === 'granted') {
+        localStorage.setItem('loopdesk_notifications_enabled', 'true')
         // Show confirmation notification
         new Notification('LoopDesk', {
           body: 'Notiser aktiverade! Du får nu notiser om nya händelser.',
@@ -158,8 +168,11 @@ export default function NotificationDropdown() {
         })
         setIsOpen(true)
       } else {
-        alert('Kunde inte aktivera notiser. Försök igen.')
+        alert('Du behöver tillåta notiser för att använda denna funktion.')
       }
+    } catch (error) {
+      console.error('Notification permission error:', error)
+      alert('Kunde inte aktivera notiser. Försök igen.')
     }
   }
 
@@ -171,11 +184,11 @@ export default function NotificationDropdown() {
       {/* Bell Button */}
       <button
         onClick={handleToggleClick}
-        disabled={notifications.loading || !notifications.supported || notifications.permission === 'denied'}
+        disabled={notifications.loading}
         className={`p-2 rounded-md transition-colors relative ${
-          notifications.enabled
+          notifications.enabled || (typeof Notification !== 'undefined' && Notification.permission === 'granted')
             ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
-            : !notifications.supported || notifications.permission === 'denied'
+            : typeof Notification === 'undefined'
               ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
               : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
         }`}
