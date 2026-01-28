@@ -202,13 +202,14 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
 export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
   // For kungörelser, we don't have a direct PDF link but can link to PoIT
   // The kungorelsetext itself is the source content
+  // Prefer AI-generated headline/notice_text if available
   const item: NewsItem = {
     id: k.id,
     type: 'kungorelse',
     companyName: k.company_name || 'Okänt bolag',
     orgNumber: k.org_number || '',
-    headline: k.underrubrik || k.typ,
-    noticeText: k.kungorelsetext,
+    headline: k.ai_headline || k.underrubrik || k.typ,
+    noticeText: k.ai_notice_text || k.kungorelsetext,
     protocolType: k.amnesomrade,
     newsValue: k.amnesomrade?.toLowerCase().includes('konkurs') ? 9 : 5,
     timestamp: k.publicerad || new Date().toISOString(),

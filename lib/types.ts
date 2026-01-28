@@ -86,6 +86,10 @@ export interface Kungorelse {
     tingsratt?: string
     konkursforvaltare?: string
   }
+  // AI-generated fields
+  ai_headline?: string
+  ai_notice_text?: string
+  ai_faktaruta?: Record<string, unknown>
 }
 
 // Faktaruta types for detailed news displays
