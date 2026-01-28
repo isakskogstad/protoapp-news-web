@@ -9,6 +9,7 @@ import ShareButton from './ShareButton'
 interface NewsCardProps {
   item: NewsItem
   compact?: boolean
+  index?: number // For stagger animation
 }
 
 // Format date as "12 juni -24"
@@ -55,7 +56,7 @@ function getProtocolLabel(protocolType?: string): { line1: string; suffix: strin
   return null
 }
 
-export default function NewsCard({ item, compact = false }: NewsCardProps) {
+export default function NewsCard({ item, compact = false, index = 0 }: NewsCardProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
   const eventType = detectEventType(item)
@@ -66,6 +67,9 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
   const formattedDate = formatEventDate(item.eventDate)
   const protocolLabel = getProtocolLabel(item.protocolType)
   const showTwoLineLabel = protocolLabel && formattedDate && !compact
+
+  // Stagger animation delay
+  const animationDelay = `${Math.min(index * 50, 300)}ms`
 
   // Render the protocol badge (two-line format with date, or simple label)
   const renderProtocolBadge = (compact = false) => {
@@ -112,10 +116,13 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
   // Compact view - single line with essential info
   if (compact) {
     return (
-      <article className="relative group bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
-        <Link href={`/news/${item.id}`} className="flex items-center gap-3 p-3">
+      <article
+        className="relative group rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-150 ease-out cursor-pointer active:scale-[0.98] animate-reveal"
+        style={{ animationDelay }}
+      >
+        <Link href={`/news/${item.id}`} className="flex items-center gap-3 p-4">
           {/* Small logo */}
-          <div className="relative w-8 h-8 flex-shrink-0">
+          <div className="relative w-9 h-9 flex-shrink-0">
             {!logoError ? (
               <img
                 src={logoUrl}
@@ -128,8 +135,8 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
                 }}
               />
             ) : (
-              <div className="w-full h-full rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <span className="text-gray-500 dark:text-gray-400 font-semibold text-[10px]">
+              <div className="w-full h-full rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                <span className="text-stone-500 dark:text-stone-400 font-semibold text-[10px]">
                   {item.companyName.substring(0, 2).toUpperCase()}
                 </span>
               </div>
@@ -139,28 +146,28 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">
+              <span className="text-sm text-stone-500 dark:text-stone-400 truncate">
                 {item.companyName}
               </span>
               {eventConfig && (
                 <span
-                  className="text-[9px] px-1.5 py-0.5 rounded font-medium text-white whitespace-nowrap flex-shrink-0"
+                  className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full font-medium text-white whitespace-nowrap flex-shrink-0"
                   style={{ backgroundColor: eventConfig.color }}
                 >
                   {eventConfig.label}
                 </span>
               )}
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0">
-                {formatRelativeTime(item.timestamp)}
-              </span>
             </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <p className="text-base font-semibold text-stone-900 dark:text-stone-100 truncate mt-0.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {item.headline || item.noticeText || `Ny händelse för ${item.companyName}`}
             </p>
+            <span className="text-xs text-stone-400 dark:text-stone-500 mt-1 block">
+              {formatRelativeTime(item.timestamp)}
+            </span>
           </div>
 
           {/* Chevron */}
-          <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-stone-300 dark:text-stone-600 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
@@ -168,19 +175,22 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
     )
   }
 
-  // Full view (original)
+  // Full view - cleaner design with micro-interactions
   return (
-    <article className="relative group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
-      <Link href={`/news/${item.id}`} className="block p-4 md:p-6">
+    <article
+      className="relative group p-5 md:p-6 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 border-b border-stone-100 dark:border-stone-800/50 hover:border-transparent transition-all duration-150 ease-out cursor-pointer hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] animate-reveal"
+      style={{ animationDelay }}
+    >
+      <Link href={`/news/${item.id}`} className="block">
         {/* Mobile: Stack vertically, Desktop: Side by side */}
-        <div className="flex flex-col md:flex-row gap-3 md:gap-5">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-5">
           {/* Company info row (mobile) / column (desktop) */}
           <div className="flex md:flex-col items-center md:items-center gap-3 md:gap-0 md:w-20 flex-shrink-0">
             {/* Logo - shown directly with rounded corners */}
             <div className="relative w-12 h-12 md:w-14 md:h-14 md:mb-2 flex items-center justify-center flex-shrink-0">
               {/* Skeleton shimmer while loading */}
               {logoLoading && !logoError && (
-                <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
+                <div className="absolute inset-0 bg-stone-100 dark:bg-stone-800 skeleton-shimmer rounded-xl" />
               )}
               {!logoError ? (
                 <img
@@ -194,8 +204,8 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
                   }}
                 />
               ) : (
-                <div className="w-full h-full rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <span className="text-gray-500 dark:text-gray-400 font-semibold text-sm">
+                <div className="w-full h-full rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                  <span className="text-stone-500 dark:text-stone-400 font-semibold text-sm">
                     {item.companyName.substring(0, 2).toUpperCase()}
                   </span>
                 </div>
@@ -204,10 +214,10 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
 
             {/* Company name and org number - inline on mobile, stacked on desktop */}
             <div className="flex flex-col md:items-center min-w-0 flex-1 md:flex-initial">
-              <p className="text-xs md:text-[11px] font-medium text-gray-700 dark:text-gray-300 md:text-gray-500 md:dark:text-gray-400 md:text-center leading-tight line-clamp-1 md:line-clamp-2">
+              <p className="text-sm md:text-[11px] text-stone-500 dark:text-stone-400 md:text-center leading-tight line-clamp-1 md:line-clamp-2">
                 {item.companyName}
               </p>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-0.5">
+              <p className="text-[10px] text-stone-400 dark:text-stone-500 font-mono mt-0.5">
                 {item.orgNumber}
               </p>
             </div>
@@ -220,45 +230,55 @@ export default function NewsCard({ item, compact = false }: NewsCardProps) {
 
           {/* Main content: Headline + Notice */}
           <div className="flex-1 min-w-0">
-            {/* Top row: Badge + Time - hidden on mobile (badge shown above) */}
-            <div className="hidden md:flex items-center gap-2 mb-2">
-              {renderProtocolBadge(false)}
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                {formatRelativeTime(item.timestamp)}
-              </span>
+            {/* Top row: Event type badge */}
+            <div className="hidden md:flex items-center gap-3 mb-2">
+              {eventConfig && (
+                <span
+                  className="text-[10px] uppercase tracking-widest font-medium"
+                  style={{ color: eventConfig.color }}
+                >
+                  {eventConfig.label}
+                </span>
+              )}
             </div>
 
-            {/* Time on mobile - shown separately */}
-            <span className="md:hidden text-xs text-gray-400 dark:text-gray-500 mb-1.5 block">
-              {formatRelativeTime(item.timestamp)}
-            </span>
+            {/* Company name on desktop - cleaner typography hierarchy */}
+            <p className="hidden md:block text-sm text-stone-500 dark:text-stone-400 mb-1">
+              {item.companyName}
+            </p>
 
             {/* Headline - Bold and prominent */}
             {item.headline && (
-              <h3 className="text-base md:text-base font-bold text-gray-900 dark:text-gray-100 leading-snug mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 leading-snug mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {item.headline}
               </h3>
             )}
 
             {/* Notice text - Full focus, more lines on mobile for readability */}
             {item.noticeText && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4 md:line-clamp-3">
+              <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-4 md:line-clamp-3">
                 {item.noticeText}
               </p>
             )}
 
             {/* Fallback if no headline/notice */}
             {!item.headline && !item.noticeText && (
-              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 Ny händelse för {item.companyName}
               </h3>
             )}
+
+            {/* Date and protocol type - subtle footer */}
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-3">
+              {formatRelativeTime(item.timestamp)}
+              {item.protocolType && ` \u2022 ${item.protocolType}`}
+            </p>
           </div>
         </div>
       </Link>
 
       {/* Share button - always visible on mobile, hover on desktop */}
-      <div className="absolute top-3 right-3 md:top-5 md:right-5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-4 right-4 md:top-5 md:right-5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150">
         <ShareButton item={item} />
       </div>
     </article>

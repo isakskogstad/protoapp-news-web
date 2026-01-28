@@ -17,12 +17,21 @@
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Light mode colors - refined palette */
+  /* ========================================
+     SEMANTIC COLOR PALETTE - Light Mode
+     5 core colors for refined, consistent design
+     ======================================== */
+  --ink: #0c0c0c;           /* Primary text */
+  --paper: #fafaf9;         /* Background */
+  --stone: #78716c;         /* Secondary text */
+  --accent: #1d4ed8;        /* CTA & links */
+  --highlight: #fef3c7;     /* Highlighting */
+
+  /* Light mode colors - refined palette (legacy support) */
   --foreground: #0f172a;
   --background: #f8fafc;
   --muted: #64748b;
   --border: #e2e8f0;
-  --accent: #1e40af;
   --accent-light: #3b82f6;
   --bg-dynamic: #f8fafc;
   --bg-card: #ffffff;
@@ -39,12 +48,20 @@
 }
 
 .dark {
-  /* Dark mode - GitHub-inspired rich dark */
+  /* ========================================
+     SEMANTIC COLOR PALETTE - Dark Mode
+     ======================================== */
+  --ink: #e6edf3;           /* Primary text */
+  --paper: #0d1117;         /* Background */
+  --stone: #8b949e;         /* Secondary text */
+  --accent: #58a6ff;        /* CTA & links */
+  --highlight: #1c1917;     /* Highlighting */
+
+  /* Dark mode - GitHub-inspired rich dark (legacy support) */
   --foreground: #e6edf3;
   --background: #0d1117;
   --muted: #8b949e;
   --border: #30363d;
-  --accent: #58a6ff;
   --accent-light: #79c0ff;
   --bg-dynamic: #0d1117;
   --bg-card: #161b22;
@@ -163,6 +180,73 @@ html {
 
 .text-responsive-4xl {
   font-size: clamp(1.875rem, 1.5rem + 1.5vw, 2.25rem);
+}
+
+/* ========================================
+   ENHANCED TYPOGRAPHY - Stronger Hierarchy
+   ======================================== */
+
+/* Display headline - fluid sizing with tight tracking */
+.text-headline {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-weight: 700;
+  font-optical-sizing: auto;
+}
+
+/* Large headline variant */
+.text-headline-lg {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  font-weight: 700;
+  font-optical-sizing: auto;
+}
+
+/* Small headline variant */
+.text-headline-sm {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-weight: 600;
+  font-optical-sizing: auto;
+}
+
+/* Body text - optimized for reading */
+.text-body {
+  font-size: 1.0625rem; /* 17px - slightly larger than 16px for better readability */
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+/* Body text large variant */
+.text-body-lg {
+  font-size: 1.1875rem; /* 19px */
+  line-height: 1.75;
+  letter-spacing: 0.005em;
+}
+
+/* Body text small variant */
+.text-body-sm {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.7;
+  letter-spacing: 0.015em;
+}
+
+/* Caption/label text */
+.text-caption {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Display text with optical sizing for large sizes */
+.text-display {
+  font-optical-sizing: auto;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
 }
 
 /* ========================================
@@ -926,6 +1010,164 @@ a:focus-visible {
 .stagger-quick > *:nth-child(5) { animation-delay: 120ms; }
 
 /* ===============================
+   UNIFIED MOTION LANGUAGE
+   Standard animations for consistent UX
+   =============================== */
+
+/* 1. Reveal - for elements appearing (primary entrance animation) */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2. Reveal-subtle - for less prominent elements */
+@keyframes reveal-subtle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 3. Expand - for collapsibles and accordions */
+@keyframes expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+/* 4. Collapse - reverse of expand */
+@keyframes collapse {
+  from {
+    opacity: 1;
+    max-height: 1000px;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+  }
+}
+
+/* Utility classes for unified animations */
+.animate-reveal {
+  animation: reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-reveal-subtle {
+  animation: reveal-subtle 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-expand {
+  animation: expand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+.animate-collapse {
+  animation: collapse 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  overflow: hidden;
+}
+
+/* Stagger delays for .stagger container (unified version) */
+.stagger > * {
+  opacity: 0;
+  animation: reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(7) { animation-delay: 300ms; }
+.stagger > *:nth-child(8) { animation-delay: 350ms; }
+.stagger > *:nth-child(9) { animation-delay: 400ms; }
+.stagger > *:nth-child(10) { animation-delay: 450ms; }
+.stagger > *:nth-child(n+11) { animation-delay: 500ms; }
+
+/* Interactive base class - unified hover/active states */
+.interactive {
+  transition: transform 0.15s ease-out,
+              box-shadow 0.15s ease-out,
+              background-color 0.15s ease-out,
+              border-color 0.15s ease-out;
+}
+
+.interactive:hover {
+  transform: translateY(-2px);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Interactive with shadow lift variant */
+.interactive-lift {
+  transition: transform 0.15s ease-out,
+              box-shadow 0.15s ease-out,
+              background-color 0.15s ease-out;
+}
+
+.interactive-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .interactive-lift:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.interactive-lift:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Interactive scale variant (no Y translate) */
+.interactive-scale {
+  transition: transform 0.15s ease-out,
+              box-shadow 0.15s ease-out,
+              background-color 0.15s ease-out;
+}
+
+.interactive-scale:hover {
+  transform: scale(1.02);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* Disable interactive animations on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .interactive:hover,
+  .interactive-lift:hover,
+  .interactive-scale:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .interactive:active,
+  .interactive-lift:active,
+  .interactive-scale:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ===============================
    Touch-friendly Styles
    =============================== */
 
@@ -1303,4 +1545,79 @@ a:focus-visible {
     break-inside: avoid;
     page-break-inside: avoid;
   }
+}
+
+/* ===============================
+   VISUAL DETAILS - Subtle Improvements
+   =============================== */
+
+/* A. Line accent for headlines */
+.headline-accent::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--accent, #1d4ed8);
+  margin-top: 1rem;
+  border-radius: 2px;
+}
+
+/* B. Gradient text for high news values */
+.text-gradient-warm {
+  background: linear-gradient(135deg, #dc2626, #ea580c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-cool {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* C. Subtle grain texture overlay */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.dark .grain-overlay::before {
+  opacity: 0.03;
+}
+
+/* D. Borderless card style */
+.card-borderless {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.2s ease;
+}
+
+.card-borderless:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.dark .card-borderless {
+  background: rgba(22, 27, 34, 0.5);
+}
+
+.dark .card-borderless:hover {
+  background: rgba(22, 27, 34, 0.8);
+}
+
+/* E. Elegant divider */
+.divider-elegant {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+}
+
+.dark .divider-elegant {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
 }

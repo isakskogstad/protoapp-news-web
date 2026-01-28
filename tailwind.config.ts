@@ -10,7 +10,16 @@ const config: Config = {
     extend: {
       // Centralized color system using CSS variables for theme consistency
       colors: {
-        // Base colors
+        // ========================================
+        // SEMANTIC COLOR TOKENS (5 core colors)
+        // Use these for new components
+        // ========================================
+        ink: 'var(--ink)',           // Primary text
+        paper: 'var(--paper)',       // Background
+        stone: 'var(--stone)',       // Secondary text
+        highlight: 'var(--highlight)', // Highlighting
+
+        // Base colors (legacy support)
         background: 'var(--background)',
         foreground: 'var(--foreground)',
 
@@ -29,10 +38,11 @@ const config: Config = {
         // Border colors
         border: 'var(--border)',
 
-        // Accent/primary
+        // Accent/primary (unified with semantic palette)
         accent: {
           DEFAULT: 'var(--accent)',
           foreground: '#ffffff',
+          light: 'var(--accent-light)',
         },
 
         // Secondary text
@@ -107,6 +117,12 @@ const config: Config = {
         'display-sm': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
         'display-md': ['2.5rem', { lineHeight: '3rem', letterSpacing: '-0.02em' }],
         'display-lg': ['3rem', { lineHeight: '3.5rem', letterSpacing: '-0.02em' }],
+        // Body text with enhanced readability (17px base)
+        'body': ['1.0625rem', { lineHeight: '1.8' }],
+        'body-lg': ['1.1875rem', { lineHeight: '1.75' }],
+        'body-sm': ['0.9375rem', { lineHeight: '1.7' }],
+        // Caption text
+        'caption': ['0.8125rem', { lineHeight: '1.5', letterSpacing: '0.02em' }],
       },
 
       // Font families (matching globals.css)

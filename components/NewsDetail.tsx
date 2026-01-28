@@ -243,8 +243,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   return (
     <article className="animate-fade-in overflow-x-hidden">
       {/* Header - mobile responsive */}
-      <header className="mb-6 sm:mb-8">
-        <div className="flex items-start gap-3 sm:gap-5 mb-4 sm:mb-5">
+      <header className="mb-8 sm:mb-10">
+        <div className="flex items-start gap-4 sm:gap-5">
           <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 flex items-center justify-center">
             {logoLoading && !logoError && (
               <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
@@ -271,7 +271,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
           <div className="flex-1 min-w-0">
             {eventConfig && (
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-2">
                 <span
                   className="text-[10px] px-2 py-0.5 rounded font-mono font-medium uppercase tracking-wide whitespace-nowrap"
                   style={{ backgroundColor: `${eventConfig.color}15`, color: eventConfig.color }}
@@ -280,8 +280,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-tight truncate">
+            <div className="flex items-center gap-3 mb-1.5">
+              <h1 className="text-lg sm:text-xl font-semibold text-stone-600 dark:text-stone-400 leading-tight truncate">
                 {item.companyName}
               </h1>
               <WatchCompanyButton
@@ -290,7 +290,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 className="flex-shrink-0"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-[11px] sm:text-xs font-mono text-[#64748b] dark:text-[#8b949e]">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-mono text-stone-500 dark:text-stone-500">
               <span className="flex items-center gap-1 sm:gap-1.5">
                 <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span className="truncate">{formatOrgNumber(item.orgNumber)}</span>
@@ -306,24 +306,27 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       </header>
 
       {/* Headline with Share button - mobile responsive */}
-      <div className="mb-6">
+      <div className="mb-10 sm:mb-12">
         {item.headline && (
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-[1.2] mb-4">
-            {item.headline}
-          </h2>
+          <>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-4">
+              {item.headline}
+            </h2>
+            <div className="w-12 h-0.5 bg-blue-600 dark:bg-blue-400 mb-6 rounded-full" />
+          </>
         )}
         <ShareToChat
           companyName={item.companyName}
           headline={item.headline}
           newsId={item.id}
-          className="w-full sm:w-auto inline-flex justify-center px-4 py-2.5 sm:px-3 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors text-sm sm:text-xs font-medium"
+          className="w-full sm:w-auto inline-flex justify-center px-4 py-2.5 sm:px-3 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors text-sm sm:text-xs font-medium hover:brightness-95 active:scale-[0.98]"
         />
       </div>
 
       {/* Notice text - prominent, mobile responsive */}
       {item.noticeText && !hasKungorelse && (
-        <div className="mb-6 sm:mb-10 pb-6 sm:pb-10 border-b border-gray-200/60 dark:border-[#30363d]">
-          <p className="text-[#334155] dark:text-[#c9d1d9] leading-[1.8] sm:leading-[1.9] text-[15px] sm:text-[17px] whitespace-pre-wrap">
+        <div className="mb-10 sm:mb-12 pb-8 sm:pb-10 border-b border-gray-200/60 dark:border-[#30363d]">
+          <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base sm:text-[17px] whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
             {item.noticeText}
           </p>
         </div>
@@ -331,15 +334,15 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* Bolagsinformation - visas direkt under notisen */}
       {hasBolagsInfo && (
-        <div className="mb-6">
+        <div className="mb-10">
           <BolagsInfoCard data={item.bolagsInfo} />
         </div>
       )}
 
       {/* ========== COLLAPSIBLE SOURCE BAR (Protokoll/Kungörelse) - mobile responsive ========== */}
       {hasSource && (
-        <div className="mb-6 sm:mb-8">
-          {/* Collapsible header bar - full width, refined */}
+        <div className="mb-10 sm:mb-12">
+          {/* Collapsible header bar - softer, more inline feel */}
           <button
             onClick={() => {
               if (hasKungorelse) {
@@ -348,22 +351,22 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 setSourceExpanded(!sourceExpanded)
               }
             }}
-            className="w-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-4 flex items-center justify-between hover:bg-[#f8fafc] dark:hover:bg-[#21262d] hover:border-[#1e40af]/30 dark:hover:border-[#58a6ff]/30 transition-all group pulse-on-hover shadow-sm"
+            className="w-full bg-stone-50/80 dark:bg-stone-900/30 rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-stone-100/80 dark:hover:bg-stone-800/40 transition-all group interactive"
           >
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:bg-[#e2e8f0] dark:group-hover:bg-[#30363d] transition-colors ${pdfConfirmedMissing ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-[#f1f5f9] dark:bg-[#21262d]'}`}>
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 rounded-lg flex items-center justify-center transition-colors ${pdfConfirmedMissing ? 'bg-amber-100/80 dark:bg-amber-900/30' : 'bg-white dark:bg-stone-800 shadow-sm'}`}>
                 {pdfConfirmedMissing ? (
                   <FileX className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
                 ) : (
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#64748b] dark:text-[#8b949e]" />
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-stone-500 dark:text-stone-400" />
                 )}
               </div>
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-[#e6edf3] truncate">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                   {hasKungorelse ? 'Visa kungörelse' : pdfConfirmedMissing ? 'Protokoll ej tillgängligt' : 'Visa protokoll'}
                 </span>
                 {pdfConfirmedMissing && (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                  <span className="text-xs text-amber-600 dark:text-amber-400">
                     PDF-filen saknas i arkivet
                   </span>
                 )}
@@ -376,17 +379,17 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#0f172a] dark:text-[#e6edf3] bg-[#f1f5f9] dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#30363d] transition-colors"
+                  className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-slate-900 dark:hover:text-white transition-colors hover:brightness-95 active:scale-[0.98]"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                   Ladda ner
                 </a>
               )}
               {!pdfConfirmedMissing && (
                 (hasPdfUrl ? sourceExpanded : kungorelseExpanded) ? (
-                  <ChevronUp className="w-5 h-5 text-[#64748b] dark:text-[#8b949e] transition-transform group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]" />
+                  <ChevronUp className="w-5 h-5 text-stone-400 dark:text-stone-500 transition-transform group-hover:text-blue-600 dark:group-hover:text-blue-400" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-[#64748b] dark:text-[#8b949e] transition-transform group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]" />
+                  <ChevronDown className="w-5 h-5 text-stone-400 dark:text-stone-500 transition-transform group-hover:text-blue-600 dark:group-hover:text-blue-400" />
                 )
               )}
             </div>
@@ -398,7 +401,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="sm:hidden flex items-center justify-center gap-2 mt-2 px-4 py-2.5 text-xs font-semibold text-[#0f172a] dark:text-[#e6edf3] bg-[#f1f5f9] dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#30363d] transition-colors w-full"
+              className="sm:hidden flex items-center justify-center gap-2 mt-3 px-4 py-2.5 text-xs font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors w-full shadow-sm hover:brightness-95 active:scale-[0.98]"
             >
               <Download className="w-4 h-4" />
               Ladda ner PDF
@@ -429,7 +432,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
           {/* PDF viewer - always mounted for background preloading, visibility toggled */}
           {hasPdf && (
             <div
-              className={`mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${
+              className={`mt-3 bg-white dark:bg-stone-900 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 shadow-sm interactive ${
                 sourceExpanded
                   ? 'opacity-100 max-h-[500px] animate-slide-down'
                   : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'
@@ -448,9 +451,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
           {/* Expanded content - Kungörelse text */}
           {hasKungorelse && kungorelseExpanded && (
-            <div className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down">
+            <div className="mt-3 bg-white dark:bg-stone-900 rounded-xl overflow-hidden animate-slide-down shadow-sm">
               <div className="p-6 max-h-[400px] overflow-y-auto">
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-[1.8] whitespace-pre-wrap">
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
                   {item.kungorelse?.kungorelsetext || item.noticeText}
                 </p>
               </div>
@@ -464,20 +467,20 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-fade-in">
           <div
             ref={expandedContentRef}
-            className="relative bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl w-full max-w-5xl h-[90vh] sm:h-[85vh] flex flex-col"
+            className="relative bg-white dark:bg-stone-900 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl w-full max-w-5xl h-[90vh] sm:h-[85vh] flex flex-col"
           >
             {/* Header */}
-            <div className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-200 dark:border-stone-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-gray-500" />
-                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Protokoll</span>
+                <FileText className="w-4 h-4 text-stone-500" />
+                <span className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">Protokoll</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <a
                   href={item.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors hover:brightness-95 active:scale-[0.98]"
                 >
                   <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   <span className="hidden sm:inline">Ladda ner</span>
@@ -485,9 +488,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </a>
                 <button
                   onClick={() => setFullscreenPdf(false)}
-                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors hover:brightness-95 active:scale-[0.98]"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-stone-500" />
                 </button>
               </div>
             </div>
@@ -504,7 +507,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       )}
 
       {/* ========== TWO-COLUMN MODULES (Faktaruta + Nyheter) - mobile responsive ========== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
         {/* Left column - Faktaruta or Bolagsfakta */}
         <div className="flex flex-col">
           {hasKallelse && <KallelseFaktaruta data={item.kallelseFaktaruta} />}

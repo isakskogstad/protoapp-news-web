@@ -31,9 +31,9 @@ interface FollowSettings {
 }
 
 // Estimated item heights - will be measured dynamically
-const DEFAULT_ROW_HEIGHT = 200 // Default height for dynamic measurement
-const ITEM_GAP = 16 // gap-4 = 16px on mobile
-const ITEM_GAP_DESKTOP = 64 // gap-16 = 64px on desktop (md:space-y-16)
+const DEFAULT_ROW_HEIGHT = 180 // Default height for dynamic measurement
+const ITEM_GAP = 24 // gap-6 = 24px on mobile - more generous spacing
+const ITEM_GAP_DESKTOP = 32 // gap-8 = 32px on desktop - subtle dividers instead of heavy cards
 const OVERSCAN_COUNT = 5 // Render 5 extra items above/below viewport
 // LOAD_MORE_THRESHOLD removed - using onRowsRendered instead
 
@@ -196,7 +196,7 @@ function VirtualRow({
   return (
     <div style={adjustedStyle} {...ariaAttributes} data-index={index}>
       <div ref={rowRef}>
-        <NewsCard item={item} compact={compactView} />
+        <NewsCard item={item} compact={compactView} index={index} />
       </div>
     </div>
   )
@@ -434,26 +434,28 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
 
       {/* Virtualized news items list */}
       {items.length > 0 ? (
-        <List
-          rowComponent={VirtualRow}
-          rowCount={items.length}
-          rowHeight={dynamicRowHeight}
-          rowProps={rowProps}
-          overscanCount={OVERSCAN_COUNT}
-          onRowsRendered={handleRowsRendered}
-          className="scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
-          style={{ height: listHeight, overflowX: 'hidden' }}
-        />
+        <div className="stagger">
+          <List
+            rowComponent={VirtualRow}
+            rowCount={items.length}
+            rowHeight={dynamicRowHeight}
+            rowProps={rowProps}
+            overscanCount={OVERSCAN_COUNT}
+            onRowsRendered={handleRowsRendered}
+            className="scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-stone-600"
+            style={{ height: listHeight, overflowX: 'hidden' }}
+          />
+        </div>
       ) : (
         /* Empty state */
-        <div className="text-center py-20 text-gray-400 dark:text-gray-500">
+        <div className="text-center py-20 text-stone-400 dark:text-stone-500 animate-fade-in">
           Inga nyheter ännu
         </div>
       )}
 
       {/* Loading indicator at bottom */}
       {isLoading && (
-        <div className="space-y-4 mt-4">
+        <div className="space-y-6 mt-6 animate-fade-in">
           <NewsCardSkeleton />
           <NewsCardSkeleton />
         </div>
@@ -462,7 +464,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       {/* End of feed indicator */}
       {!isLoading && !hasMore && items.length > 0 && (
         <div className="h-20 flex items-center justify-center">
-          <span className="text-sm text-gray-400">Inga fler nyheter</span>
+          <span className="text-xs text-stone-400 dark:text-stone-500">Inga fler nyheter</span>
         </div>
       )}
 
