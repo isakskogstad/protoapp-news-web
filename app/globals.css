@@ -73,6 +73,62 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* ========================================
+   MOBILE & TOUCH DEVICE OPTIMIZATIONS
+   ======================================== */
+
+/* Prevent text selection on interactive elements */
+button, [role="button"], a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent callout on long-press (iOS) */
+button, [role="button"], a, img {
+  -webkit-touch-callout: none;
+}
+
+/* Ensure touch-manipulation on all buttons (prevents 300ms delay) */
+button, [role="button"], a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Touch devices: show active states instead of hover */
+@media (hover: none) and (pointer: coarse) {
+  /* Make hover-dependent actions visible by default */
+  .group:hover .group-hover\:opacity-100,
+  .hover\:opacity-100 {
+    opacity: 1;
+  }
+
+  /* Larger minimum touch targets */
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce animation complexity on mobile */
+  .animate-float {
+    animation-duration: 30s !important;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-inset-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+/* Prevent pull-to-refresh interference on scroll containers */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
 /* Minimal scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

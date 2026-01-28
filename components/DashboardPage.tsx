@@ -858,8 +858,8 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
         {/* Subtle top accent line */}
         <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-gray-200 dark:via-[#30363d] to-transparent" />
 
-        {/* Action buttons - vertical stack on far right, visible on hover/focus */}
-        <div className="absolute right-4 top-4 flex flex-col gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+        {/* Action buttons - vertical stack on far right, visible on hover/focus (always visible on touch devices via CSS) */}
+        <div className="absolute right-4 top-4 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 md:translate-x-2 md:group-hover:translate-x-0">
           <button
             onClick={handleBookmarkWithAnimation}
             className={`p-2.5 rounded-lg transition-all touch-manipulation ripple-effect ${
