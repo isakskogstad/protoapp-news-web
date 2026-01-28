@@ -12,8 +12,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.SLACK_CLIENT_SECRET!,
       authorization: {
         params: {
-          // Request user scopes to post as user
-          user_scope: 'chat:write,users:read',
+          // Request user scopes to post as user and list channels
+          user_scope: 'chat:write,users:read,channels:read,groups:read',
         },
       },
     }),

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Loader2, ExternalLink, FileText, AlertCircle, Search, ChevronDown, ChevronUp, Copy, Check, HardDrive } from 'lucide-react'
-import { getCachedPDF, cachePDF } from '@/lib/pdfCache'
+import { useState, useEffect } from 'react'
+import { Loader2, ExternalLink, FileText, AlertCircle, Search, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react'
 
 export interface PDFKeyword {
   label: string
@@ -43,7 +42,7 @@ function KeywordChip({ keyword, onCopy }: { keyword: PDFKeyword; onCopy: (value:
     <button
       onClick={handleCopy}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${colors.bg} ${colors.text} ${colors.border} text-xs font-medium hover:opacity-80 transition-all group`}
-      title={`Klicka for att kopiera "${keyword.value}"`}
+      title={`Klicka för att kopiera "${keyword.value}"`}
     >
       <span className="text-[10px] opacity-60 uppercase tracking-wide">{keyword.label}:</span>
       <span className="font-semibold">{keyword.value}</span>
@@ -56,6 +55,8 @@ function KeywordChip({ keyword, onCopy }: { keyword: PDFKeyword; onCopy: (value:
   )
 }
 
+type ViewerMode = 'direct' | 'google' | 'pdfjs' | 'error'
+
 export default function PDFPreview({
   url,
   compact = false,
@@ -65,94 +66,16 @@ export default function PDFPreview({
   onLoadError
 }: PDFPreviewProps) {
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [useGoogleViewer, setUseGoogleViewer] = useState(false)
-  const [keywordsExpanded, setKeywordsExpanded] = useState(!compact) // Expanded by default in fullscreen
-  const [isFromCache, setIsFromCache] = useState(false)
-  const [objectUrl, setObjectUrl] = useState<string | null>(null)
-  const [loadingMessage, setLoadingMessage] = useState('Laddar PDF...')
-  const objectUrlRef = useRef<string | null>(null)
+  const [viewerMode, setViewerMode] = useState<ViewerMode>('google') // Start with Google Docs for reliability
+  const [keywordsExpanded, setKeywordsExpanded] = useState(!compact)
+  const [loadAttempts, setLoadAttempts] = useState(0)
 
   useEffect(() => {
     // Reset state when URL changes
     setLoading(true)
-    setError(false)
-    setUseGoogleViewer(false)
-    setIsFromCache(false)
-    setLoadingMessage('Laddar PDF...')
-
-    // Clean up previous object URL
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-      objectUrlRef.current = null
-    }
-    setObjectUrl(null)
-
-    // Try to load from cache or fetch
-    loadPDF()
-
-    // Cleanup on unmount
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
-      }
-    }
+    setViewerMode('google') // Always start with Google Docs viewer for best compatibility
+    setLoadAttempts(0)
   }, [url])
-
-  const loadPDF = async () => {
-    try {
-      // Check if PDF is in cache
-      setLoadingMessage('Kontrollerar cache...')
-      const cached = await getCachedPDF(url)
-
-      if (cached) {
-        // Use cached blob
-        console.log('[PDFPreview] Loading from cache:', url)
-        setLoadingMessage('Laddar fran cache...')
-        const blobUrl = URL.createObjectURL(cached)
-        objectUrlRef.current = blobUrl
-        setObjectUrl(blobUrl)
-        setIsFromCache(true)
-        return
-      }
-
-      // Not in cache, fetch the PDF
-      console.log('[PDFPreview] Fetching PDF:', url)
-      setLoadingMessage('Hamtar PDF...')
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const blob = await response.blob()
-
-      // Verify it's a PDF
-      if (!blob.type.includes('pdf') && !url.toLowerCase().endsWith('.pdf')) {
-        console.warn('[PDFPreview] Response may not be a PDF:', blob.type)
-      }
-
-      // Cache the PDF (don't await, let it happen in background)
-      setLoadingMessage('Cacchar PDF...')
-      cachePDF(url, blob).catch(err => {
-        console.warn('[PDFPreview] Failed to cache PDF:', err)
-      })
-
-      // Create object URL for display
-      const blobUrl = URL.createObjectURL(blob)
-      objectUrlRef.current = blobUrl
-      setObjectUrl(blobUrl)
-      setIsFromCache(false)
-
-    } catch (err) {
-      console.error('[PDFPreview] Failed to load PDF:', err)
-      // Fall back to direct URL embedding
-      setObjectUrl(null)
-      setIsFromCache(false)
-    }
-  }
 
   const handleLoad = () => {
     setLoading(false)
@@ -160,42 +83,51 @@ export default function PDFPreview({
   }
 
   const handleError = () => {
-    // If using object URL failed, try direct URL
-    if (objectUrl) {
-      console.log('[PDFPreview] Object URL failed, trying direct URL')
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
-      }
-      setObjectUrl(null)
-      setIsFromCache(false)
-      return
-    }
+    console.log('[PDFPreview] Load failed, mode:', viewerMode, 'attempts:', loadAttempts)
 
-    // If direct embed fails, try Google Docs viewer
-    if (!useGoogleViewer) {
-      console.log('[PDFPreview] Direct embed failed, trying Google Docs viewer')
-      setUseGoogleViewer(true)
+    if (viewerMode === 'google' && loadAttempts < 1) {
+      // Try PDF.js viewer
+      console.log('[PDFPreview] Trying PDF.js viewer')
+      setViewerMode('pdfjs')
+      setLoadAttempts(prev => prev + 1)
+      setLoading(true)
+    } else if (viewerMode === 'pdfjs' && loadAttempts < 2) {
+      // Try direct URL
+      console.log('[PDFPreview] Trying direct URL')
+      setViewerMode('direct')
+      setLoadAttempts(prev => prev + 1)
       setLoading(true)
     } else {
+      // All methods failed
+      setViewerMode('error')
       setLoading(false)
-      setError(true)
       onLoadError?.()
     }
   }
 
-  // Google Docs viewer URL for fallback
-  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
-
-  // PDF.js viewer URL (Mozilla's free hosted viewer)
+  // Viewer URLs
+  const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
   const pdfJsViewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`
 
-  // Determine which URL to use
-  const embedUrl = useGoogleViewer
-    ? googleViewerUrl
-    : (objectUrl || url)
+  // Determine which URL to use based on mode
+  const getEmbedUrl = () => {
+    switch (viewerMode) {
+      case 'google':
+        return googleViewerUrl
+      case 'pdfjs':
+        return pdfJsViewerUrl
+      case 'direct':
+        return `${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`
+      default:
+        return url
+    }
+  }
 
-  if (error) {
+  const embedUrl = getEmbedUrl()
+  const viewerHeight = compact ? maxHeight : '70vh'
+  const minViewerHeight = compact ? maxHeight : 500
+
+  if (viewerMode === 'error') {
     return (
       <div
         className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-8 gap-4"
@@ -203,9 +135,9 @@ export default function PDFPreview({
       >
         <AlertCircle className="w-10 h-10 text-gray-400" />
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-          Kunde inte ladda PDF-forhandsgranskning
+          Kunde inte ladda PDF-förhandsgranskning
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-center">
           <a
             href={url}
             target="_blank"
@@ -213,16 +145,16 @@ export default function PDFPreview({
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            Oppna PDF
+            Öppna PDF
           </a>
           <a
-            href={pdfJsViewerUrl}
+            href={googleViewerUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <FileText className="w-4 h-4" />
-            Oppna i PDF.js
+            Google Docs
           </a>
         </div>
       </div>
@@ -268,7 +200,7 @@ export default function PDFPreview({
                 ))}
               </div>
               <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500 italic">
-                Klicka pa ett nyckelord for att kopiera. Anvand Ctrl+F / Cmd+F i PDF:en for att soka.
+                Klicka på ett nyckelord för att kopiera. Använd Ctrl+F / Cmd+F i PDF:en för att söka.
               </p>
             </div>
           )}
@@ -279,58 +211,38 @@ export default function PDFPreview({
       {loading && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10"
-          style={{ minHeight: compact ? maxHeight : 400 }}
+          style={{ minHeight: minViewerHeight }}
         >
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
             <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-              {useGoogleViewer ? 'Laddar via Google Docs...' : loadingMessage}
+              {viewerMode === 'google' && 'Laddar via Google Docs...'}
+              {viewerMode === 'pdfjs' && 'Laddar via PDF.js...'}
+              {viewerMode === 'direct' && 'Laddar PDF...'}
             </p>
           </div>
         </div>
       )}
 
-      {/* Cached badge */}
-      {isFromCache && !loading && (
-        <div className="absolute top-2 right-2 z-20">
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/50 rounded-full shadow-sm">
-            <HardDrive className="w-3 h-3" />
-            Cachad
-          </span>
-        </div>
-      )}
-
-      {/* PDF embed - use object tag for better compatibility */}
-      <object
-        data={`${embedUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-        type="application/pdf"
-        className="w-full bg-white"
+      {/* PDF embed using iframe */}
+      <iframe
+        src={embedUrl}
+        className="w-full bg-white border-0"
         style={{
-          height: compact ? maxHeight : '70vh',
-          minHeight: compact ? maxHeight : 400
+          height: viewerHeight,
+          minHeight: minViewerHeight
         }}
         onLoad={handleLoad}
         onError={handleError}
-      >
-        {/* Fallback content if object doesn't render */}
-        <iframe
-          src={useGoogleViewer ? googleViewerUrl : `${objectUrl || url}#toolbar=0&navpanes=0&scrollbar=1`}
-          className="w-full h-full bg-white"
-          style={{
-            height: compact ? maxHeight : '70vh',
-            minHeight: compact ? maxHeight : 400
-          }}
-          onLoad={handleLoad}
-          onError={handleError}
-          title="PDF-forhandsgranskning"
-        />
-      </object>
+        title="PDF-förhandsgranskning"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+      />
 
       {/* Compact mode click hint */}
       {compact && !loading && (
         <div className="absolute inset-0 flex items-end justify-center pb-4 pointer-events-none">
           <span className="text-xs font-medium text-white bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
-            Klicka for att lasa i helskarm
+            Klicka för att läsa i helskärm
           </span>
         </div>
       )}
