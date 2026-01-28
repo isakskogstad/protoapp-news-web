@@ -9,6 +9,7 @@ import FollowCompanies from './FollowCompanies'
 import SSEStatusIndicator from './SSEStatusIndicator'
 import { NewsCardSkeleton } from './Skeleton'
 import { useSSE, SSEStatus } from '@/lib/hooks/useSSE'
+import { NewsToastContainer } from './NewsToast'
 
 interface NewsFeedProps {
   initialItems: NewsItem[]
@@ -38,10 +39,16 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const [items, setItems] = useState<NewsItem[]>(initialItems)
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [toastQueue, setToastQueue] = useState<NewsItem[]>([])
 
   // Infinite scroll ref
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  // Handle toast dismiss
+  const handleToastDismiss = useCallback((id: string) => {
+    setToastQueue(prev => prev.filter(item => item.id !== id))
+  }, [])
 
   // Check if we should notify for this item - memoized
   const shouldNotify = useCallback((item: NewsItem): boolean => {
@@ -75,7 +82,15 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
         return [newItem, ...prev].slice(0, 100)
       })
 
-      // Show notification if settings allow
+      // Show in-app toast notification
+      setToastQueue(prev => {
+        // Don't add duplicate toasts
+        if (prev.some(item => item.id === newItem.id)) return prev
+        // Keep max 3 in queue
+        return [newItem, ...prev].slice(0, 3)
+      })
+
+      // Show browser notification if settings allow
       if (shouldNotify(newItem)) {
         isSubscribed().then(subscribed => {
           if (subscribed) {
@@ -205,6 +220,9 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
           Inga nyheter ännu
         </div>
       )}
+
+      {/* Toast notifications for new items */}
+      <NewsToastContainer items={toastQueue} onDismiss={handleToastDismiss} />
     </div>
   )
 }

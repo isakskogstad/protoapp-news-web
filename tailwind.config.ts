@@ -203,6 +203,10 @@ const config: Config = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-4px)' },
         },
+        'pulse-subtle': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(59, 130, 246, 0)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(59, 130, 246, 0.15)' },
+        },
         'toast-in': {
           '0%': { opacity: '0', transform: 'translateX(100%) scale(0.95)' },
           '100%': { opacity: '1', transform: 'translateX(0) scale(1)' },
@@ -222,6 +226,7 @@ const config: Config = {
         'spin': 'spin 1s linear infinite',
         'pulse': 'pulse 2s ease-in-out infinite',
         'bounce-subtle': 'bounce-subtle 0.5s ease-in-out',
+        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
         'toast-in': 'toast-in 0.35s ease-out forwards',
         'toast-out': 'toast-out 0.35s ease-in forwards',
       },
