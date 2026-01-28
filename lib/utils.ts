@@ -122,16 +122,42 @@ export function detectEventType(item: NewsItem): EventType | null {
   return null
 }
 
+/**
+ * Map protocol_type string to storage category folder name
+ * Must match Swift's ProtocolCategory.from(aiProtocolType:) exactly
+ */
+export function mapProtocolTypeToCategory(protocolType?: string): string {
+  if (!protocolType) return 'okand'
+
+  const pType = protocolType.toLowerCase()
+
+  // Check in same order as Swift
+  if (pType.includes('per capsulam') || pType.includes('percapsulam')) {
+    return 'per_capsulam'
+  }
+  if (pType.includes('styrelsemöte') || pType.includes('styrelseprotokoll') || pType.includes('styrelsem')) {
+    return 'styrelsemote'
+  }
+  if (pType.includes('extra bolagsstämma') || pType.includes('extra stämma') || pType.includes('extra_bolagsstamma')) {
+    return 'extra_bolagsstamma'
+  }
+  if (pType.includes('årsstämma') || pType.includes('ordinarie') || pType.includes('arsstamma')) {
+    return 'arsstamma'
+  }
+  if (pType.includes('bolagsstämma')) {
+    return 'arsstamma'
+  }
+
+  return 'okand'
+}
+
 export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
   // Generate PDF source URL
   const cleanOrg = (analysis.org_number || '').replace(/-/g, '')
   const protocolDate = analysis.protocol_date || ''
-  // Determine category based on protocol type (must match storage paths)
-  let category = 'ovrigt'
-  const pType = (analysis.protocol_type || '').toLowerCase()
-  if (pType.includes('årsstämma') || pType.includes('arsstamma')) category = 'arsstamma'
-  else if (pType.includes('extra')) category = 'extra_bolagsstamma'
-  else if (pType.includes('styrelse')) category = 'styrelsemote'
+
+  // Determine category based on protocol type (must match Swift ProtocolCategory.from())
+  const category = mapProtocolTypeToCategory(analysis.protocol_type)
 
   const sourceUrl = cleanOrg && protocolDate
     ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
