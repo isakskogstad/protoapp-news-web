@@ -1,10 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface Company {
   org_number: string
   company_name: string
+}
+
+interface SlackChannel {
+  id: string
+  name: string
+  isPrivate: boolean
 }
 
 // Event types that can be filtered
@@ -23,7 +30,9 @@ export interface FollowSettings {
   enabled: boolean
   mode: 'all' | 'selected'
   selectedCompanies: Company[]
-  slackWebhookUrl: string
+  slackWebhookUrl: string // Legacy - kept for backwards compatibility
+  slackChannelId: string
+  slackChannelName: string
   eventTypes: EventTypeFilter[]
   compactView: boolean
 }
@@ -33,11 +42,14 @@ const DEFAULT_SETTINGS: FollowSettings = {
   mode: 'all',
   selectedCompanies: [],
   slackWebhookUrl: '',
+  slackChannelId: '',
+  slackChannelName: '',
   eventTypes: ['konkurs', 'nyemission', 'styrelseforandring', 'vdbyte', 'rekonstruktion', 'other'],
   compactView: false,
 }
 
 export default function FollowCompanies() {
+  const { data: session } = useSession()
   const [isExpanded, setIsExpanded] = useState(false)
   const [settings, setSettings] = useState<FollowSettings>(DEFAULT_SETTINGS)
   const [searchQuery, setSearchQuery] = useState('')
@@ -45,8 +57,12 @@ export default function FollowCompanies() {
   const [isSearching, setIsSearching] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
+  const [channels, setChannels] = useState<SlackChannel[]>([])
+  const [isLoadingChannels, setIsLoadingChannels] = useState(false)
+  const [channelsError, setChannelsError] = useState<string | null>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const channelsFetched = useRef(false)
 
   // Load settings from localStorage (with migration for new fields)
   useEffect(() => {
@@ -60,10 +76,13 @@ export default function FollowCompanies() {
           ...parsed,
           // Ensure eventTypes is always an array
           eventTypes: parsed.eventTypes || DEFAULT_SETTINGS.eventTypes,
+          // Ensure channel fields exist
+          slackChannelId: parsed.slackChannelId || '',
+          slackChannelName: parsed.slackChannelName || '',
         }
         setSettings(migrated)
         // Save migrated settings back if fields were missing
-        if (!parsed.eventTypes || parsed.compactView === undefined) {
+        if (!parsed.eventTypes || parsed.compactView === undefined || !parsed.slackChannelId) {
           localStorage.setItem('loopdesk_follow_settings', JSON.stringify(migrated))
         }
       } catch (e) {
@@ -71,6 +90,39 @@ export default function FollowCompanies() {
       }
     }
   }, [])
+
+  // Fetch Slack channels when panel is expanded and user is authenticated
+  const fetchChannels = useCallback(async () => {
+    if (!session?.user || channelsFetched.current) return
+
+    setIsLoadingChannels(true)
+    setChannelsError(null)
+
+    try {
+      const response = await fetch('/api/slack/user-channels')
+      const data = await response.json()
+
+      if (!response.ok) {
+        setChannelsError(data.error || 'Failed to fetch channels')
+        return
+      }
+
+      setChannels(data.channels || [])
+      channelsFetched.current = true
+    } catch (error) {
+      console.error('Error fetching channels:', error)
+      setChannelsError('Failed to fetch channels')
+    } finally {
+      setIsLoadingChannels(false)
+    }
+  }, [session])
+
+  // Fetch channels when expanded
+  useEffect(() => {
+    if (isExpanded && session?.user && !channelsFetched.current) {
+      fetchChannels()
+    }
+  }, [isExpanded, session, fetchChannels])
 
   // Save settings to localStorage
   const saveSettings = useCallback((newSettings: FollowSettings) => {
@@ -160,6 +212,16 @@ export default function FollowCompanies() {
     setTestResult(null) // Reset test result when URL changes
   }
 
+  const selectChannel = (channelId: string) => {
+    const channel = channels.find(c => c.id === channelId)
+    saveSettings({
+      ...settings,
+      slackChannelId: channelId,
+      slackChannelName: channel?.name || '',
+    })
+    setTestResult(null)
+  }
+
   const toggleEventType = (eventType: EventTypeFilter) => {
     const current = settings.eventTypes || []
     const newTypes = current.includes(eventType)
@@ -172,31 +234,59 @@ export default function FollowCompanies() {
     saveSettings({ ...settings, compactView: !settings.compactView })
   }
 
-  const testSlackWebhook = async () => {
-    if (!settings.slackWebhookUrl) return
+  const testSlackConnection = async () => {
+    // Prefer channel-based API, fall back to webhook
+    const useChannelApi = !!settings.slackChannelId
+    const useWebhook = !useChannelApi && !!settings.slackWebhookUrl
+
+    if (!useChannelApi && !useWebhook) return
 
     setIsTesting(true)
     setTestResult(null)
 
     try {
-      const response = await fetch('/api/slack/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          webhookUrl: settings.slackWebhookUrl,
-          message: {
-            blocks: [
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: ':white_check_mark: *Testmeddelande från LoopDesk*\n\nDin Slack-integration fungerar! Du kommer nu få notiser om bolagshändelser här.',
+      let response: Response
+
+      if (useChannelApi) {
+        response = await fetch('/api/slack/send-to-channel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            channelId: settings.slackChannelId,
+            message: {
+              text: 'Testmeddelande från LoopDesk',
+              blocks: [
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: ':white_check_mark: *Testmeddelande från LoopDesk*\n\nDin Slack-integration fungerar! Du kommer nu få notiser om bolagshändelser här.',
+                  },
                 },
-              },
-            ],
-          },
-        }),
-      })
+              ],
+            },
+          }),
+        })
+      } else {
+        response = await fetch('/api/slack/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            webhookUrl: settings.slackWebhookUrl,
+            message: {
+              blocks: [
+                {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: ':white_check_mark: *Testmeddelande från LoopDesk*\n\nDin Slack-integration fungerar! Du kommer nu få notiser om bolagshändelser här.',
+                  },
+                },
+              ],
+            },
+          }),
+        })
+      }
 
       if (response.ok) {
         setTestResult('success')
@@ -293,61 +383,94 @@ export default function FollowCompanies() {
                 </button>
               </div>
 
-              {/* Slack webhook URL */}
+              {/* Slack channel selector */}
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                  Slack Webhook URL
+                  Slack-kanal
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={settings.slackWebhookUrl}
-                    onChange={(e) => updateWebhookUrl(e.target.value)}
-                    placeholder="https://hooks.slack.com/services/..."
-                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white font-mono"
-                  />
-                  <button
-                    onClick={testSlackWebhook}
-                    disabled={!settings.slackWebhookUrl || isTesting}
-                    className={`
-                      px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
-                      ${testResult === 'success'
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                        : testResult === 'error'
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
-                  >
-                    {isTesting ? (
-                      <div className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-                    ) : testResult === 'success' ? (
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : testResult === 'error' ? (
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    ) : (
-                      'Testa'
+
+                {session?.user ? (
+                  <>
+                    <div className="flex gap-2">
+                      {isLoadingChannels ? (
+                        <div className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-400 flex items-center gap-2">
+                          <div className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                          Laddar kanaler...
+                        </div>
+                      ) : channelsError ? (
+                        <div className="flex-1">
+                          <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
+                            {channelsError}
+                          </div>
+                          <button
+                            onClick={() => {
+                              channelsFetched.current = false
+                              fetchChannels()
+                            }}
+                            className="mt-1 text-xs text-blue-500 hover:underline"
+                          >
+                            Försök igen
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={settings.slackChannelId}
+                          onChange={(e) => selectChannel(e.target.value)}
+                          className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                        >
+                          <option value="">Välj kanal...</option>
+                          {channels.map(channel => (
+                            <option key={channel.id} value={channel.id}>
+                              {channel.isPrivate ? '🔒 ' : '#'}{channel.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      <button
+                        onClick={testSlackConnection}
+                        disabled={!settings.slackChannelId || isTesting}
+                        className={`
+                          px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+                          ${testResult === 'success'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : testResult === 'error'
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                      >
+                        {isTesting ? (
+                          <div className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                        ) : testResult === 'success' ? (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : testResult === 'error' ? (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        ) : (
+                          'Testa'
+                        )}
+                      </button>
+                    </div>
+
+                    {testResult === 'error' && (
+                      <p className="mt-1 text-xs text-red-500">Kunde inte skicka till Slack. Kontrollera att du har tillgång till kanalen.</p>
                     )}
-                  </button>
-                </div>
-                {testResult === 'error' && (
-                  <p className="mt-1 text-xs text-red-500">Kunde inte skicka till Slack. Kontrollera URL:en.</p>
+
+                    {settings.slackChannelId && (
+                      <p className="mt-1.5 text-[10px] text-gray-400">
+                        Notiser skickas till #{settings.slackChannelName}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-xs text-yellow-700 dark:text-yellow-400">
+                    Logga in för att välja Slack-kanal
+                  </div>
                 )}
-                <p className="mt-1.5 text-[10px] text-gray-400">
-                  <a
-                    href="https://api.slack.com/messaging/webhooks"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    Skapa en webhook
-                  </a>
-                  {' '}i din Slack-workspace för att få notiser.
-                </p>
               </div>
 
               {/* Event type filters */}

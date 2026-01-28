@@ -24,6 +24,8 @@ interface FollowSettings {
   mode: 'all' | 'selected'
   selectedCompanies: { org_number: string; company_name: string }[]
   slackWebhookUrl: string
+  slackChannelId: string
+  slackChannelName: string
   eventTypes: EventTypeFilter[]
   compactView: boolean
 }
@@ -50,6 +52,8 @@ function getFollowSettings(): FollowSettings | null {
         ...parsed,
         eventTypes: parsed.eventTypes || DEFAULT_EVENT_TYPES,
         compactView: parsed.compactView ?? false,
+        slackChannelId: parsed.slackChannelId || '',
+        slackChannelName: parsed.slackChannelName || '',
       }
     } catch {
       return null
@@ -59,8 +63,12 @@ function getFollowSettings(): FollowSettings | null {
 }
 
 // Send Slack notification for a news item
-async function sendSlackNotification(item: NewsItem, webhookUrl: string): Promise<void> {
-  if (!webhookUrl) return
+async function sendSlackNotification(
+  item: NewsItem,
+  settings: { webhookUrl?: string; channelId?: string }
+): Promise<void> {
+  const { webhookUrl, channelId } = settings
+  if (!webhookUrl && !channelId) return
 
   // Format the message for Slack
   const headline = item.headline || item.noticeText || 'Ny händelse'
@@ -69,6 +77,7 @@ async function sendSlackNotification(item: NewsItem, webhookUrl: string): Promis
 
   // Build the Slack message with blocks
   const message = {
+    text: `${item.companyName}: ${headline}`, // Fallback text for notifications
     blocks: [
       {
         type: 'header',
@@ -123,11 +132,20 @@ async function sendSlackNotification(item: NewsItem, webhookUrl: string): Promis
   }
 
   try {
-    await fetch('/api/slack/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ webhookUrl, message }),
-    })
+    // Prefer channel-based API if available, fall back to webhook
+    if (channelId) {
+      await fetch('/api/slack/send-to-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId, message }),
+      })
+    } else if (webhookUrl) {
+      await fetch('/api/slack/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl, message }),
+      })
+    }
   } catch (error) {
     console.error('Failed to send Slack notification:', error)
   }
@@ -298,8 +316,11 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       // Send Slack notification if settings allow
       if (shouldNotify(newItem)) {
         const settings = getFollowSettings()
-        if (settings?.slackWebhookUrl) {
-          sendSlackNotification(newItem, settings.slackWebhookUrl)
+        if (settings?.slackChannelId || settings?.slackWebhookUrl) {
+          sendSlackNotification(newItem, {
+            channelId: settings.slackChannelId,
+            webhookUrl: settings.slackWebhookUrl,
+          })
         }
       }
     } else if (message.operation === 'UPDATE' && message.item) {
