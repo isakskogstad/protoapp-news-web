@@ -178,7 +178,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       </div>
 
       {/* News items */}
-      <div className="space-y-8">
+      <div className="space-y-16">
         {items.map((item) => (
           <NewsCard key={item.id} item={item} />
         ))}
