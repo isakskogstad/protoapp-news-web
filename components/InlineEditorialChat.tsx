@@ -150,7 +150,10 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
         ) : (
           messages.map((msg) => {
             const { html } = parseSlackMessage(msg.text, users)
-            const hasBlocks = msg.blocks && msg.blocks.length > 0
+            // Only use BlockKitRenderer for actual Block Kit messages (not rich_text which is just regular messages)
+            // Block Kit messages have section, context, actions, etc. - not just rich_text
+            const hasRenderableBlocks = msg.blocks && msg.blocks.length > 0 &&
+              msg.blocks.some(b => ['section', 'context', 'actions', 'header', 'divider', 'image'].includes(b.type))
             return (
               <div key={msg.id} className="flex gap-2 group relative">
                 {/* Avatar */}
@@ -171,7 +174,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
                     </span>
                   </div>
                   {/* Block Kit content (rich cards) or regular message */}
-                  {hasBlocks ? (
+                  {hasRenderableBlocks ? (
                     <div className="text-xs">
                       <BlockKitRenderer blocks={msg.blocks!} users={users} />
                     </div>
