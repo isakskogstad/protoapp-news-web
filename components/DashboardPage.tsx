@@ -823,7 +823,7 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white dark:bg-gray-900 shadow-sm border border-gray-100/80 dark:border-gray-800 rounded-xl hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-150 px-5 py-3">
+      <article className="relative bg-white dark:bg-gray-900 shadow-sm border border-gray-100/80 dark:border-gray-800 rounded-xl hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-150 px-6 py-4">
         {/* Action buttons - vertical stack on far right, visible on hover/focus */}
         <div className="absolute right-3 top-3 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity md:opacity-100">
           <button

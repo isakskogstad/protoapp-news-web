@@ -19,7 +19,7 @@ export default function NewsCard({ item }: NewsCardProps) {
 
   return (
     <article className="relative group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
-      <Link href={`/news/${item.id}`} className="block p-5">
+      <Link href={`/news/${item.id}`} className="block p-6">
         <div className="flex gap-5">
           {/* Left column: Logo + Company info */}
           <div className="flex flex-col items-center w-20 flex-shrink-0">
@@ -102,7 +102,7 @@ export default function NewsCard({ item }: NewsCardProps) {
       </Link>
 
       {/* Share button */}
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
         <ShareButton item={item} />
       </div>
     </article>
