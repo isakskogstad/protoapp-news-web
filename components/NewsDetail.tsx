@@ -426,11 +426,16 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
             </div>
           )}
 
-          {/* Expanded content - PDF viewer */}
-          {hasPdf && sourceExpanded && (
+          {/* PDF viewer - always mounted for background preloading, visibility toggled */}
+          {hasPdf && (
             <div
-              className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down cursor-pointer"
-              onClick={() => setFullscreenPdf(true)}
+              className={`mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${
+                sourceExpanded
+                  ? 'opacity-100 max-h-[500px] animate-slide-down'
+                  : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'
+              }`}
+              onClick={() => sourceExpanded && setFullscreenPdf(true)}
+              aria-hidden={!sourceExpanded}
             >
               <PDFPreview
                 url={item.sourceUrl!}
