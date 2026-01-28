@@ -10,12 +10,103 @@ interface NewsCardProps {
   item: NewsItem
 }
 
+// Format date as "12 juni -24"
+function formatEventDate(dateStr?: string): string | null {
+  if (!dateStr) return null
+
+  try {
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return null
+
+    const day = date.getDate()
+    const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+    const month = months[date.getMonth()]
+    const year = date.getFullYear().toString().slice(-2)
+
+    return `${day} ${month} -${year}`
+  } catch {
+    return null
+  }
+}
+
+// Get protocol type label for the two-line format
+function getProtocolLabel(protocolType?: string): { line1: string; suffix: string } | null {
+  if (!protocolType) return null
+
+  const type = protocolType.toLowerCase()
+
+  if (type.includes('årsstämma') || type.includes('arsstamma')) {
+    return { line1: 'Protokoll från', suffix: 'årsstämman' }
+  }
+  if (type.includes('extra')) {
+    return { line1: 'Protokoll från', suffix: 'extra stämman' }
+  }
+  if (type.includes('konstituerande') && type.includes('styrelse')) {
+    return { line1: 'Protokoll från', suffix: 'konst. styrelsemötet' }
+  }
+  if (type.includes('styrelse')) {
+    return { line1: 'Protokoll från', suffix: 'styrelsemötet' }
+  }
+  if (type.includes('per capsulam')) {
+    return { line1: 'Per capsulam-beslut', suffix: '' }
+  }
+
+  return null
+}
+
 export default function NewsCard({ item }: NewsCardProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
+
+  // Get formatted event date and protocol label
+  const formattedDate = formatEventDate(item.eventDate)
+  const protocolLabel = getProtocolLabel(item.protocolType)
+  const showTwoLineLabel = protocolLabel && formattedDate
+
+  // Render the protocol badge (two-line format with date, or simple label)
+  const renderProtocolBadge = (compact = false) => {
+    if (showTwoLineLabel) {
+      return (
+        <div
+          className={`flex flex-col ${compact ? 'px-2 py-1' : 'px-2.5 py-1'} rounded-lg text-white leading-tight`}
+          style={{ backgroundColor: eventConfig?.color || '#6366f1' }}
+        >
+          <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} font-medium opacity-90`}>
+            {protocolLabel.line1} {protocolLabel.suffix}
+          </span>
+          <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} font-semibold`}>
+            den {formattedDate}
+          </span>
+        </div>
+      )
+    }
+
+    // Fallback to simple badge
+    if (eventConfig) {
+      return (
+        <span
+          className={`${compact ? 'text-[9px]' : 'text-[10px]'} px-2 py-0.5 rounded-full font-medium text-white whitespace-nowrap`}
+          style={{ backgroundColor: eventConfig.color }}
+        >
+          {eventConfig.label}
+        </span>
+      )
+    }
+
+    // Protocol type badge without event type
+    if (item.protocolType) {
+      return (
+        <span className={`${compact ? 'text-[9px]' : 'text-[10px]'} px-2 py-0.5 rounded-full font-medium text-white whitespace-nowrap bg-indigo-500`}>
+          {item.protocolType}
+        </span>
+      )
+    }
+
+    return null
+  }
 
   return (
     <article className="relative group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
@@ -62,14 +153,7 @@ export default function NewsCard({ item }: NewsCardProps) {
 
             {/* Badge on mobile - shown inline with company info */}
             <div className="flex items-center gap-2 md:hidden ml-auto">
-              {eventConfig && (
-                <span
-                  className="text-[10px] px-2 py-0.5 rounded-full font-medium text-white whitespace-nowrap"
-                  style={{ backgroundColor: eventConfig.color }}
-                >
-                  {eventConfig.label}
-                </span>
-              )}
+              {renderProtocolBadge(true)}
             </div>
           </div>
 
@@ -77,14 +161,7 @@ export default function NewsCard({ item }: NewsCardProps) {
           <div className="flex-1 min-w-0">
             {/* Top row: Badge + Time - hidden on mobile (badge shown above) */}
             <div className="hidden md:flex items-center gap-2 mb-2">
-              {eventConfig && (
-                <span
-                  className="text-[10px] px-2 py-0.5 rounded-full font-medium text-white"
-                  style={{ backgroundColor: eventConfig.color }}
-                >
-                  {eventConfig.label}
-                </span>
-              )}
+              {renderProtocolBadge(false)}
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {formatRelativeTime(item.timestamp)}
               </span>

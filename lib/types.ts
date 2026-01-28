@@ -145,6 +145,7 @@ export interface NewsItem {
   headline?: string
   noticeText?: string
   protocolType?: string
+  eventDate?: string  // Stämmodatum/mötesdatum - när händelsen ägde rum
   newsValue?: number
   timestamp: string
   logoUrl?: string

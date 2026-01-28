@@ -137,6 +137,10 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
     : undefined
 
+  // Extract event date (stämmodatum) from extracted_data.protokoll.datum
+  const protokollData = analysis.extracted_data?.protokoll as Record<string, unknown> | undefined
+  const eventDate = (protokollData?.datum as string) || analysis.protocol_date
+
   const item: NewsItem = {
     id: analysis.id,
     type: 'protocol',
@@ -145,6 +149,7 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     headline: analysis.news_content?.rubrik,
     noticeText: analysis.news_content?.notistext,
     protocolType: analysis.protocol_type,
+    eventDate,
     newsValue: analysis.news_content?.nyckeldata?.nyhetsvärde || analysis.signals?.nyhetsvärde_total,
     timestamp: analysis.analyzed_at || new Date().toISOString(),
     logoUrl: analysis.logo_url,
