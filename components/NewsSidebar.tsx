@@ -98,11 +98,9 @@ export default function NewsSidebar({ companyName, matchHeight = false }: NewsSi
       {!newsLoading && newsArticles.length > 0 && (
         <section className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 h-full' : ''}`} style={matchHeight ? { minHeight: '200px' } : { maxHeight: '280px' }}>
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Newspaper className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h3 className="text-sm font-bold text-black dark:text-white">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
+            <Newspaper className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Nyheter om {companyName}
             </h3>
           </div>

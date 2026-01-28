@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Building2, DollarSign, Users, User, Calendar, Crown, Briefcase, Loader2, MapPin, UserCheck } from 'lucide-react'
+import { Building2, Loader2 } from 'lucide-react'
 import { formatOrgNumber } from '@/lib/utils'
 
 interface BolagsfaktaModuleProps {
@@ -95,107 +95,49 @@ export default function BolagsfaktaModule({ orgNumber, companyName, initialData 
           <div className="grid grid-cols-2 gap-3">
             {/* VD */}
             {data.vd && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <User className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">VD</p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.vd}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">VD</p>
+                <p className="text-xs font-medium text-black dark:text-white truncate">{data.vd}</p>
               </div>
             )}
 
             {/* Ordförande */}
             {data.ordforande && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <Crown className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Ordförande</p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.ordforande}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Omsättning */}
-            {data.omsattning && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <DollarSign className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">
-                    Omsättning {data.omsattningAr ? `(${data.omsattningAr})` : ''}
-                  </p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.omsattning}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Ordförande</p>
+                <p className="text-xs font-medium text-black dark:text-white truncate">{data.ordforande}</p>
               </div>
             )}
 
             {/* Anställda */}
             {data.anstallda !== undefined && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <Users className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Anställda</p>
-                  <p className="text-xs font-medium text-black dark:text-white">{data.anstallda}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Anställda</p>
+                <p className="text-xs font-medium text-black dark:text-white">{data.anstallda}</p>
               </div>
             )}
 
             {/* Grundat */}
             {data.startat && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Grundat</p>
-                  <p className="text-xs font-medium text-black dark:text-white">{data.startat}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Bransch */}
-            {data.bransch && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Bransch</p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.bransch}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Grundat</p>
+                <p className="text-xs font-medium text-black dark:text-white">{data.startat}</p>
               </div>
             )}
 
             {/* Stad */}
             {data.stad && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Säte</p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.stad}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Säte</p>
+                <p className="text-xs font-medium text-black dark:text-white truncate">{data.stad}</p>
               </div>
             )}
 
             {/* Största ägare */}
             {data.storstAgare && (
-              <div className="flex items-start gap-2">
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <UserCheck className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Största ägare</p>
-                  <p className="text-xs font-medium text-black dark:text-white truncate">{data.storstAgare}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-mono text-gray-500 dark:text-gray-400 uppercase">Största ägare</p>
+                <p className="text-xs font-medium text-black dark:text-white truncate">{data.storstAgare}</p>
               </div>
             )}
           </div>
