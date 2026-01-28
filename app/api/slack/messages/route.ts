@@ -28,6 +28,34 @@ interface SlackMessage {
     count: number
     users: string[]
   }>
+  // Block Kit support
+  blocks?: Array<{
+    type: string
+    block_id?: string
+    text?: { type: string; text: string; emoji?: boolean }
+    accessory?: Record<string, unknown>
+    fields?: Array<{ type: string; text: string }>
+    elements?: Array<Record<string, unknown>>
+    image_url?: string
+    alt_text?: string
+    title?: { type: string; text: string }
+  }>
+  attachments?: Array<{
+    color?: string
+    title?: string
+    title_link?: string
+    text?: string
+    pretext?: string
+    author_name?: string
+    author_icon?: string
+    author_link?: string
+    fields?: Array<{ title: string; value: string; short?: boolean }>
+    image_url?: string
+    thumb_url?: string
+    footer?: string
+    footer_icon?: string
+    ts?: number
+  }>
 }
 
 interface SlackUser {
@@ -111,6 +139,8 @@ async function processMessage(msg: SlackMessage, isThread = false): Promise<{
   files?: Array<{ id: string; name: string; mimetype: string; url_private?: string; thumb_360?: string }>
   isThreadParent?: boolean
   isThreadReply?: boolean
+  blocks?: SlackMessage['blocks']
+  attachments?: SlackMessage['attachments']
 }> {
   let userName = 'Okänd'
   let userAvatar: string | null = null
@@ -152,6 +182,9 @@ async function processMessage(msg: SlackMessage, isThread = false): Promise<{
     })),
     isThreadParent: !isThread && (msg.reply_count || 0) > 0,
     isThreadReply: isThread,
+    // Pass through Block Kit content for rich messages
+    blocks: msg.blocks,
+    attachments: msg.attachments,
   }
 }
 

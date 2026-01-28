@@ -2,11 +2,93 @@
 
 import { parseSlackMessage, parseSlackFormatting, parseEmoji } from '@/lib/slack-utils'
 import { Block, TextObject, BlockElement, Attachment } from '@/lib/slack-types'
+import { ExternalLink, Building2, FileText, Calendar, TrendingUp } from 'lucide-react'
 
 interface BlockKitRendererProps {
   blocks: Block[]
   attachments?: Attachment[]
   users?: Record<string, string>
+}
+
+// Check if blocks represent a news card (has section with headline, context with metadata, and actions with button)
+function isNewsCard(blocks: Block[]): boolean {
+  if (blocks.length < 3) return false
+  const hasSection = blocks.some(b => b.type === 'section' && b.text?.text?.startsWith('*'))
+  const hasContext = blocks.some(b => b.type === 'context')
+  const hasActions = blocks.some(b => b.type === 'actions')
+  return hasSection && hasContext && hasActions
+}
+
+// Extract news card data from blocks
+function extractNewsData(blocks: Block[]): {
+  headline?: string
+  companyName?: string
+  orgNumber?: string
+  protocolType?: string
+  protocolDate?: string
+  noticeText?: string
+  newsValue?: number
+  url?: string
+  logoUrl?: string
+} {
+  const data: ReturnType<typeof extractNewsData> = {}
+
+  for (const block of blocks) {
+    if (block.type === 'section' && block.text?.text) {
+      const text = block.text.text
+      // First section with bold text is headline
+      if (text.startsWith('*') && !data.headline) {
+        data.headline = text.replace(/^\*|\*$/g, '')
+      } else if (!text.startsWith('*') && data.headline) {
+        // Second section is notice text
+        data.noticeText = text
+      }
+      // Check for logo accessory
+      if (block.accessory?.type === 'image') {
+        const imgAccessory = block.accessory as { image_url?: string }
+        if (imgAccessory.image_url) {
+          data.logoUrl = imgAccessory.image_url
+        }
+      }
+    }
+
+    if (block.type === 'context' && block.elements) {
+      for (const el of block.elements) {
+        // Context elements can be text objects with a text property
+        const textEl = el as { type?: string; text?: string }
+        if (textEl.text && typeof textEl.text === 'string') {
+          const text = textEl.text
+          if (text.includes('🏢')) {
+            data.companyName = text.replace(/🏢\s*\*?|\*$/g, '').trim()
+          }
+          if (text.includes('Org.nr:')) {
+            data.orgNumber = text.replace('Org.nr:', '').trim()
+          }
+          if (text.includes('📄')) {
+            data.protocolType = text.replace('📄', '').trim()
+          }
+          if (text.includes('📅')) {
+            data.protocolDate = text.replace('📅', '').trim()
+          }
+          if (text.includes('Nyhetsvärde:')) {
+            const match = text.match(/(\d+)\/10/)
+            if (match) data.newsValue = parseInt(match[1])
+          }
+        }
+      }
+    }
+
+    if (block.type === 'actions' && block.elements) {
+      for (const el of block.elements) {
+        const btnEl = el as { type?: string; url?: string }
+        if (btnEl.type === 'button' && btnEl.url) {
+          data.url = btnEl.url
+        }
+      }
+    }
+  }
+
+  return data
 }
 
 function renderTextObject(text: TextObject | undefined, users: Record<string, string> = {}): string {
@@ -168,6 +250,109 @@ function DividerBlock() {
   return <hr className="border-gray-200 dark:border-gray-700 my-2" />
 }
 
+// Beautiful news card component for shared news items
+function NewsCard({ blocks }: { blocks: Block[] }) {
+  const data = extractNewsData(blocks)
+
+  const getNewsValueColor = (value?: number) => {
+    if (!value) return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+    if (value >= 7) return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    if (value >= 4) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+    return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-[#1c2128] dark:to-[#161b22] rounded-xl border border-gray-200 dark:border-[#30363d] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {/* Header with logo and company info */}
+      <div className="p-4 border-b border-gray-100 dark:border-[#30363d]">
+        <div className="flex items-start gap-3">
+          {/* Logo */}
+          {data.logoUrl ? (
+            <img
+              src={data.logoUrl}
+              alt={data.companyName || ''}
+              className="w-10 h-10 rounded-lg object-contain bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#1e40af] to-[#3b82f6] flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            {/* Company name */}
+            <h4 className="text-sm font-bold text-[#0f172a] dark:text-[#e6edf3] truncate">
+              {data.companyName || 'Nyhet'}
+            </h4>
+            {/* Metadata row */}
+            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 font-mono">
+              {data.orgNumber && <span>{data.orgNumber}</span>}
+              {data.protocolType && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <span className="flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    {data.protocolType}
+                  </span>
+                </>
+              )}
+              {data.protocolDate && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {data.protocolDate}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* News value badge */}
+          {data.newsValue !== undefined && (
+            <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getNewsValueColor(data.newsValue)}`}>
+              {data.newsValue}/10
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {/* Headline */}
+        {data.headline && (
+          <h3 className="text-sm font-semibold text-[#0f172a] dark:text-[#e6edf3] leading-snug mb-2">
+            {data.headline}
+          </h3>
+        )}
+
+        {/* Notice text (truncated) */}
+        {data.noticeText && (
+          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
+            {data.noticeText}
+          </p>
+        )}
+      </div>
+
+      {/* Footer with action */}
+      {data.url && (
+        <div className="px-4 pb-3">
+          <a
+            href={data.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1e40af] hover:bg-[#1e3a8a] text-white text-xs font-medium rounded-lg transition-colors"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            Öppna i LoopDesk
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AttachmentRenderer({ attachment, users }: { attachment: Attachment; users: Record<string, string> }) {
   const borderColor = attachment.color ? `#${attachment.color}` : '#e5e7eb'
 
@@ -260,6 +445,12 @@ function AttachmentRenderer({ attachment, users }: { attachment: Attachment; use
 }
 
 export default function BlockKitRenderer({ blocks, attachments, users = {} }: BlockKitRendererProps) {
+  // Check if this is a news card - render as beautiful card component
+  if (isNewsCard(blocks)) {
+    return <NewsCard blocks={blocks} />
+  }
+
+  // Default block rendering
   return (
     <div className="space-y-2">
       {blocks.map((block, index) => {
