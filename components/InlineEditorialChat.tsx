@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react'
+import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
 import { Block, Attachment } from '@/lib/slack-types'
 import BlockKitRenderer from './BlockKitRenderer'
@@ -21,6 +21,10 @@ interface ChatMessage {
   id: string
   text: string
   timestamp: string
+  threadTs?: string
+  replyCount?: number
+  isThreadParent?: boolean
+  isThreadReply?: boolean
   user: {
     id: string
     name: string
@@ -36,9 +40,25 @@ interface ChatMessage {
   files?: ChatFile[]
 }
 
+interface PinnedMessage {
+  timestamp: string
+  text: string
+  userId: string | null
+  pinnedAt: number
+  pinnedBy: string
+}
+
 interface InlineEditorialChatProps {
   maxHeight?: number
 }
+
+// Quick reaction emojis for inline buttons
+const INLINE_REACTIONS = [
+  { name: 'thumbsup', emoji: '👍' },
+  { name: 'thumbsdown', emoji: '👎' },
+  { name: 'fire', emoji: '🔥' },
+  { name: 'eyes', emoji: '👀' },
+]
 
 export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorialChatProps) {
   const { data: session } = useSession()
@@ -52,6 +72,12 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
+  const [pinnedMessages, setPinnedMessages] = useState<PinnedMessage[]>([])
+  const [showPinned, setShowPinned] = useState(false)
+  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set())
+  const [threadReplies, setThreadReplies] = useState<Record<string, ChatMessage[]>>({})
+  const [loadingThreads, setLoadingThreads] = useState<Set<string>>(new Set())
+  const [userPresence, setUserPresence] = useState<Record<string, string>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -71,21 +97,33 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
   const fetchMessages = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
     try {
-      // Fetch messages and typing status in parallel
-      const [messagesRes, typingRes] = await Promise.all([
+      const [messagesRes, typingRes, pinsRes] = await Promise.all([
         fetch('/api/slack/messages?limit=30'),
         fetch('/api/slack/typing'),
+        fetch('/api/slack/pins'),
       ])
 
       if (messagesRes.ok) {
         const data = await messagesRes.json()
         setMessages(data.messages || [])
         setUsers(data.users || {})
+
+        // Fetch presence for all unique users
+        const allUserIds = (data.messages || []).map((m: ChatMessage) => m.user.id).filter(Boolean)
+        const userIds = Array.from(new Set(allUserIds)) as string[]
+        if (userIds.length > 0) {
+          fetchPresence(userIds)
+        }
       }
 
       if (typingRes.ok) {
         const typingData = await typingRes.json()
         setTypingUsers(typingData.typingUsers || [])
+      }
+
+      if (pinsRes.ok) {
+        const pinsData = await pinsRes.json()
+        setPinnedMessages(pinsData.pins || [])
       }
     } catch {
       // Silently fail
@@ -93,6 +131,61 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       if (!silent) setLoading(false)
     }
   }, [])
+
+  // Fetch presence for users
+  const fetchPresence = async (userIds: string[]) => {
+    try {
+      const res = await fetch(`/api/slack/presence?users=${userIds.join(',')}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUserPresence(data.presence || {})
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  // Fetch thread replies
+  const fetchThreadReplies = async (threadTs: string) => {
+    if (loadingThreads.has(threadTs)) return
+
+    setLoadingThreads(prev => new Set([...Array.from(prev), threadTs]))
+
+    try {
+      const res = await fetch(`/api/slack/messages?thread_ts=${threadTs}&limit=50`)
+      if (res.ok) {
+        const data = await res.json()
+        // First message is the parent, rest are replies
+        const replies = (data.messages || []).slice(1)
+        setThreadReplies(prev => ({ ...prev, [threadTs]: replies }))
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setLoadingThreads(prev => {
+        const next = new Set(prev)
+        next.delete(threadTs)
+        return next
+      })
+    }
+  }
+
+  // Toggle thread expansion
+  const toggleThread = (threadTs: string) => {
+    setExpandedThreads(prev => {
+      const next = new Set(prev)
+      if (next.has(threadTs)) {
+        next.delete(threadTs)
+      } else {
+        next.add(threadTs)
+        // Fetch replies if not already loaded
+        if (!threadReplies[threadTs]) {
+          fetchThreadReplies(threadTs)
+        }
+      }
+      return next
+    })
+  }
 
   // Handle typing indicator
   const handleTyping = useCallback(async () => {
@@ -108,7 +201,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       }
     }
 
-    // Reset typing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
@@ -132,6 +224,25 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
     setShowEmojiPicker(null)
   }
 
+  // Handle pin/unpin
+  const handlePin = async (timestamp: string, isPinned: boolean) => {
+    try {
+      await fetch('/api/slack/pins', {
+        method: isPinned ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp }),
+      })
+      await fetchMessages(true)
+    } catch {
+      // Silently fail
+    }
+  }
+
+  // Check if message is pinned
+  const isMessagePinned = (timestamp: string) => {
+    return pinnedMessages.some(p => p.timestamp === timestamp)
+  }
+
   // Get emoji character from name
   const getEmojiChar = (name: string): string => {
     return EMOJI_MAP[name] || `:${name}:`
@@ -141,7 +252,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
-      setSelectedFiles(prev => [...prev, ...files].slice(0, 5)) // Max 5 files
+      setSelectedFiles(prev => [...prev, ...files].slice(0, 5))
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -179,16 +290,13 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
     setUploadingFiles(selectedFiles.length > 0)
 
     try {
-      // Upload files first if any
       if (selectedFiles.length > 0) {
         const comment = input.trim() || undefined
         for (let i = 0; i < selectedFiles.length; i++) {
-          // Only add comment to first file
           await uploadFile(selectedFiles[i], i === 0 ? comment : undefined)
         }
         setSelectedFiles([])
       } else {
-        // Just send text message
         const res = await fetch('/api/slack/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -225,7 +333,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
   // Initial fetch and polling
   useEffect(() => {
     fetchMessages()
-    const interval = setInterval(() => fetchMessages(true), 3000) // Faster polling for typing
+    const interval = setInterval(() => fetchMessages(true), 3000)
     return () => clearInterval(interval)
   }, [fetchMessages])
 
@@ -269,11 +377,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
                 rel="noopener noreferrer"
                 className="block max-w-[200px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-400 transition-colors"
               >
-                <img
-                  src={thumbUrl}
-                  alt={file.name}
-                  className="w-full h-auto"
-                />
+                <img src={thumbUrl} alt={file.name} className="w-full h-auto" />
               </a>
             )
           }
@@ -306,7 +410,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
         className="mt-2 border-l-2 pl-3 py-1"
         style={{ borderLeftColor: borderColor }}
       >
-        {/* Author */}
         {attachment.author_name && (
           <div className="flex items-center gap-1.5 mb-1">
             {attachment.author_icon && (
@@ -322,7 +425,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           </div>
         )}
 
-        {/* Title with link */}
         {attachment.title && (
           <h4 className="text-xs font-medium text-blue-600 dark:text-blue-400">
             {attachment.title_link ? (
@@ -333,14 +435,12 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           </h4>
         )}
 
-        {/* Text/description */}
         {attachment.text && (
           <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
             {attachment.text}
           </p>
         )}
 
-        {/* Image preview */}
         {attachment.image_url && (
           <img
             src={attachment.image_url}
@@ -349,7 +449,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           />
         )}
 
-        {/* Thumb */}
         {attachment.thumb_url && !attachment.image_url && (
           <img
             src={attachment.thumb_url}
@@ -358,7 +457,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           />
         )}
 
-        {/* Footer */}
         {attachment.footer && (
           <div className="flex items-center gap-1.5 mt-1 text-[9px] text-gray-400">
             {attachment.footer_icon && (
@@ -371,8 +469,209 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
     )
   }
 
+  // Render a single message
+  const renderMessage = (msg: ChatMessage, isReply = false) => {
+    const { html } = parseSlackMessage(msg.text, users)
+    const hasRenderableBlocks = msg.blocks && msg.blocks.length > 0 &&
+      msg.blocks.some(b => ['section', 'context', 'actions', 'header', 'divider', 'image'].includes(b.type))
+    const hasAttachments = msg.attachments && msg.attachments.length > 0
+    const hasFiles = msg.files && msg.files.length > 0
+    const isPinned = isMessagePinned(msg.timestamp)
+    const presence = userPresence[msg.user.id]
+    const hasReplies = msg.replyCount && msg.replyCount > 0
+    const isExpanded = expandedThreads.has(msg.timestamp)
+    const isLoadingThread = loadingThreads.has(msg.timestamp)
+    const replies = threadReplies[msg.timestamp] || []
+
+    return (
+      <div key={msg.id} className={`flex gap-2 group relative ${isReply ? 'ml-6 pl-3 border-l-2 border-gray-200 dark:border-gray-700' : ''}`}>
+        {/* Avatar with presence indicator */}
+        <div className="relative">
+          <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
+            {msg.user.avatar ? (
+              <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              getInitials(msg.user.name)
+            )}
+          </div>
+          {/* Presence dot */}
+          {presence && (
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0d1117] ${
+                presence === 'active' ? 'bg-green-500' : 'bg-gray-400'
+              }`}
+              title={presence === 'active' ? 'Online' : 'Borta'}
+            />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-baseline gap-1.5 mb-0.5">
+            <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 truncate">
+              {msg.user.name.split(' ')[0]}
+            </span>
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+              {formatTime(msg.timestamp)}
+            </span>
+            {isPinned && (
+              <Pin className="w-2.5 h-2.5 text-amber-500" />
+            )}
+          </div>
+
+          {/* Block Kit content or regular message */}
+          {hasRenderableBlocks ? (
+            <div className="text-xs">
+              <BlockKitRenderer blocks={msg.blocks!} attachments={msg.attachments} users={users} />
+            </div>
+          ) : (
+            <>
+              {msg.text && (
+                <div
+                  className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              )}
+              {hasAttachments && msg.attachments!.map((att, i) => renderAttachment(att, i))}
+            </>
+          )}
+
+          {hasFiles && renderFiles(msg.files!)}
+
+          {/* Inline reaction buttons + existing reactions */}
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            {/* Existing reactions */}
+            {msg.reactions && msg.reactions.map((reaction) => (
+              <button
+                key={reaction.name}
+                onClick={() => handleReact(msg.id, reaction.name)}
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded text-[10px] transition-colors"
+                title={reaction.users.map(id => users[id] || id).join(', ')}
+              >
+                <span>{getEmojiChar(reaction.name)}</span>
+                <span className="text-blue-600 dark:text-blue-400 font-medium">{reaction.count}</span>
+              </button>
+            ))}
+
+            {/* Quick reaction buttons (visible on hover) */}
+            <div className="inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {INLINE_REACTIONS.map(({ name, emoji }) => (
+                <button
+                  key={name}
+                  onClick={() => handleReact(msg.id, name)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-xs"
+                  title={name}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Thread replies indicator */}
+          {hasReplies && !isReply && (
+            <button
+              onClick={() => toggleThread(msg.timestamp)}
+              className="flex items-center gap-1.5 mt-1.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-3 h-3" />
+              ) : (
+                <ChevronRight className="w-3 h-3" />
+              )}
+              <MessageCircle className="w-3 h-3" />
+              <span>{msg.replyCount} {msg.replyCount === 1 ? 'svar' : 'svar'}</span>
+              {isLoadingThread && <Loader2 className="w-3 h-3 animate-spin" />}
+            </button>
+          )}
+
+          {/* Expanded thread replies */}
+          {isExpanded && replies.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {replies.map(reply => renderMessage(reply, true))}
+            </div>
+          )}
+        </div>
+
+        {/* Hover actions */}
+        <div className="absolute -top-1 right-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Pin button */}
+          <button
+            onClick={() => handlePin(msg.timestamp, isPinned)}
+            className={`p-1 bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+              isPinned ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'
+            }`}
+            title={isPinned ? 'Ta bort nål' : 'Nåla fast'}
+          >
+            <Pin className="w-3 h-3" />
+          </button>
+
+          {/* More emoji button */}
+          <button
+            onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
+            className="p-1 bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500"
+          >
+            <Smile className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Extended emoji picker */}
+        {showEmojiPicker === msg.id && (
+          <div className="absolute -top-8 right-0 flex gap-0.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 z-10">
+            {QUICK_REACTIONS.slice(0, 8).map(({ name, emoji }) => (
+              <button
+                key={name}
+                onClick={() => handleReact(msg.id, name)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-sm"
+                title={name}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col">
+      {/* Pinned messages toggle */}
+      {pinnedMessages.length > 0 && (
+        <button
+          onClick={() => setShowPinned(!showPinned)}
+          className="flex items-center gap-2 mb-2 px-2 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+        >
+          <Pin className="w-3.5 h-3.5" />
+          <span className="font-medium">{pinnedMessages.length} nålade meddelanden</span>
+          {showPinned ? <ChevronDown className="w-3 h-3 ml-auto" /> : <ChevronRight className="w-3 h-3 ml-auto" />}
+        </button>
+      )}
+
+      {/* Pinned messages list */}
+      {showPinned && pinnedMessages.length > 0 && (
+        <div className="mb-3 p-2 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg space-y-2">
+          {pinnedMessages.map((pin) => (
+            <div key={pin.timestamp} className="flex items-start gap-2 text-xs">
+              <Pin className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-gray-700 dark:text-gray-300 line-clamp-2">{pin.text}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">
+                  Nålad av {users[pin.pinnedBy] || pin.pinnedBy}
+                </p>
+              </div>
+              <button
+                onClick={() => handlePin(pin.timestamp, true)}
+                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                title="Ta bort nål"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Messages */}
       <div
         ref={scrollRef}
@@ -389,99 +688,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
             <p className="text-xs text-gray-400 dark:text-gray-500">Inga meddelanden än</p>
           </div>
         ) : (
-          messages.map((msg) => {
-            const { html } = parseSlackMessage(msg.text, users)
-            // Only use BlockKitRenderer for actual Block Kit messages (not rich_text which is just regular messages)
-            const hasRenderableBlocks = msg.blocks && msg.blocks.length > 0 &&
-              msg.blocks.some(b => ['section', 'context', 'actions', 'header', 'divider', 'image'].includes(b.type))
-            const hasAttachments = msg.attachments && msg.attachments.length > 0
-            const hasFiles = msg.files && msg.files.length > 0
-
-            return (
-              <div key={msg.id} className="flex gap-2 group relative">
-                {/* Avatar */}
-                <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
-                  {msg.user.avatar ? (
-                    <img src={msg.user.avatar} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    getInitials(msg.user.name)
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex flex-col min-w-0 flex-1">
-                  <div className="flex items-baseline gap-1.5 mb-0.5">
-                    <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 truncate">{msg.user.name.split(' ')[0]}</span>
-                    <span className="text-[9px] text-gray-400 dark:text-gray-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                      {formatTime(msg.timestamp)}
-                    </span>
-                  </div>
-
-                  {/* Block Kit content (rich cards) or regular message */}
-                  {hasRenderableBlocks ? (
-                    <div className="text-xs">
-                      <BlockKitRenderer blocks={msg.blocks!} attachments={msg.attachments} users={users} />
-                    </div>
-                  ) : (
-                    <>
-                      {msg.text && (
-                        <div
-                          className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
-                          dangerouslySetInnerHTML={{ __html: html }}
-                        />
-                      )}
-                      {/* Link previews (attachments) */}
-                      {hasAttachments && msg.attachments!.map((att, i) => renderAttachment(att, i))}
-                    </>
-                  )}
-
-                  {/* File attachments */}
-                  {hasFiles && renderFiles(msg.files!)}
-
-                  {/* Reactions */}
-                  {msg.reactions && msg.reactions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {msg.reactions.map((reaction) => (
-                        <button
-                          key={reaction.name}
-                          onClick={() => handleReact(msg.id, reaction.name)}
-                          className="inline-flex items-center gap-0.5 px-1 py-0.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-[10px] transition-colors"
-                          title={reaction.users.map(id => users[id] || id).join(', ')}
-                        >
-                          <span>{getEmojiChar(reaction.name)}</span>
-                          <span className="text-gray-500 dark:text-gray-400">{reaction.count}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Hover action - add reaction */}
-                <button
-                  onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
-                  className="absolute -top-1 right-0 p-1 bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <Smile className="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                </button>
-
-                {/* Quick emoji picker */}
-                {showEmojiPicker === msg.id && (
-                  <div className="absolute -top-8 right-0 flex gap-0.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 z-10">
-                    {QUICK_REACTIONS.slice(0, 6).map(({ name, emoji }) => (
-                      <button
-                        key={name}
-                        onClick={() => handleReact(msg.id, name)}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-sm"
-                        title={name}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })
+          messages.map((msg) => renderMessage(msg))
         )}
 
         {/* Typing indicator */}
@@ -525,7 +732,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       {/* Input */}
       <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
         <div className="relative flex items-center gap-2">
-          {/* File upload button */}
           <input
             ref={fileInputRef}
             type="file"
@@ -543,7 +749,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
             <Paperclip className="w-4 h-4" />
           </button>
 
-          {/* Text input */}
           <div className="relative flex-1">
             <input
               type="text"
@@ -568,7 +773,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           </div>
         </div>
 
-        {/* Upload progress */}
         {uploadingFiles && (
           <div className="mt-2 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" />
