@@ -294,9 +294,12 @@ interface LoginModalProps {
 const LoginModal = ({ profile, heroRect, onClose, onLogin, loginState }: LoginModalProps) => {
   const [animateIn, setAnimateIn] = useState(false)
   const imgRef = useRef<HTMLDivElement>(null)
+  const hasAnimatedIn = useRef(false)
 
+  // Initial animation - only runs once when modal opens
   useLayoutEffect(() => {
-    if (imgRef.current && heroRect) {
+    if (imgRef.current && heroRect && !hasAnimatedIn.current) {
+      hasAnimatedIn.current = true
       const startX = heroRect.left + heroRect.width/2 - window.innerWidth/2
       const startY = heroRect.top + heroRect.height/2 - window.innerHeight/2
 
@@ -307,14 +310,20 @@ const LoginModal = ({ profile, heroRect, onClose, onLogin, loginState }: LoginMo
       requestAnimationFrame(() => {
         if (imgRef.current) {
           imgRef.current.style.transition = 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)'
-          imgRef.current.style.transform = loginState === 'success'
-            ? 'scale(50)'
-            : 'translate(0, 0) scale(1)'
+          imgRef.current.style.transform = 'translate(0, 0) scale(1)'
         }
       })
     }
     setAnimateIn(true)
-  }, [heroRect, loginState])
+  }, [heroRect])
+
+  // Success animation - separate effect that only triggers on success
+  useEffect(() => {
+    if (loginState === 'success' && imgRef.current) {
+      imgRef.current.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+      imgRef.current.style.transform = 'scale(50)'
+    }
+  }, [loginState])
 
   const getGreeting = () => {
     const hour = new Date().getHours()
