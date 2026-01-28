@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { NewsItem, ProtocolAnalysis, Kungorelse } from '@/lib/types'
-import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
+import { NewsItem } from '@/lib/types'
 import { showLocalNotification, isSubscribed } from '@/lib/notifications'
 import NewsCard from './NewsCard'
 import FollowCompanies from './FollowCompanies'
 import SSEStatusIndicator from './SSEStatusIndicator'
 import { NewsCardSkeleton } from './Skeleton'
-import { useSSE, SSEStatus } from '@/lib/hooks/useSSE'
+import { useSupabaseRealtime, RealtimeMessage } from '@/lib/hooks/useSupabaseRealtime'
 import { NewsToastContainer } from './NewsToast'
+import { useToastPreferences } from '@/lib/hooks/useToastPreferences'
 
 interface NewsFeedProps {
   initialItems: NewsItem[]
@@ -40,6 +40,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [toastQueue, setToastQueue] = useState<NewsItem[]>([])
+  const [toastPreferences] = useToastPreferences()
 
   // Infinite scroll ref
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -63,19 +64,10 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     )
   }, [])
 
-  // SSE message handler - memoized to prevent recreation
-  const handleSSEMessage = useCallback((data: unknown) => {
-    const message = data as {
-      operation?: string
-      type?: string
-      record?: ProtocolAnalysis | Kungorelse
-      old?: { id: string }
-    }
-
-    if (message.operation === 'INSERT' && message.record) {
-      const newItem = message.type === 'protocol'
-        ? protocolToNewsItem(message.record as ProtocolAnalysis)
-        : kungorelseToNewsItem(message.record as Kungorelse)
+  // Realtime message handler - memoized to prevent recreation
+  const handleRealtimeMessage = useCallback((message: RealtimeMessage) => {
+    if (message.operation === 'INSERT' && message.item) {
+      const newItem = message.item
 
       setItems(prev => {
         if (prev.some(item => item.id === newItem.id)) return prev
@@ -102,33 +94,30 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
           }
         })
       }
-    } else if (message.operation === 'UPDATE' && message.record) {
-      const updatedItem = message.type === 'protocol'
-        ? protocolToNewsItem(message.record as ProtocolAnalysis)
-        : kungorelseToNewsItem(message.record as Kungorelse)
+    } else if (message.operation === 'UPDATE' && message.item) {
+      const updatedItem = message.item
 
       setItems(prev =>
         prev.map(item => item.id === updatedItem.id ? updatedItem : item)
       )
     } else if (message.operation === 'DELETE') {
-      const deletedId = message.old?.id
+      const deletedId = message.oldId
       if (deletedId) {
         setItems(prev => prev.filter(item => item.id !== deletedId))
       }
     }
   }, [shouldNotify])
 
-  // Use the SSE hook with proper cleanup
-  const { status: sseStatus } = useSSE({
-    url: '/api/news/stream',
-    onMessage: handleSSEMessage,
+  // Use the Supabase Realtime hook for direct subscription
+  const { status: realtimeStatus } = useSupabaseRealtime({
+    onMessage: handleRealtimeMessage,
     enabled: true,
   })
 
-  // Map SSE status to component's expected format
+  // Map Realtime status to component's expected format
   const connectionStatus = useMemo((): 'connected' | 'connecting' | 'disconnected' | 'error' => {
-    return sseStatus as 'connected' | 'connecting' | 'disconnected' | 'error'
-  }, [sseStatus])
+    return realtimeStatus as 'connected' | 'connecting' | 'disconnected' | 'error'
+  }, [realtimeStatus])
 
   // Load more
   const loadMore = useCallback(async () => {
@@ -222,7 +211,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
       )}
 
       {/* Toast notifications for new items */}
-      <NewsToastContainer items={toastQueue} onDismiss={handleToastDismiss} />
+      <NewsToastContainer items={toastQueue} onDismiss={handleToastDismiss} preferences={toastPreferences} />
     </div>
   )
 }

@@ -1,24 +1,38 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { NewsItem } from '@/lib/types'
 import { getLogoUrl, cn } from '@/lib/utils'
+import {
+  ToastPreferences,
+  getPositionClasses,
+  getAnimationClasses,
+} from '@/lib/hooks/useToastPreferences'
 
 interface NewsToastProps {
   item: NewsItem
   onDismiss: () => void
-  duration?: number // milliseconds, default 10000
+  preferences: ToastPreferences
 }
 
-export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToastProps) {
+export default function NewsToast({ item, onDismiss, preferences }: NewsToastProps) {
   const router = useRouter()
   const [isVisible, setIsVisible] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const [progress, setProgress] = useState(100)
+  const [isPaused, setIsPaused] = useState(false)
+  const [entryPulseActive, setEntryPulseActive] = useState(false)
+
+  // Convert duration from seconds to milliseconds
+  const durationMs = preferences.duration * 1000
+  const remainingTimeRef = useRef(durationMs)
 
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
+
+  // Check if this is a high-value news item (8-10)
+  const isHighValue = (item.newsValue ?? 0) >= 8
 
   // Handle dismiss with animation
   const handleDismiss = useCallback(() => {
@@ -34,21 +48,45 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
     handleDismiss()
   }, [router, item.id, handleDismiss])
 
-  // Entry animation
+  // Entry animation + entry pulse for high-value items
   useEffect(() => {
-    const showTimer = setTimeout(() => setIsVisible(true), 50)
+    const showTimer = setTimeout(() => {
+      setIsVisible(true)
+      // Trigger entry pulse for high-value items after entry animation
+      if (isHighValue) {
+        setTimeout(() => {
+          setEntryPulseActive(true)
+          // Remove the pulse class after animation completes
+          setTimeout(() => setEntryPulseActive(false), 600)
+        }, 300) // Wait for entry animation to complete
+      }
+    }, 50)
     return () => clearTimeout(showTimer)
-  }, [])
+  }, [isHighValue])
 
-  // Auto-dismiss timer with progress bar
+  // Reset remaining time when duration changes
   useEffect(() => {
+    remainingTimeRef.current = durationMs
+  }, [durationMs])
+
+  // Auto-dismiss timer with progress bar (pausable)
+  useEffect(() => {
+    // If duration is 0, toast stays until manually dismissed (no auto-dismiss)
+    if (durationMs === 0) {
+      setProgress(100) // Keep progress bar full
+      return
+    }
+
+    if (isPaused) return
+
     const startTime = Date.now()
-    const endTime = startTime + duration
+    const initialRemaining = remainingTimeRef.current
 
     const progressInterval = setInterval(() => {
-      const now = Date.now()
-      const remaining = Math.max(0, endTime - now)
-      const newProgress = (remaining / duration) * 100
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, initialRemaining - elapsed)
+      remainingTimeRef.current = remaining
+      const newProgress = (remaining / durationMs) * 100
       setProgress(newProgress)
 
       if (remaining <= 0) {
@@ -58,37 +96,127 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
     }, 50)
 
     return () => clearInterval(progressInterval)
-  }, [duration, handleDismiss])
+  }, [durationMs, handleDismiss, isPaused])
+
+  // Hover handlers for pausing
+  const handleMouseEnter = useCallback(() => {
+    setIsPaused(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsPaused(false)
+  }, [])
 
   // Get initials for fallback
   const getInitials = (name: string) => {
     return name.substring(0, 2).toUpperCase()
   }
 
+  const positionClasses = getPositionClasses(preferences.position)
+  const animationClasses = getAnimationClasses(preferences.position, isVisible, isLeaving)
+
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-6 z-50 max-w-sm w-full',
+        'fixed z-50 max-w-sm w-full',
+        positionClasses,
         'transform transition-all duration-300 ease-out',
-        isVisible && !isLeaving
-          ? 'translate-x-0 opacity-100 scale-100'
-          : 'translate-x-full opacity-0 scale-95'
+        animationClasses
       )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
+      {/* CSS for high-value animations */}
+      <style jsx>{`
+        @keyframes ping-fast {
+          0% {
+            transform: scale(1);
+            opacity: 0.6;
+          }
+          75%, 100% {
+            transform: scale(2.5);
+            opacity: 0;
+          }
+        }
+
+        @keyframes entry-pulse {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.02);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        @keyframes glow-pulse {
+          0%, 100% {
+            box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.1),
+                        0 4px 12px -2px rgba(15, 23, 42, 0.05),
+                        0 0 0 0 rgba(30, 64, 175, 0);
+          }
+          50% {
+            box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.1),
+                        0 4px 12px -2px rgba(15, 23, 42, 0.05),
+                        0 0 20px 2px rgba(30, 64, 175, 0.12);
+          }
+        }
+
+        :global(.dark) .glow-pulse-card {
+          animation-name: glow-pulse-dark !important;
+        }
+
+        @keyframes glow-pulse-dark {
+          0%, 100% {
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5),
+                        0 4px 12px -2px rgba(0, 0, 0, 0.3),
+                        0 0 0 0 rgba(88, 166, 255, 0);
+          }
+          50% {
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5),
+                        0 4px 12px -2px rgba(0, 0, 0, 0.3),
+                        0 0 24px 3px rgba(88, 166, 255, 0.18);
+          }
+        }
+
+        .ping-fast-dot {
+          animation: ping-fast 0.75s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .entry-pulse-card {
+          animation: entry-pulse 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glow-pulse-card {
+          animation: glow-pulse 2s ease-in-out infinite;
+        }
+      `}</style>
+
       <div
         className={cn(
           'relative rounded-xl overflow-hidden',
-          'bg-[var(--bg-card)] border border-[var(--border)]',
-          'shadow-[var(--shadow-card-hover)]'
+          'bg-[var(--bg-card)] border',
+          isHighValue
+            ? 'border-[var(--accent)]/30 glow-pulse-card'
+            : 'border-[var(--border)] shadow-[var(--shadow-card-hover)]',
+          entryPulseActive && 'entry-pulse-card'
         )}
       >
-        {/* Progress bar at top - subtle */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--border)]">
-          <div
-            className="h-full bg-[var(--muted)] transition-all duration-100 ease-linear opacity-50"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        {/* Progress bar at top - accent color for high-value (hidden when duration is 0) */}
+        {preferences.duration > 0 && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--border)]">
+            <div
+              className={cn(
+                'h-full',
+                isHighValue ? 'bg-[var(--accent)] opacity-70' : 'bg-[var(--muted)] opacity-50',
+                isPaused ? 'transition-none' : 'transition-all duration-100 ease-linear'
+              )}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
 
         {/* Close button */}
         <button
@@ -102,7 +230,7 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
             'hover:bg-[var(--bg-hover)]',
             'transition-colors duration-150'
           )}
-          aria-label="Stäng"
+          aria-label="Stang"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,24 +239,35 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
 
         {/* Content */}
         <div className="p-3.5 pt-4">
-          {/* Badge - subtle */}
+          {/* Badge - enhanced for high-value */}
           <div className="flex items-center gap-1.5 mb-2.5">
             <span className={cn(
               'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md',
               'text-[10px] font-medium tracking-wide uppercase',
-              'bg-[var(--bg-hover)] text-[var(--text-secondary)]'
+              isHighValue
+                ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                : 'bg-[var(--bg-hover)] text-[var(--text-secondary)]'
             )}>
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-40"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent)] opacity-70"></span>
+              <span className={cn(
+                'relative flex',
+                isHighValue ? 'h-2 w-2' : 'h-1.5 w-1.5'
+              )}>
+                <span className={cn(
+                  'absolute inline-flex h-full w-full rounded-full bg-[var(--accent)]',
+                  isHighValue ? 'ping-fast-dot opacity-60' : 'animate-ping opacity-40'
+                )}></span>
+                <span className={cn(
+                  'relative inline-flex rounded-full bg-[var(--accent)]',
+                  isHighValue ? 'h-2 w-2 opacity-90' : 'h-1.5 w-1.5 opacity-70'
+                )}></span>
               </span>
               Nyhet
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline - uses AI-generated rubrik (via item.headline), with fallbacks */}
           <p className="text-sm font-medium text-[var(--foreground)] leading-snug line-clamp-2 mb-2.5 pr-4">
-            {item.headline || `Ny händelse för ${item.companyName}`}
+            {item.headline || item.noticeText?.slice(0, 80) || `Ny handelse for ${item.companyName}`}
           </p>
 
           {/* Company info + Open button row */}
@@ -156,17 +295,18 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
               </span>
             </div>
 
-            {/* Open button */}
+            {/* Open button - accent style for high-value */}
             <button
               onClick={handleClick}
               className={cn(
                 'flex-shrink-0 px-3 py-1 rounded-md text-xs font-medium',
-                'bg-[var(--bg-hover)] text-[var(--text-secondary)]',
-                'hover:bg-[var(--border)] hover:text-[var(--foreground)]',
-                'transition-colors duration-150'
+                'transition-colors duration-150',
+                isHighValue
+                  ? 'bg-[var(--accent)] text-white hover:bg-[var(--accent-light)]'
+                  : 'bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--foreground)]'
               )}
             >
-              Öppna
+              Oppna
             </button>
           </div>
         </div>
@@ -179,9 +319,13 @@ export default function NewsToast({ item, onDismiss, duration = 10000 }: NewsToa
 interface NewsToastContainerProps {
   items: NewsItem[]
   onDismiss: (id: string) => void
+  preferences: ToastPreferences
 }
 
-export function NewsToastContainer({ items, onDismiss }: NewsToastContainerProps) {
+export function NewsToastContainer({ items, onDismiss, preferences }: NewsToastContainerProps) {
+  // Don't render anything if toasts are disabled
+  if (!preferences.enabled) return null
+
   const latestItem = items[0]
 
   if (!latestItem) return null
@@ -191,6 +335,7 @@ export function NewsToastContainer({ items, onDismiss }: NewsToastContainerProps
       key={latestItem.id}
       item={latestItem}
       onDismiss={() => onDismiss(latestItem.id)}
+      preferences={preferences}
     />
   )
 }
