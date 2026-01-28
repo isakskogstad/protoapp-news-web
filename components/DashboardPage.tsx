@@ -16,6 +16,7 @@ import { useSSE } from '@/lib/hooks/useSSE'
 // Using native img for profile images with error handling
 import GlobalSidebar from './GlobalSidebar'
 import NotificationDropdown from './NotificationDropdown'
+import FollowCompanies from './FollowCompanies'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -1184,7 +1185,9 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             <section>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b border-gray-200/60 dark:border-[#30363d]">
             <LiveIndicator connected={sseConnected} />
-            <div className="flex gap-2 w-full sm:w-auto" role="tablist" aria-label="Filtrera nyheter">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <FollowCompanies />
+              <div className="flex gap-2 flex-1 sm:flex-none" role="tablist" aria-label="Filtrera nyheter">
               <button
                 onClick={() => setFilter('all')}
                 role="tab"
@@ -1212,6 +1215,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 <Bookmark className="w-3.5 h-3.5" aria-hidden="true" />
                 SPARADE
               </button>
+              </div>
             </div>
           </div>
 
