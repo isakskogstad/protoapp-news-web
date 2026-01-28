@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, CSSProperties, ReactElement } from 'react'
 import { List, useDynamicRowHeight } from 'react-window'
 import { NewsItem } from '@/lib/types'
-import { showLocalNotification, isSubscribed } from '@/lib/notifications'
+// Browser notifications replaced with Slack notifications
 import NewsCard from './NewsCard'
 import FollowCompanies from './FollowCompanies'
 import SSEStatusIndicator from './SSEStatusIndicator'
@@ -21,6 +21,7 @@ interface FollowSettings {
   enabled: boolean
   mode: 'all' | 'selected'
   selectedCompanies: { org_number: string; company_name: string }[]
+  slackWebhookUrl: string
 }
 
 // Estimated item heights - will be measured dynamically
@@ -42,6 +43,81 @@ function getFollowSettings(): FollowSettings | null {
     }
   }
   return null
+}
+
+// Send Slack notification for a news item
+async function sendSlackNotification(item: NewsItem, webhookUrl: string): Promise<void> {
+  if (!webhookUrl) return
+
+  // Format the message for Slack
+  const headline = item.headline || item.noticeText || 'Ny händelse'
+  const newsValueEmoji = item.newsValue && item.newsValue >= 7 ? ':rotating_light:' :
+                         item.newsValue && item.newsValue >= 4 ? ':bell:' : ':newspaper:'
+
+  // Build the Slack message with blocks
+  const message = {
+    blocks: [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `${item.companyName}`,
+          emoji: true,
+        },
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${newsValueEmoji} *${headline}*`,
+        },
+      },
+      ...(item.noticeText && item.noticeText !== headline ? [{
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: item.noticeText.length > 300 ? item.noticeText.substring(0, 300) + '...' : item.noticeText,
+        },
+      }] : []),
+      {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: `${item.protocolType || 'Protokoll'} • ${item.orgNumber || ''}`,
+          },
+        ],
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'Öppna i LoopDesk',
+              emoji: true,
+            },
+            url: `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`,
+            action_id: 'open_news',
+          },
+        ],
+      },
+      {
+        type: 'divider',
+      },
+    ],
+  }
+
+  try {
+    await fetch('/api/slack/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ webhookUrl, message }),
+    })
+  } catch (error) {
+    console.error('Failed to send Slack notification:', error)
+  }
 }
 
 // Row props type for react-window 2.x
@@ -162,17 +238,12 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
         newsId: newItem.id,
       })
 
-      // Show browser notification if settings allow
+      // Send Slack notification if settings allow
       if (shouldNotify(newItem)) {
-        isSubscribed().then(subscribed => {
-          if (subscribed) {
-            showLocalNotification(
-              newItem.companyName,
-              newItem.headline || 'Ny händelse',
-              `/news/${newItem.id}`
-            )
-          }
-        })
+        const settings = getFollowSettings()
+        if (settings?.slackWebhookUrl) {
+          sendSlackNotification(newItem, settings.slackWebhookUrl)
+        }
       }
     } else if (message.operation === 'UPDATE' && message.item) {
       const updatedItem = message.item

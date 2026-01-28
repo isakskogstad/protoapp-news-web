@@ -11,12 +11,14 @@ interface FollowSettings {
   enabled: boolean
   mode: 'all' | 'selected'
   selectedCompanies: Company[]
+  slackWebhookUrl: string
 }
 
 const DEFAULT_SETTINGS: FollowSettings = {
   enabled: false,
   mode: 'all',
   selectedCompanies: [],
+  slackWebhookUrl: '',
 }
 
 export default function FollowCompanies() {
@@ -25,6 +27,8 @@ export default function FollowCompanies() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Company[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [isTesting, setIsTesting] = useState(false)
+  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -121,6 +125,49 @@ export default function FollowCompanies() {
     })
   }
 
+  const updateWebhookUrl = (url: string) => {
+    saveSettings({ ...settings, slackWebhookUrl: url })
+    setTestResult(null) // Reset test result when URL changes
+  }
+
+  const testSlackWebhook = async () => {
+    if (!settings.slackWebhookUrl) return
+
+    setIsTesting(true)
+    setTestResult(null)
+
+    try {
+      const response = await fetch('/api/slack/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookUrl: settings.slackWebhookUrl,
+          message: {
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: ':white_check_mark: *Testmeddelande från LoopDesk*\n\nDin Slack-integration fungerar! Du kommer nu få notiser om bolagshändelser här.',
+                },
+              },
+            ],
+          },
+        }),
+      })
+
+      if (response.ok) {
+        setTestResult('success')
+      } else {
+        setTestResult('error')
+      }
+    } catch {
+      setTestResult('error')
+    } finally {
+      setIsTesting(false)
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative">
       {/* Trigger button */}
@@ -202,6 +249,63 @@ export default function FollowCompanies() {
                 >
                   Vissa
                 </button>
+              </div>
+
+              {/* Slack webhook URL */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                  Slack Webhook URL
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={settings.slackWebhookUrl}
+                    onChange={(e) => updateWebhookUrl(e.target.value)}
+                    placeholder="https://hooks.slack.com/services/..."
+                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white font-mono"
+                  />
+                  <button
+                    onClick={testSlackWebhook}
+                    disabled={!settings.slackWebhookUrl || isTesting}
+                    className={`
+                      px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+                      ${testResult === 'success'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : testResult === 'error'
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
+                  >
+                    {isTesting ? (
+                      <div className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                    ) : testResult === 'success' ? (
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : testResult === 'error' ? (
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    ) : (
+                      'Testa'
+                    )}
+                  </button>
+                </div>
+                {testResult === 'error' && (
+                  <p className="mt-1 text-xs text-red-500">Kunde inte skicka till Slack. Kontrollera URL:en.</p>
+                )}
+                <p className="mt-1.5 text-[10px] text-gray-400">
+                  <a
+                    href="https://api.slack.com/messaging/webhooks"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    Skapa en webhook
+                  </a>
+                  {' '}i din Slack-workspace för att få notiser.
+                </p>
               </div>
 
               {/* Company search (only when mode is 'selected') */}
