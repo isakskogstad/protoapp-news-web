@@ -96,17 +96,17 @@ export default function NewsSidebar({ companyName, matchHeight = false }: NewsSi
     >
       {/* News Coverage Module - Only show if articles exist */}
       {!newsLoading && newsArticles.length > 0 && (
-        <section className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 h-full' : ''}`} style={matchHeight ? { minHeight: '200px' } : { maxHeight: '280px' }}>
+        <section className={`bg-white dark:bg-[#161b22] rounded-2xl border border-gray-200 dark:border-[#30363d] overflow-hidden shadow-sm flex flex-col ${matchHeight ? 'flex-1 h-full' : ''}`} style={matchHeight ? { minHeight: '200px' } : { maxHeight: '320px' }}>
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 shrink-0">
-            <Newspaper className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-[#30363d] flex items-center gap-3 shrink-0">
+            <Newspaper className="w-4 h-4 text-[#64748b] dark:text-[#8b949e]" />
+            <h3 className="text-xs font-semibold text-[#64748b] dark:text-[#8b949e] uppercase tracking-wider">
               Nyheter om {companyName}
             </h3>
           </div>
 
           {/* Articles - scrollable */}
-          <ul className="divide-y divide-gray-100 dark:divide-gray-800 overflow-y-auto flex-1">
+          <ul className="divide-y divide-gray-100 dark:divide-[#21262d] overflow-y-auto flex-1">
             {newsArticles.map((article, i) => (
               <li
                 key={i}
@@ -120,16 +120,16 @@ export default function NewsSidebar({ companyName, matchHeight = false }: NewsSi
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                  className="flex items-start gap-3 px-5 py-3 hover:bg-[#f8fafc] dark:hover:bg-[#21262d] transition-colors group"
                 >
-                  <p className="text-xs font-medium text-black dark:text-white line-clamp-1 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors flex-1">
+                  <p className="text-sm font-medium text-[#0f172a] dark:text-[#e6edf3] line-clamp-1 leading-snug group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff] transition-colors flex-1">
                     {article.title}
                   </p>
-                  <div className="flex items-center gap-1.5 shrink-0 text-[9px] font-mono text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center gap-1.5 shrink-0 text-[9px] font-mono text-[#94a3b8] dark:text-[#6e7681]">
                     {article.source && <span>{article.source}</span>}
                     {article.publishedDate && (
                       <>
-                        <span className="text-gray-300 dark:text-gray-600">·</span>
+                        <span className="text-gray-300 dark:text-[#30363d]">·</span>
                         <span>{article.publishedDate}</span>
                       </>
                     )}

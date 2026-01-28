@@ -55,11 +55,11 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
       aria-labelledby="settings-modal-title"
     >
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="relative bg-white dark:bg-[#161b22] rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-200/50 dark:border-[#30363d]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
           <h2 id="settings-modal-title" className="text-lg font-bold text-black dark:text-white">Inställningar</h2>
           <button
@@ -210,18 +210,21 @@ function DashboardHeader({
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800" role="banner">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full bg-white/98 dark:bg-[#0d1117]/98 backdrop-blur-md border-b border-gray-200/80 dark:border-[#30363d]" role="banner">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
 
-        {/* Left: Logo */}
+        {/* Left: Logo - Editorial style */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="group flex items-center gap-2.5" aria-label="LoopDesk - Gå till startsidan">
-            <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center font-bold text-lg transition-transform group-hover:scale-105" aria-hidden="true">
+          <Link href="/" className="group flex items-center gap-3" aria-label="LoopDesk - Gå till startsidan">
+            <div className="w-9 h-9 bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] rounded-lg flex items-center justify-center font-heading text-xl transition-all group-hover:scale-105 group-hover:shadow-lg" aria-hidden="true">
               L
             </div>
-            <span className="text-xl tracking-tight text-black dark:text-white hidden sm:inline" aria-hidden="true">
-              LOOP<span className="text-gray-400 dark:text-gray-500">DESK</span>
-            </span>
+            <div className="hidden sm:flex flex-col">
+              <span className="font-heading text-2xl tracking-tight text-[#0f172a] dark:text-white leading-none" aria-hidden="true">
+                LoopDesk
+              </span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mt-0.5">Redaktionen</span>
+            </div>
           </Link>
 
         </div>
@@ -229,14 +232,14 @@ function DashboardHeader({
         {/* Center: Search - Desktop */}
         <div className="hidden md:block flex-1 max-w-md mx-8" role="search">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" aria-hidden="true" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8] dark:text-[#6e7681] group-focus-within:text-[#1e40af] dark:group-focus-within:text-[#58a6ff] transition-colors" aria-hidden="true" />
             <input
               type="search"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Sök bolag, person eller nyckelord..."
               aria-label="Sök i nyheter"
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-black dark:text-white"
+              className="w-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-xl py-2.5 pl-11 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 dark:focus:ring-[#58a6ff]/20 focus:border-[#1e40af] dark:focus:border-[#58a6ff] transition-all placeholder:text-[#94a3b8] dark:placeholder:text-[#6e7681] text-[#0f172a] dark:text-[#e6edf3] shadow-sm"
             />
             {searchQuery ? (
               <button
@@ -649,17 +652,17 @@ function getTimelinePeriodLabel(period: TimelinePeriod): string {
 // Timeline marker component - shows period label (IDAG, IGÅR, etc.)
 function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center ${isFirst ? '' : 'mt-4'}`}>
+    <div className={`flex items-center ${isFirst ? '' : 'mt-8'}`}>
       {/* Time label column */}
-      <div className="w-20 shrink-0 flex justify-end pr-4">
-        <span className="text-[10px] font-mono font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-950 px-2 py-0.5 rounded">
+      <div className="w-24 shrink-0 flex justify-end pr-5">
+        <span className="text-[11px] font-mono font-bold text-[#0f172a] dark:text-white uppercase tracking-[0.15em] bg-white dark:bg-[#161b22] px-3 py-1.5 rounded-md border border-gray-200 dark:border-[#30363d] shadow-sm">
           {label}
         </span>
       </div>
-      {/* Marker dot on the line */}
-      <div className="w-3 h-3 rounded-full bg-gray-400 dark:bg-gray-500 ring-4 ring-gray-50 dark:ring-gray-950 relative z-10" />
+      {/* Marker dot on the line - larger with glow */}
+      <div className="w-4 h-4 rounded-full bg-[#1e40af] dark:bg-[#58a6ff] ring-4 ring-white dark:ring-[#0d1117] relative z-10 shadow-[0_0_12px_rgba(30,64,175,0.3)] dark:shadow-[0_0_12px_rgba(88,166,255,0.3)]" />
       {/* Horizontal line extending right */}
-      <div className="flex-1 h-px bg-gradient-to-r from-gray-300 dark:from-gray-600 to-transparent ml-2" />
+      <div className="flex-1 h-[2px] bg-gradient-to-r from-[#1e40af]/30 dark:from-[#58a6ff]/30 to-transparent ml-3" />
     </div>
   )
 }
@@ -675,21 +678,21 @@ function TimelineItemWrapper({
   showDot?: boolean
 }) {
   return (
-    <div className="flex">
+    <div className="flex group/timeline">
       {/* Timeline column - fixed width for alignment */}
-      <div className="w-20 shrink-0 flex justify-end pr-4 relative">
+      <div className="w-24 shrink-0 flex justify-end pr-5 relative">
         {/* Empty space for time label alignment */}
       </div>
 
-      {/* Dot on the timeline */}
+      {/* Dot on the timeline - animated on card hover */}
       <div className="shrink-0 relative z-10 flex items-start">
         {showDot && (
-          <div className="w-2 h-2 mt-6 rounded-full bg-gray-300 dark:bg-gray-600" />
+          <div className="w-2.5 h-2.5 mt-7 rounded-full bg-gray-300 dark:bg-[#30363d] border-2 border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-125" />
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 pl-4">
+      {/* Content - more padding */}
+      <div className="flex-1 pl-5">
         {children}
       </div>
     </div>
@@ -700,10 +703,16 @@ function TimelineItemWrapper({
 function TimelineContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative">
-      {/* Continuous vertical line - positioned to align with dots */}
-      <div className="absolute left-[83px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800" />
-      {/* News items */}
-      <div className="flex flex-col gap-8">
+      {/* Continuous vertical line - gradient fade at bottom */}
+      <div
+        className="absolute left-[103px] top-0 bottom-0 w-[2px]"
+        style={{
+          background: 'linear-gradient(180deg, var(--accent) 0%, var(--accent) 70%, transparent 100%)',
+          opacity: 0.2
+        }}
+      />
+      {/* News items - increased gap for more whitespace */}
+      <div className="flex flex-col gap-10">
         {children}
       </div>
     </div>
@@ -835,18 +844,29 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
     setShowShareMenu(!showShareMenu)
   }
 
+  const [bookmarkAnimating, setBookmarkAnimating] = useState(false)
+
+  const handleBookmarkWithAnimation = (e: React.MouseEvent) => {
+    handleBookmark(e)
+    setBookmarkAnimating(true)
+    setTimeout(() => setBookmarkAnimating(false), 400)
+  }
+
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="relative bg-white dark:bg-gray-900 shadow-sm border border-gray-100/80 dark:border-gray-800 rounded-xl hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-150 px-6 py-4">
+      <article className="news-card relative rounded-2xl px-7 py-5">
+        {/* Subtle top accent line */}
+        <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-gray-200 dark:via-[#30363d] to-transparent" />
+
         {/* Action buttons - vertical stack on far right, visible on hover/focus */}
-        <div className="absolute right-3 top-3 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity md:opacity-100">
+        <div className="absolute right-4 top-4 flex flex-col gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
           <button
-            onClick={handleBookmark}
-            className={`p-2 rounded-md transition-all touch-manipulation ${
+            onClick={handleBookmarkWithAnimation}
+            className={`p-2.5 rounded-lg transition-all touch-manipulation ripple-effect ${
               isBookmarked
-                ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/40'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
+                ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30 shadow-sm'
+                : 'text-gray-400 dark:text-[#6e7681] hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d]'
+            } ${bookmarkAnimating ? 'bookmark-animate' : ''}`}
             aria-label={isBookmarked ? 'Ta bort bokmärke' : 'Spara som bokmärke'}
             aria-pressed={isBookmarked}
           >
@@ -856,7 +876,7 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
           <div className="relative">
             <button
               onClick={handleShare}
-              className="p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all touch-manipulation"
+              className="p-2.5 rounded-lg text-gray-400 dark:text-[#6e7681] hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d] transition-all touch-manipulation ripple-effect"
               aria-label="Dela nyhet"
               aria-expanded={showShareMenu}
               aria-haspopup="menu"
@@ -874,7 +894,7 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
           </div>
         </div>
 
-        <div className="flex gap-4 pr-10">
+        <div className="flex gap-5 pr-12">
           {/* Left column: Vertical stack - Logo, Company, Org, Category, Time */}
           <div className="w-28 shrink-0 flex flex-col">
             {/* Logo - top, left-aligned */}
@@ -886,39 +906,39 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
             />
 
             {/* Company name */}
-            <h4 className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-2 leading-tight line-clamp-2">
+            <h4 className="text-[11px] font-semibold text-[#334155] dark:text-[#8b949e] mt-2.5 leading-tight line-clamp-2">
               {item.companyName}
             </h4>
 
             {/* Org number */}
-            <p className="text-[9px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">
+            <p className="text-[9px] font-mono text-[#94a3b8] dark:text-[#6e7681] mt-1">
               {formatOrgNumber(item.orgNumber)}
             </p>
 
-            {/* Category badge */}
-            <span className={`mt-2 text-[9px] font-medium px-1.5 py-0.5 rounded w-fit ${categoryColor}`}>
+            {/* Category badge - refined styling */}
+            <span className={`mt-3 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md w-fit ${categoryColor}`}>
               {formattedCategory}
             </span>
 
             {/* Time - at bottom of left column */}
-            <p className={`mt-auto pt-2 font-mono ${
+            <p className={`mt-auto pt-3 font-mono ${
               timeInfo.isRecent
-                ? 'text-[10px] font-semibold text-gray-600 dark:text-gray-400'
+                ? 'text-[10px] font-bold text-[#1e40af] dark:text-[#58a6ff]'
                 : timeInfo.isToday
-                  ? 'text-[10px] text-gray-500 dark:text-gray-500'
-                  : 'text-[9px] text-gray-400 dark:text-gray-600'
+                  ? 'text-[10px] font-medium text-[#64748b] dark:text-[#8b949e]'
+                  : 'text-[9px] text-[#94a3b8] dark:text-[#6e7681]'
             }`}>
               {timeInfo.text}
             </p>
           </div>
 
-          {/* Right: Headline + Notice text (expanded) */}
+          {/* Right: Headline + Notice text (expanded) - Better typography */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-black dark:text-white leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-lg font-bold text-[#0f172a] dark:text-[#e6edf3] leading-snug group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff] transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-[1.7] mt-1.5">
+              <p className="text-sm text-[#475569] dark:text-[#8b949e] leading-[1.85] mt-2.5">
                 {truncateWords(item.noticeText, 60)}
               </p>
             )}
@@ -932,18 +952,21 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
 // SSE Connection indicator - memoized
 const LiveIndicator = React.memo(function LiveIndicator({ connected }: { connected: boolean }) {
   return (
-    <div className="flex items-center gap-2" role="status" aria-live="polite">
-      <div
-        className={`w-2.5 h-2.5 rounded-full ${
-          connected
-            ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]'
-            : 'bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]'
-        }`}
-        aria-hidden="true"
-      />
-      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
-        {connected ? 'LIVE' : 'OFFLINE'}
-      </span>
+    <div className="flex items-center gap-3" role="status" aria-live="polite">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] shadow-sm">
+        <div
+          className={`w-2 h-2 rounded-full ${
+            connected
+              ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+              : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'
+          }`}
+          style={{ animation: connected ? 'pulse 2s ease-in-out infinite' : 'pulse 1s ease-in-out infinite' }}
+          aria-hidden="true"
+        />
+        <span className="text-[10px] font-mono font-bold tracking-wider text-[#0f172a] dark:text-[#e6edf3]">
+          {connected ? 'LIVE' : 'OFFLINE'}
+        </span>
+      </div>
       <span className="sr-only">
         {connected ? 'Ansluten till realtidsuppdateringar' : 'Frånkopplad från realtidsuppdateringar'}
       </span>
@@ -1117,16 +1140,19 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
   }, [searchFilteredItems, filter])
 
   return (
-    <div className="min-h-screen bg-gray-50/80 dark:bg-gray-950 text-[#1A1A1A] dark:text-gray-100 pb-20">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0d1117] text-[#0f172a] dark:text-[#e6edf3] pb-32">
       <DashboardHeader
         onOpenSettings={() => setShowSettingsModal(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
 
+      {/* Masthead line under header */}
+      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-[#30363d] to-transparent" />
+
       {/* Offline Banner */}
       {!isOnline && (
-        <div className="bg-amber-500 text-amber-950 px-4 py-2 text-center text-sm font-medium">
+        <div className="bg-amber-500 text-amber-950 px-4 py-2.5 text-center text-sm font-medium">
           <span className="inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
@@ -1141,12 +1167,12 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
         <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex gap-12">
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             <section>
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-200/60 dark:border-[#30363d]">
             <LiveIndicator connected={sseConnected} />
             <div className="flex gap-2" role="tablist" aria-label="Filtrera nyheter">
               <button
@@ -1154,10 +1180,10 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 role="tab"
                 aria-selected={filter === 'all'}
                 aria-controls="news-panel"
-                className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg shadow-sm transition-all ${
+                className={`px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 ${
                   filter === 'all'
-                    ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                    ? 'bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] shadow-md'
+                    : 'border border-gray-200 dark:border-[#30363d] text-[#64748b] dark:text-[#8b949e] bg-white dark:bg-[#161b22] hover:border-[#0f172a] dark:hover:border-white hover:text-[#0f172a] dark:hover:text-white'
                 }`}
               >
                 ALLA
@@ -1167,13 +1193,13 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 role="tab"
                 aria-selected={filter === 'bookmarks'}
                 aria-controls="news-panel"
-                className={`px-4 py-1.5 text-xs font-mono font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
                   filter === 'bookmarks'
-                    ? 'border border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                    : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                    ? 'bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] shadow-md'
+                    : 'border border-gray-200 dark:border-[#30363d] text-[#64748b] dark:text-[#8b949e] bg-white dark:bg-[#161b22] hover:border-[#0f172a] dark:hover:border-white hover:text-[#0f172a] dark:hover:text-white'
                 }`}
               >
-                <Bookmark className="w-3 h-3" aria-hidden="true" />
+                <Bookmark className="w-3.5 h-3.5" aria-hidden="true" />
                 SPARADE
               </button>
             </div>

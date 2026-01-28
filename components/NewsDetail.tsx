@@ -104,8 +104,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   return (
     <article className="animate-fade-in">
       {/* Header */}
-      <header className="mb-6">
-        <div className="flex items-start gap-4 mb-4">
+      <header className="mb-8">
+        <div className="flex items-start gap-5 mb-5">
           <div className="relative w-14 h-14 flex-shrink-0 flex items-center justify-center">
             {logoLoading && !logoError && (
               <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 skeleton-shimmer rounded-xl" />
@@ -141,17 +141,17 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </span>
               </div>
             )}
-            <h1 className="text-xl font-bold text-black dark:text-white leading-tight">
+            <h1 className="text-2xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-tight">
               {item.companyName}
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
-              <span className="flex items-center gap-1">
-                <Building2 className="w-3 h-3" />
+            <div className="flex items-center gap-3 mt-2 text-xs font-mono text-[#64748b] dark:text-[#8b949e]">
+              <span className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" />
                 {formatOrgNumber(item.orgNumber)}
               </span>
-              <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="w-px h-3 bg-gray-300 dark:bg-[#30363d]" />
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
                 {formatDate(item.timestamp)}
               </span>
             </div>
@@ -160,10 +160,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       </header>
 
       {/* Headline with Share button */}
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-6 mb-6">
         <div className="flex-1">
           {item.headline && (
-            <h2 className="text-2xl font-bold text-black dark:text-white leading-tight">
+            <h2 className="text-3xl font-bold text-[#0f172a] dark:text-[#e6edf3] leading-[1.2]">
               {item.headline}
             </h2>
           )}
@@ -178,8 +178,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* Notice text - prominent */}
       {item.noticeText && !hasKungorelse && (
-        <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-800">
-          <p className="text-gray-700 dark:text-gray-300 leading-[1.8] text-base whitespace-pre-wrap">
+        <div className="mb-10 pb-10 border-b border-gray-200/60 dark:border-[#30363d]">
+          <p className="text-[#334155] dark:text-[#c9d1d9] leading-[1.9] text-[17px] whitespace-pre-wrap">
             {item.noticeText}
           </p>
         </div>
@@ -194,17 +194,17 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
       {/* ========== COLLAPSIBLE SOURCE BAR (Protokoll/Kungörelse) ========== */}
       {hasSource && (
-        <div className="mb-6">
-          {/* Collapsible header bar - full width, thin */}
+        <div className="mb-8">
+          {/* Collapsible header bar - full width, refined */}
           <button
             onClick={() => hasPdf ? setSourceExpanded(!sourceExpanded) : setKungorelseExpanded(!kungorelseExpanded)}
-            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group"
+            className="w-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-[#f8fafc] dark:hover:bg-[#21262d] hover:border-[#1e40af]/30 dark:hover:border-[#58a6ff]/30 transition-all group pulse-on-hover shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
-                <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#f1f5f9] dark:bg-[#21262d] flex items-center justify-center group-hover:bg-[#e2e8f0] dark:group-hover:bg-[#30363d] transition-colors">
+                <FileText className="w-5 h-5 text-[#64748b] dark:text-[#8b949e]" />
               </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-semibold text-[#0f172a] dark:text-[#e6edf3]">
                 {hasPdf ? 'Visa protokoll' : 'Visa kungörelse'}
               </span>
             </div>
@@ -215,16 +215,16 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#0f172a] dark:text-[#e6edf3] bg-[#f1f5f9] dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#30363d] transition-colors"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-4 h-4" />
                   Ladda ner
                 </a>
               )}
               {(hasPdf ? sourceExpanded : kungorelseExpanded) ? (
-                <ChevronUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <ChevronUp className="w-5 h-5 text-[#64748b] dark:text-[#8b949e] transition-transform group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <ChevronDown className="w-5 h-5 text-[#64748b] dark:text-[#8b949e] transition-transform group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]" />
               )}
             </div>
           </button>
@@ -304,7 +304,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
       )}
 
       {/* ========== TWO-COLUMN MODULES (Faktaruta + Nyheter) ========== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Left column - Faktaruta or Bolagsfakta */}
         <div className="flex flex-col">
           {hasKallelse && <KallelseFaktaruta data={item.kallelseFaktaruta} />}
