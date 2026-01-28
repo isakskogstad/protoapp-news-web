@@ -59,13 +59,13 @@ export default async function NewsPage({ params }: NewsPageProps) {
     const newsItem = protocolToNewsItem(protocol)
     return (
       <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex gap-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+          <div className="flex gap-4 sm:gap-8">
             {/* Main content - now includes news sidebar in two-column layout */}
             <main className="flex-1 min-w-0">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white mb-6 transition-colors text-sm"
+                className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white mb-4 sm:mb-6 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -75,8 +75,10 @@ export default async function NewsPage({ params }: NewsPageProps) {
               <NewsDetail item={newsItem} showNewsSidebar={true} />
             </main>
 
-            {/* Global sidebar with chat only */}
-            <GlobalSidebar />
+            {/* Global sidebar with chat only - hidden on mobile */}
+            <div className="hidden lg:block">
+              <GlobalSidebar />
+            </div>
           </div>
         </div>
       </div>
@@ -94,13 +96,13 @@ export default async function NewsPage({ params }: NewsPageProps) {
     const newsItem = kungorelseToNewsItem(kungorelse)
     return (
       <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex gap-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+          <div className="flex gap-4 sm:gap-8">
             {/* Main content - now includes news sidebar in two-column layout */}
             <main className="flex-1 min-w-0">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white mb-6 transition-colors text-sm"
+                className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white mb-4 sm:mb-6 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -110,8 +112,10 @@ export default async function NewsPage({ params }: NewsPageProps) {
               <NewsDetail item={newsItem} showNewsSidebar={true} />
             </main>
 
-            {/* Global sidebar with chat only */}
-            <GlobalSidebar />
+            {/* Global sidebar with chat only - hidden on mobile */}
+            <div className="hidden lg:block">
+              <GlobalSidebar />
+            </div>
           </div>
         </div>
       </div>

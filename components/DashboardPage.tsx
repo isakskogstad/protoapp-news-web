@@ -211,7 +211,7 @@ function DashboardHeader({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/98 dark:bg-[#0d1117]/98 backdrop-blur-md border-b border-gray-200/80 dark:border-[#30363d]" role="banner">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
 
         {/* Left: Logo - Editorial style */}
         <div className="flex items-center gap-8">
@@ -652,17 +652,17 @@ function getTimelinePeriodLabel(period: TimelinePeriod): string {
 // Timeline marker component - shows period label (IDAG, IGÅR, etc.)
 function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center ${isFirst ? '' : 'mt-8'}`}>
-      {/* Time label column */}
-      <div className="w-24 shrink-0 flex justify-end pr-5">
+    <div className={`flex items-center ${isFirst ? '' : 'mt-6 md:mt-8'}`}>
+      {/* Time label - full width on mobile, fixed width on desktop */}
+      <div className="md:w-24 shrink-0 md:flex md:justify-end md:pr-5">
         <span className="text-[11px] font-mono font-bold text-[#0f172a] dark:text-white uppercase tracking-[0.15em] bg-white dark:bg-[#161b22] px-3 py-1.5 rounded-md border border-gray-200 dark:border-[#30363d] shadow-sm">
           {label}
         </span>
       </div>
-      {/* Marker dot on the line - larger with glow */}
-      <div className="w-4 h-4 rounded-full bg-[#1e40af] dark:bg-[#58a6ff] ring-4 ring-white dark:ring-[#0d1117] relative z-10 shadow-[0_0_12px_rgba(30,64,175,0.3)] dark:shadow-[0_0_12px_rgba(88,166,255,0.3)]" />
-      {/* Horizontal line extending right */}
-      <div className="flex-1 h-[2px] bg-gradient-to-r from-[#1e40af]/30 dark:from-[#58a6ff]/30 to-transparent ml-3" />
+      {/* Marker dot on the line - hidden on mobile, visible on desktop */}
+      <div className="hidden md:block w-4 h-4 rounded-full bg-[#1e40af] dark:bg-[#58a6ff] ring-4 ring-white dark:ring-[#0d1117] relative z-10 shadow-[0_0_12px_rgba(30,64,175,0.3)] dark:shadow-[0_0_12px_rgba(88,166,255,0.3)]" />
+      {/* Horizontal line extending right - hidden on mobile */}
+      <div className="hidden md:block flex-1 h-[2px] bg-gradient-to-r from-[#1e40af]/30 dark:from-[#58a6ff]/30 to-transparent ml-3" />
     </div>
   )
 }
@@ -679,20 +679,20 @@ function TimelineItemWrapper({
 }) {
   return (
     <div className="flex group/timeline">
-      {/* Timeline column - fixed width for alignment */}
-      <div className="w-24 shrink-0 flex justify-end pr-5 relative">
+      {/* Timeline column - hidden on mobile, fixed width on desktop */}
+      <div className="hidden md:flex md:w-24 shrink-0 justify-end pr-5 relative">
         {/* Empty space for time label alignment */}
       </div>
 
-      {/* Dot on the timeline - animated on card hover */}
-      <div className="shrink-0 relative z-10 flex items-start">
+      {/* Dot on the timeline - hidden on mobile, animated on card hover on desktop */}
+      <div className="hidden md:flex shrink-0 relative z-10 items-start">
         {showDot && (
           <div className="w-2.5 h-2.5 mt-7 rounded-full bg-gray-300 dark:bg-[#30363d] border-2 border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-125" />
         )}
       </div>
 
-      {/* Content - more padding */}
-      <div className="flex-1 pl-5">
+      {/* Content - full width on mobile, with left padding on desktop */}
+      <div className="flex-1 w-full md:pl-5">
         {children}
       </div>
     </div>
@@ -703,16 +703,16 @@ function TimelineItemWrapper({
 function TimelineContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative">
-      {/* Continuous vertical line - gradient fade at bottom */}
+      {/* Continuous vertical line - hidden on mobile, visible on desktop with gradient fade at bottom */}
       <div
-        className="absolute left-[103px] top-0 bottom-0 w-[2px]"
+        className="hidden md:block absolute left-[103px] top-0 bottom-0 w-[2px]"
         style={{
           background: 'linear-gradient(180deg, var(--accent) 0%, var(--accent) 70%, transparent 100%)',
           opacity: 0.2
         }}
       />
-      {/* News items - increased gap for more whitespace */}
-      <div className="flex flex-col gap-10">
+      {/* News items - tighter gap on mobile, larger on desktop */}
+      <div className="flex flex-col gap-4 md:gap-10">
         {children}
       </div>
     </div>
@@ -854,15 +854,15 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
 
   return (
     <Link href={`/news/${item.id}`} className="block group">
-      <article className="news-card relative rounded-2xl px-7 py-5">
+      <article className="news-card relative rounded-2xl px-4 py-4 sm:px-7 sm:py-5">
         {/* Subtle top accent line */}
-        <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-gray-200 dark:via-[#30363d] to-transparent" />
+        <div className="absolute top-0 left-4 right-4 sm:left-6 sm:right-6 h-[1px] bg-gradient-to-r from-transparent via-gray-200 dark:via-[#30363d] to-transparent" />
 
-        {/* Action buttons - vertical stack on far right, visible on hover/focus (always visible on touch devices via CSS) */}
-        <div className="absolute right-4 top-4 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 md:translate-x-2 md:group-hover:translate-x-0">
+        {/* Action buttons - horizontal on mobile (bottom), vertical on desktop (top-right) */}
+        <div className="absolute right-3 top-3 sm:right-4 sm:top-4 flex flex-row sm:flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 md:translate-x-2 md:group-hover:translate-x-0">
           <button
             onClick={handleBookmarkWithAnimation}
-            className={`p-2.5 rounded-lg transition-all touch-manipulation ripple-effect ${
+            className={`p-2 sm:p-2.5 rounded-lg transition-all touch-manipulation ripple-effect ${
               isBookmarked
                 ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30 shadow-sm'
                 : 'text-gray-400 dark:text-[#6e7681] hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d]'
@@ -876,7 +876,7 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
           <div className="relative">
             <button
               onClick={handleShare}
-              className="p-2.5 rounded-lg text-gray-400 dark:text-[#6e7681] hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d] transition-all touch-manipulation ripple-effect"
+              className="p-2 sm:p-2.5 rounded-lg text-gray-400 dark:text-[#6e7681] hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d] transition-all touch-manipulation ripple-effect"
               aria-label="Dela nyhet"
               aria-expanded={showShareMenu}
               aria-haspopup="menu"
@@ -894,10 +894,11 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
           </div>
         </div>
 
-        <div className="flex gap-5 pr-12">
-          {/* Left column: Vertical stack - Logo, Company, Org, Category, Time */}
-          <div className="w-28 shrink-0 flex flex-col">
-            {/* Logo - top, left-aligned */}
+        {/* Mobile: Stack vertically | Desktop: Side by side */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 pr-16 sm:pr-12">
+          {/* Company info section - horizontal on mobile, vertical column on desktop */}
+          <div className="flex sm:flex-col items-start gap-3 sm:gap-0 sm:w-28 sm:shrink-0">
+            {/* Logo */}
             <CompanyLogo
               orgNumber={item.orgNumber}
               companyName={item.companyName}
@@ -905,23 +906,32 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
               size="md"
             />
 
-            {/* Company name */}
-            <h4 className="text-[11px] font-semibold text-[#334155] dark:text-[#8b949e] mt-2.5 leading-tight line-clamp-2">
-              {item.companyName}
-            </h4>
+            {/* Company details - inline on mobile, stacked on desktop */}
+            <div className="flex-1 sm:flex-none min-w-0">
+              {/* Company name */}
+              <h4 className="text-xs sm:text-[11px] font-semibold text-[#334155] dark:text-[#8b949e] sm:mt-2.5 leading-tight line-clamp-1 sm:line-clamp-2">
+                {item.companyName}
+              </h4>
 
-            {/* Org number */}
-            <p className="text-[9px] font-mono text-[#94a3b8] dark:text-[#6e7681] mt-1">
-              {formatOrgNumber(item.orgNumber)}
-            </p>
+              {/* Org number + time on mobile */}
+              <div className="flex items-center gap-2 sm:block">
+                <p className="text-[10px] sm:text-[9px] font-mono text-[#94a3b8] dark:text-[#6e7681] sm:mt-1">
+                  {formatOrgNumber(item.orgNumber)}
+                </p>
+                {/* Time - inline on mobile */}
+                <span className="sm:hidden text-[10px] font-mono text-[#94a3b8] dark:text-[#6e7681]">
+                  · {timeInfo.text}
+                </span>
+              </div>
+            </div>
 
-            {/* Category badge - refined styling */}
-            <span className={`mt-3 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md w-fit ${categoryColor}`}>
+            {/* Category badge - visible on mobile inline, separate on desktop */}
+            <span className={`shrink-0 sm:mt-3 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 sm:py-1 rounded-md ${categoryColor}`}>
               {formattedCategory}
             </span>
 
-            {/* Time - at bottom of left column */}
-            <p className={`mt-auto pt-3 font-mono ${
+            {/* Time - hidden on mobile, visible at bottom on desktop */}
+            <p className={`hidden sm:block mt-auto pt-3 font-mono ${
               timeInfo.isRecent
                 ? 'text-[10px] font-bold text-[#1e40af] dark:text-[#58a6ff]'
                 : timeInfo.isToday
@@ -932,13 +942,13 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
             </p>
           </div>
 
-          {/* Right: Headline + Notice text (expanded) - Better typography */}
+          {/* News content - Headline + Notice text */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-[#0f172a] dark:text-[#e6edf3] leading-snug group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff] transition-colors">
+            <h3 className="text-base sm:text-lg font-bold text-[#0f172a] dark:text-[#e6edf3] leading-snug group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff] transition-colors">
               {item.headline || `${item.protocolType || 'Nyhet'}`}
             </h3>
             {item.noticeText && (
-              <p className="text-sm text-[#475569] dark:text-[#8b949e] leading-[1.85] mt-2.5">
+              <p className="text-sm text-[#475569] dark:text-[#8b949e] leading-relaxed sm:leading-[1.85] mt-2 sm:mt-2.5 line-clamp-4 sm:line-clamp-none">
                 {truncateWords(item.noticeText, 60)}
               </p>
             )}
@@ -1167,20 +1177,20 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
         <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex gap-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
           {/* Main Content */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 order-1">
             <section>
-          <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-200/60 dark:border-[#30363d]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b border-gray-200/60 dark:border-[#30363d]">
             <LiveIndicator connected={sseConnected} />
-            <div className="flex gap-2" role="tablist" aria-label="Filtrera nyheter">
+            <div className="flex gap-2 w-full sm:w-auto" role="tablist" aria-label="Filtrera nyheter">
               <button
                 onClick={() => setFilter('all')}
                 role="tab"
                 aria-selected={filter === 'all'}
                 aria-controls="news-panel"
-                className={`px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 ${
+                className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 ${
                   filter === 'all'
                     ? 'bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] shadow-md'
                     : 'border border-gray-200 dark:border-[#30363d] text-[#64748b] dark:text-[#8b949e] bg-white dark:bg-[#161b22] hover:border-[#0f172a] dark:hover:border-white hover:text-[#0f172a] dark:hover:text-white'
@@ -1193,7 +1203,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                 role="tab"
                 aria-selected={filter === 'bookmarks'}
                 aria-controls="news-panel"
-                className={`px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 text-xs font-mono font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
                   filter === 'bookmarks'
                     ? 'bg-[#0f172a] dark:bg-white text-white dark:text-[#0f172a] shadow-md'
                     : 'border border-gray-200 dark:border-[#30363d] text-[#64748b] dark:text-[#8b949e] bg-white dark:bg-[#161b22] hover:border-[#0f172a] dark:hover:border-white hover:text-[#0f172a] dark:hover:text-white'
@@ -1308,9 +1318,11 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
             </section>
           </main>
 
-          {/* Right Sidebar with Chat */}
-          <GlobalSidebar>
-          </GlobalSidebar>
+          {/* Right Sidebar with Chat - hidden on mobile/tablet */}
+          <div className="hidden lg:block order-2">
+            <GlobalSidebar>
+            </GlobalSidebar>
+          </div>
         </div>
       </div>
     </div>

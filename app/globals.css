@@ -64,6 +64,19 @@
   box-sizing: border-box;
 }
 
+/* ========================================
+   BASE HTML/BODY MOBILE SETUP
+   ======================================== */
+html {
+  /* Prevent horizontal overflow on all devices */
+  overflow-x: hidden;
+  /* Smooth scrolling with reduced motion support */
+  scroll-behavior: smooth;
+  /* Prevent iOS text size adjustment */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -71,6 +84,85 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  /* Ensure full width without horizontal scroll */
+  width: 100%;
+  max-width: 100vw;
+  /* Support for safe areas (notched phones) */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ========================================
+   RESPONSIVE TYPOGRAPHY SYSTEM
+   Mobile-first font scaling
+   ======================================== */
+
+/* Base mobile typography (320px+) */
+html {
+  font-size: 14px;
+}
+
+/* Small phones (375px+) */
+@media (min-width: 375px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* Large phones (428px+) */
+@media (min-width: 428px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Tablets (768px+) */
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Responsive text utilities */
+.text-responsive-xs {
+  font-size: clamp(0.625rem, 0.5rem + 0.5vw, 0.75rem);
+}
+
+.text-responsive-sm {
+  font-size: clamp(0.75rem, 0.625rem + 0.5vw, 0.875rem);
+}
+
+.text-responsive-base {
+  font-size: clamp(0.875rem, 0.75rem + 0.5vw, 1rem);
+}
+
+.text-responsive-lg {
+  font-size: clamp(1rem, 0.875rem + 0.5vw, 1.125rem);
+}
+
+.text-responsive-xl {
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+}
+
+.text-responsive-2xl {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem);
+}
+
+.text-responsive-3xl {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+}
+
+.text-responsive-4xl {
+  font-size: clamp(1.875rem, 1.5rem + 1.5vw, 2.25rem);
 }
 
 /* ========================================
@@ -101,19 +193,34 @@ button, [role="button"], a, input, select, textarea {
     opacity: 1;
   }
 
-  /* Larger minimum touch targets */
-  button, [role="button"], a {
+  /* Larger minimum touch targets - WCAG 2.5.5 AAA */
+  button:not(.btn-icon-sm),
+  [role="button"]:not(.btn-icon-sm),
+  a:not(.link-inline) {
     min-height: 44px;
     min-width: 44px;
   }
 
-  /* Reduce animation complexity on mobile */
+  /* Reduce animation complexity on mobile for battery/performance */
   .animate-float {
     animation-duration: 30s !important;
   }
+
+  /* Disable hover transforms on touch devices */
+  .card-interactive:hover,
+  .news-card:hover {
+    transform: none;
+  }
+
+  /* Use active state instead */
+  .card-interactive:active,
+  .news-card:active {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
+  }
 }
 
-/* Safe area insets for notched devices */
+/* Safe area insets for notched devices (iPhone X+, etc.) */
 @supports (padding: max(0px)) {
   .safe-area-inset-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
@@ -122,11 +229,121 @@ button, [role="button"], a, input, select, textarea {
   .safe-area-inset-top {
     padding-top: max(0px, env(safe-area-inset-top));
   }
+
+  .safe-area-inset-left {
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+
+  .safe-area-inset-right {
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  /* Combined safe areas for full-bleed content */
+  .safe-area-all {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 /* Prevent pull-to-refresh interference on scroll containers */
 .overscroll-contain {
   overscroll-behavior: contain;
+}
+
+/* ========================================
+   MOBILE CONTAINER & OVERFLOW CONTROL
+   ======================================== */
+
+/* Prevent any element from causing horizontal scroll */
+.mobile-safe {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Cards that should never overflow */
+.card-mobile-safe {
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Text that might overflow on small screens */
+.text-mobile-safe {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+/* Mobile-specific breakpoint utilities */
+@media (max-width: 374px) {
+  /* iPhone SE and smaller */
+  .hide-on-tiny {
+    display: none !important;
+  }
+
+  .text-tiny-smaller {
+    font-size: 0.8125rem !important;
+  }
+
+  .p-tiny-compact {
+    padding: 0.75rem !important;
+  }
+}
+
+@media (max-width: 389px) {
+  /* Standard iPhones (375px) */
+  .hide-on-small {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   MOBILE TOUCH TARGETS
+   ======================================== */
+
+/* Minimum touch target class for icons/small buttons */
+.touch-target-min {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Expand touch area without changing visual size */
+.touch-target-expand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
+
+/* Small icon button that still meets touch requirements */
+.btn-icon-sm {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.btn-icon-sm::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+}
+
+/* Inline links that don't need 44px targets */
+.link-inline {
+  min-width: auto;
+  min-height: auto;
 }
 
 /* Minimal scrollbar */
@@ -739,6 +956,131 @@ a:focus-visible {
 }
 
 /* ===============================
+   Mobile-Specific Card Styles
+   =============================== */
+
+/* Responsive news card adjustments */
+@media (max-width: 640px) {
+  .news-card {
+    /* Prevent card overflow on mobile */
+    max-width: 100%;
+    overflow: hidden;
+    /* Slightly reduce padding on mobile */
+    padding: 1rem;
+  }
+
+  /* Stack horizontal layouts on small screens */
+  .news-card-content {
+    flex-direction: column;
+  }
+
+  /* Full-width images on mobile */
+  .news-card-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+/* Very small screens (iPhone SE) */
+@media (max-width: 374px) {
+  .news-card {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Reduce font sizes slightly */
+  .news-card h3,
+  .news-card .card-title {
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+
+  .news-card p,
+  .news-card .card-description {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile input fields */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="search"],
+  input[type="password"],
+  textarea,
+  select {
+    /* Prevent iOS zoom on focus (16px minimum) */
+    font-size: 16px !important;
+    /* Adequate height for touch */
+    min-height: 44px;
+    /* Full width on mobile */
+    width: 100%;
+  }
+}
+
+/* Mobile navigation spacing */
+@media (max-width: 640px) {
+  .nav-mobile {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Fixed bottom nav for mobile */
+  .nav-bottom-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+  }
+}
+
+/* Mobile modal/sheet styles */
+@media (max-width: 640px) {
+  .modal-mobile {
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  /* Bottom sheet style */
+  .sheet-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 90vh;
+    max-height: 90dvh;
+    border-radius: 1rem 1rem 0 0;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile spacing utilities */
+@media (max-width: 640px) {
+  .px-mobile {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .mx-mobile-neg {
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+
+  /* Full-bleed on mobile */
+  .bleed-mobile {
+    margin-left: calc(-1rem - env(safe-area-inset-left));
+    margin-right: calc(-1rem - env(safe-area-inset-right));
+    padding-left: calc(1rem + env(safe-area-inset-left));
+    padding-right: calc(1rem + env(safe-area-inset-right));
+  }
+}
+
+/* ===============================
    Dark Mode Contrast Fixes
    =============================== */
 
@@ -818,5 +1160,147 @@ a:focus-visible {
   .skeleton-shimmer,
   .skeleton {
     animation: none !important;
+  }
+}
+
+/* ===============================
+   Dynamic Viewport Units (Mobile Safari)
+   =============================== */
+
+/* Full height accounting for mobile browser chrome */
+.h-screen-dynamic {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.min-h-screen-dynamic {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.max-h-screen-dynamic {
+  max-height: 100vh;
+  max-height: 100dvh;
+}
+
+/* Small viewport (browser chrome visible) */
+.h-screen-small {
+  height: 100vh;
+  height: 100svh;
+}
+
+/* Large viewport (browser chrome hidden) */
+.h-screen-large {
+  height: 100vh;
+  height: 100lvh;
+}
+
+/* ===============================
+   Mobile Scroll Improvements
+   =============================== */
+
+/* Smooth momentum scrolling on iOS */
+.scroll-smooth-ios {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Horizontal scroll container for mobile */
+.scroll-x-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-x-mobile::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-x-mobile > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Prevent body scroll when modal open */
+.body-scroll-lock {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===============================
+   Mobile Performance Optimizations
+   =============================== */
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Contain layout for performance */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+/* ===============================
+   Landscape Mode Adjustments
+   =============================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Compact UI for landscape phones */
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .landscape-hide {
+    display: none !important;
+  }
+
+  /* Smaller touch targets acceptable in landscape */
+  .landscape-touch-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* ===============================
+   Print Styles (often forgotten for mobile)
+   =============================== */
+
+@media print {
+  /* Hide interactive elements */
+  button,
+  .nav-bottom-fixed,
+  .touch-target,
+  [role="button"] {
+    display: none !important;
+  }
+
+  /* Ensure readable text */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+
+  /* Prevent page breaks inside cards */
+  .news-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

@@ -166,9 +166,9 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
 
   return (
     <div className="animate-fade-in">
-      {/* Header with Follow button */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      {/* Header with Follow button - responsive */}
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="flex items-center gap-2 md:gap-3">
           <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Senaste händelserna
           </h2>
@@ -177,8 +177,8 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
         <FollowCompanies />
       </div>
 
-      {/* News items */}
-      <div className="space-y-16">
+      {/* News items - tighter spacing on mobile, more on desktop */}
+      <div className="space-y-4 md:space-y-16">
         {items.map((item) => (
           <NewsCard key={item.id} item={item} />
         ))}

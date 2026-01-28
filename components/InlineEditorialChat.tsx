@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, Hash, MessageSquare, Smile } from 'lucide-react'
+import { Send, Loader2, MessageSquare, Smile } from 'lucide-react'
 import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
 import { Block } from '@/lib/slack-types'
 import BlockKitRenderer from './BlockKitRenderer'
@@ -131,13 +131,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
 
   return (
     <div className="flex flex-col">
-      {/* Channel header */}
-      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-gray-100 dark:border-gray-800">
-        <Hash className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">redaktion-general</span>
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-auto" />
-        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">{messages.length}</span>
-      </div>
 
       {/* Messages */}
       <div

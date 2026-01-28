@@ -14,7 +14,7 @@ export default function GlobalSidebar({ children }: GlobalSidebarProps) {
       <div className="sticky top-24 space-y-6">
         {/* Editorial Chat - always visible, not collapsible */}
         <SidebarWidget
-          title="Redaktionschatten"
+          title="Redaktionen"
           icon={<MessageSquare className="w-4 h-4" />}
           collapsible={false}
         >

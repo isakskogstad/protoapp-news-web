@@ -64,25 +64,35 @@ export function ImageSkeleton({ width, height, className = '' }: ImageSkeletonPr
   )
 }
 
-// Card skeleton for loading news items
+// Card skeleton for loading news items - responsive for mobile
 export function NewsCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
-      <div className="flex gap-5">
-        {/* Left column skeleton */}
-        <div className="flex flex-col items-center w-20 flex-shrink-0">
-          <Skeleton variant="rectangular" width={56} height={56} className="rounded-xl mb-2" />
-          <Skeleton variant="text" width={60} height={12} className="mb-1" />
-          <Skeleton variant="text" width={50} height={10} />
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 md:p-5">
+      {/* Mobile: Stack vertically, Desktop: Side by side */}
+      <div className="flex flex-col md:flex-row gap-3 md:gap-5">
+        {/* Company info row (mobile) / column (desktop) */}
+        <div className="flex md:flex-col items-center md:items-center gap-3 md:gap-0 md:w-20 flex-shrink-0">
+          <Skeleton variant="rectangular" width={48} height={48} className="rounded-xl md:w-14 md:h-14 md:mb-2 flex-shrink-0" />
+          <div className="flex flex-col md:items-center min-w-0 flex-1 md:flex-initial">
+            <Skeleton variant="text" width={80} height={12} className="mb-1" />
+            <Skeleton variant="text" width={60} height={10} />
+          </div>
+          {/* Badge on mobile */}
+          <div className="md:hidden ml-auto">
+            <Skeleton variant="rectangular" width={70} height={18} className="rounded-full" />
+          </div>
         </div>
 
         {/* Main content skeleton */}
         <div className="flex-1 min-w-0">
-          {/* Badge and time */}
-          <div className="flex items-center gap-2 mb-2">
+          {/* Badge and time - hidden on mobile */}
+          <div className="hidden md:flex items-center gap-2 mb-2">
             <Skeleton variant="rectangular" width={70} height={18} className="rounded-full" />
             <Skeleton variant="text" width={60} height={14} />
           </div>
+
+          {/* Time on mobile */}
+          <Skeleton variant="text" width={60} height={14} className="md:hidden mb-1.5" />
 
           {/* Headline */}
           <Skeleton variant="text" width="90%" height={20} className="mb-2" />
@@ -92,6 +102,7 @@ export function NewsCardSkeleton() {
             <Skeleton variant="text" width="100%" height={14} />
             <Skeleton variant="text" width="95%" height={14} />
             <Skeleton variant="text" width="70%" height={14} />
+            <Skeleton variant="text" width="85%" height={14} className="md:hidden" />
           </div>
         </div>
       </div>
