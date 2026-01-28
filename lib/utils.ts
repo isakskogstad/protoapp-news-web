@@ -66,14 +66,16 @@ export function formatProtocolType(type?: string): string {
   if (!type) return 'Protokoll'
   return type
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase())
+    .toLowerCase()
+    .replace(/(^|\s)(\S)/g, (_, space, char) => space + char.toUpperCase())
 }
 
 export function formatSignalName(signal?: string): string {
   if (!signal) return ''
   return signal
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase())
+    .toLowerCase()
+    .replace(/(^|\s)(\S)/g, (_, space, char) => space + char.toUpperCase())
 }
 
 export function formatOmsattning(raw?: string): string {
