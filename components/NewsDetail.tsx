@@ -23,9 +23,6 @@ interface NewsDetailProps {
 export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
-  const [pdfLoading, setPdfLoading] = useState(true)
-  const [pdfError, setPdfError] = useState(false)
-  const [pdfExists, setPdfExists] = useState<boolean | null>(null)
   const [sourceExpanded, setSourceExpanded] = useState(false)
   const [fullscreenPdf, setFullscreenPdf] = useState(false)
   const [kungorelseExpanded, setKungorelseExpanded] = useState(false)
@@ -34,27 +31,6 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   const eventType = detectEventType(item)
   const eventConfig = eventType ? eventTypeConfig[eventType] : null
   const logoUrl = getLogoUrl(item.orgNumber, item.logoUrl)
-
-  // Check if PDF exists
-  useEffect(() => {
-    if (item.sourceType === 'pdf' && item.sourceUrl) {
-      fetch(item.sourceUrl, { method: 'HEAD' })
-        .then(res => {
-          if (res.ok) {
-            setPdfExists(true)
-          } else {
-            setPdfExists(false)
-            setPdfError(true)
-            setPdfLoading(false)
-          }
-        })
-        .catch(() => {
-          setPdfExists(false)
-          setPdfError(true)
-          setPdfLoading(false)
-        })
-    }
-  }, [item.sourceUrl, item.sourceType])
 
   // Close fullscreen PDF on click outside
   useEffect(() => {
@@ -89,7 +65,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   }, [])
 
   // Determine content availability
-  const hasPdf = item.sourceType === 'pdf' && !!item.sourceUrl && pdfExists !== false
+  const hasPdf = item.sourceType === 'pdf' && !!item.sourceUrl
   const hasKungorelse = item.sourceType === 'kungorelse'
   const hasBolagsInfo = !!item.bolagsInfo
   const hasKallelse = !!item.kallelseFaktaruta
@@ -250,11 +226,6 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 url={item.sourceUrl!}
                 compact={true}
                 maxHeight={300}
-                onLoadSuccess={() => setPdfLoading(false)}
-                onLoadError={() => {
-                  setPdfLoading(false)
-                  setPdfError(true)
-                }}
               />
             </div>
           )}
