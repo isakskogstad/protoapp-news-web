@@ -5,6 +5,9 @@ import { ProtocolAnalysis, Kungorelse } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
+// Cutoff date for kungörelser - only include from 2026-01-22 and later
+const KUNGORELSE_CUTOFF_DATE = new Date('2026-01-22T00:00:00Z')
+
 export async function GET(request: NextRequest) {
   const encoder = new TextEncoder()
   const supabase = createServerClient()
@@ -57,9 +60,19 @@ export async function GET(request: NextRequest) {
           },
           (payload) => {
             try {
+              const kungorelse = payload.new as Kungorelse | null
+
+              // Filter: skip kungörelser before cutoff date
+              if (kungorelse?.publicerad) {
+                const publiceradDate = new Date(kungorelse.publicerad)
+                if (publiceradDate < KUNGORELSE_CUTOFF_DATE) {
+                  return // Skip this kungörelse
+                }
+              }
+
               // Transform to NewsItem format
-              const newsItem = payload.new
-                ? kungorelseToNewsItem(payload.new as Kungorelse)
+              const newsItem = kungorelse
+                ? kungorelseToNewsItem(kungorelse)
                 : null
 
               const data = JSON.stringify({

@@ -3,6 +3,9 @@ import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 import { ProtocolAnalysis, Kungorelse, NewsItem } from '@/lib/types'
 
+// Cutoff date for kungörelser - only fetch from 2026-01-22 and later
+const KUNGORELSE_CUTOFF_DATE = '2026-01-22'
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const limit = parseInt(searchParams.get('limit') || '20')
@@ -35,6 +38,7 @@ export async function GET(request: NextRequest) {
       const { data: kungorelser, error, count } = await supabase
         .from('Kungorelser')
         .select('*', { count: 'exact' })
+        .gte('publicerad', KUNGORELSE_CUTOFF_DATE)
         .order('publicerad', { ascending: false })
         .range(offset, offset + limit - 1)
 
@@ -63,6 +67,7 @@ export async function GET(request: NextRequest) {
       supabase
         .from('Kungorelser')
         .select('*', { count: 'exact' })
+        .gte('publicerad', KUNGORELSE_CUTOFF_DATE)
         .order('publicerad', { ascending: false })
         .limit(fetchLimit),
     ])

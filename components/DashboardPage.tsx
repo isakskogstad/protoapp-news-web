@@ -701,14 +701,23 @@ function TimelineItemWrapper({
 // Allowed kungörelse categories (only Konkurs and Kallelse are news-worthy)
 const ALLOWED_KUNGORELSE_CATEGORIES = ['konkurs', 'kallelse']
 
+// Cutoff date for kungörelser - only show from 2026-01-22 and later
+const KUNGORELSE_CUTOFF_DATE = new Date('2026-01-22T00:00:00Z')
+
 // Filter function: only show news-worthy items
 // Kungörelser with "Ändringar" or other non-news categories are excluded
 function isNewsWorthy(item: NewsItem): boolean {
   // Protocol analyses are always news-worthy
   if (item.type === 'protocol') return true
 
-  // For kungörelser, check the category
+  // For kungörelser, check the category and date
   if (item.type === 'kungorelse') {
+    // Date filter: exclude kungörelser before 2026-01-22
+    const itemDate = item.timestamp ? new Date(item.timestamp) : null
+    if (itemDate && itemDate < KUNGORELSE_CUTOFF_DATE) {
+      return false
+    }
+
     const amnesomrade = (item.kungorelse?.amnesomrade || '').toLowerCase()
 
     // Only show Konkurs and Kallelse kungörelser
