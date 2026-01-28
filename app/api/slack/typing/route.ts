@@ -12,11 +12,12 @@ const TYPING_TIMEOUT = 5000
 // Clean up expired typing statuses
 function cleanupTyping() {
   const now = Date.now()
-  for (const [id, data] of typingUsers.entries()) {
+  const entries = Array.from(typingUsers.entries())
+  entries.forEach(([id, data]) => {
     if (now - data.timestamp > TYPING_TIMEOUT) {
       typingUsers.delete(id)
     }
-  }
+  })
 }
 
 // POST - Set typing status
