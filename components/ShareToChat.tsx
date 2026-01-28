@@ -74,7 +74,9 @@ export default function ShareToChat({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to share')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Share to chat failed:', errorData)
+        throw new Error(errorData.error || 'Failed to share')
       }
 
       setShared(true)

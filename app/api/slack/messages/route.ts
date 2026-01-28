@@ -346,9 +346,10 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
 
     if (!data.ok) {
-      // If user token failed, try with bot token as fallback
-      if (useUserToken && data.error === 'not_in_channel') {
-        // User needs to join the channel first, use bot instead
+      // If user token failed for ANY reason, try with bot token as fallback
+      if (useUserToken) {
+        console.log(`User token failed with error: ${data.error}, falling back to bot token`)
+
         const botPayload = {
           ...payload,
           text: blocks ? text.trim() : `*${userName}:* ${text.trim()}`,
@@ -365,11 +366,13 @@ export async function POST(request: NextRequest) {
 
         const botData = await botResponse.json()
         if (!botData.ok) {
+          console.error(`Bot token also failed: ${botData.error}`)
           return NextResponse.json({ error: botData.error }, { status: 500 })
         }
         return NextResponse.json({ success: true, ts: botData.ts, message: botData.message, sentAsBot: true })
       }
 
+      console.error(`Slack message failed: ${data.error}`)
       return NextResponse.json({ error: data.error }, { status: 500 })
     }
 
