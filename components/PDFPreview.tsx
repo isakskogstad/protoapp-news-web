@@ -20,11 +20,13 @@ export default function PDFPreview({
 }: PDFPreviewProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [useGoogleViewer, setUseGoogleViewer] = useState(false)
 
   useEffect(() => {
     // Reset state when URL changes
     setLoading(true)
     setError(false)
+    setUseGoogleViewer(false)
   }, [url])
 
   const handleLoad = () => {
@@ -33,10 +35,25 @@ export default function PDFPreview({
   }
 
   const handleError = () => {
-    setLoading(false)
-    setError(true)
-    onLoadError?.()
+    // If direct embed fails, try Google Docs viewer
+    if (!useGoogleViewer) {
+      setUseGoogleViewer(true)
+      setLoading(true)
+    } else {
+      setLoading(false)
+      setError(true)
+      onLoadError?.()
+    }
   }
+
+  // Google Docs viewer URL for fallback
+  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
+
+  // PDF.js viewer URL (Mozilla's free hosted viewer)
+  const pdfJsViewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`
+
+  // Determine which URL to use
+  const embedUrl = useGoogleViewer ? googleViewerUrl : url
 
   if (error) {
     return (
@@ -48,15 +65,26 @@ export default function PDFPreview({
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
           Kunde inte ladda PDF-förhandsgranskning
         </p>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Öppna PDF i ny flik
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Öppna PDF
+          </a>
+          <a
+            href={pdfJsViewerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            Öppna i PDF.js
+          </a>
+        </div>
       </div>
     )
   }
@@ -71,14 +99,17 @@ export default function PDFPreview({
         >
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">Laddar PDF...</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              {useGoogleViewer ? 'Laddar via Google Docs...' : 'Laddar PDF...'}
+            </p>
           </div>
         </div>
       )}
 
-      {/* PDF via iframe - more reliable with CORS */}
-      <iframe
-        src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
+      {/* PDF embed - use object tag for better compatibility */}
+      <object
+        data={`${embedUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+        type="application/pdf"
         className="w-full bg-white"
         style={{
           height: compact ? maxHeight : '70vh',
@@ -86,8 +117,20 @@ export default function PDFPreview({
         }}
         onLoad={handleLoad}
         onError={handleError}
-        title="PDF-förhandsgranskning"
-      />
+      >
+        {/* Fallback content if object doesn't render */}
+        <iframe
+          src={useGoogleViewer ? googleViewerUrl : `${url}#toolbar=0&navpanes=0&scrollbar=1`}
+          className="w-full h-full bg-white"
+          style={{
+            height: compact ? maxHeight : '70vh',
+            minHeight: compact ? maxHeight : 400
+          }}
+          onLoad={handleLoad}
+          onError={handleError}
+          title="PDF-förhandsgranskning"
+        />
+      </object>
 
       {/* Compact mode click hint */}
       {compact && !loading && (
