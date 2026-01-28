@@ -147,15 +147,11 @@ interface NewsItem {
 export function buildNewsBlocks(news: NewsItem, baseUrl: string): Block[] {
   const blocks: Block[] = []
 
-  // Show who shared the news
-  if (news.sharedBy) {
-    blocks.push(context([`📤 *${news.sharedBy}* delade en nyhet`]))
-  }
-
-  // Header section with company info
+  // Compact header: who shared + company name in one line
+  const sharedByText = news.sharedBy ? `📤 *${news.sharedBy}* delade: ` : ''
   const headerText = news.headline
-    ? `*${news.headline}*`
-    : `*Ny händelse för ${news.companyName}*`
+    ? `${sharedByText}*${news.headline}*`
+    : `${sharedByText}*Ny händelse för ${news.companyName}*`
 
   const sectionBlock = section(headerText)
   if (news.logoUrl) {
@@ -163,37 +159,23 @@ export function buildNewsBlocks(news: NewsItem, baseUrl: string): Block[] {
   }
   blocks.push(sectionBlock)
 
-  // Context with metadata
-  const contextElements: string[] = []
-  if (news.companyName) contextElements.push(`🏢 *${news.companyName}*`)
-  if (news.orgNumber) contextElements.push(`Org.nr: ${news.orgNumber}`)
-  if (news.protocolType) contextElements.push(`📄 ${news.protocolType}`)
-  if (news.protocolDate) contextElements.push(`📅 ${news.protocolDate}`)
-
-  if (contextElements.length > 0) {
-    blocks.push(context(contextElements))
-  }
-
-  // Notice text (truncated)
-  if (news.noticeText) {
-    const truncated = news.noticeText.length > 300
-      ? news.noticeText.slice(0, 300) + '...'
-      : news.noticeText
-    blocks.push(section(truncated))
-  }
-
-  // News value indicator
+  // Compact context: all metadata on one line
+  const contextParts: string[] = []
+  if (news.companyName) contextParts.push(`🏢 ${news.companyName}`)
+  if (news.protocolType) contextParts.push(`📄 ${news.protocolType}`)
   if (news.newsValue !== undefined && news.newsValue > 0) {
     const valueEmoji = news.newsValue >= 7 ? '🔴' : news.newsValue >= 4 ? '🟡' : '🟢'
-    blocks.push(context([`${valueEmoji} Nyhetsvärde: ${news.newsValue}/10`]))
+    contextParts.push(`${valueEmoji} ${news.newsValue}/10`)
   }
 
-  blocks.push(divider())
+  if (contextParts.length > 0) {
+    blocks.push(context([contextParts.join('  •  ')]))
+  }
 
-  // Action buttons
+  // Action button (inline, no divider)
   const newsUrl = `${baseUrl}/news/${news.id}`
   blocks.push(actions([
-    button('📰 Öppna i LoopDesk', { url: newsUrl, style: 'primary' }),
+    button('Öppna', { url: newsUrl, style: 'primary' }),
   ]))
 
   return blocks

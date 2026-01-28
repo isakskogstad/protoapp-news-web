@@ -2,7 +2,7 @@
 
 import { parseSlackMessage, parseSlackFormatting, parseEmoji } from '@/lib/slack-utils'
 import { Block, TextObject, BlockElement, Attachment } from '@/lib/slack-types'
-import { ExternalLink, Building2, FileText, Calendar, TrendingUp } from 'lucide-react'
+import { ExternalLink, Building2 } from 'lucide-react'
 
 interface BlockKitRendererProps {
   blocks: Block[]
@@ -250,7 +250,7 @@ function DividerBlock() {
   return <hr className="border-gray-200 dark:border-gray-700 my-2" />
 }
 
-// Beautiful news card component for shared news items
+// Compact news card component for shared news items
 function NewsCard({ blocks }: { blocks: Block[] }) {
   const data = extractNewsData(blocks)
 
@@ -262,93 +262,62 @@ function NewsCard({ blocks }: { blocks: Block[] }) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-[#1c2128] dark:to-[#161b22] rounded-xl border border-gray-200 dark:border-[#30363d] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      {/* Header with logo and company info */}
-      <div className="p-4 border-b border-gray-100 dark:border-[#30363d]">
-        <div className="flex items-start gap-3">
-          {/* Logo */}
+    <div className="bg-gray-50 dark:bg-[#1c2128] rounded-lg border border-gray-200 dark:border-[#30363d] overflow-hidden">
+      <div className="p-2.5">
+        {/* Compact header row */}
+        <div className="flex items-center gap-2">
+          {/* Small logo */}
           {data.logoUrl ? (
             <img
               src={data.logoUrl}
               alt={data.companyName || ''}
-              className="w-10 h-10 rounded-lg object-contain bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+              className="w-7 h-7 rounded object-contain bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#1e40af] to-[#3b82f6] flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
+            <div className="w-7 h-7 rounded bg-gradient-to-br from-[#1e40af] to-[#3b82f6] flex items-center justify-center shrink-0">
+              <Building2 className="w-3.5 h-3.5 text-white" />
             </div>
           )}
 
           <div className="flex-1 min-w-0">
-            {/* Company name */}
-            <h4 className="text-sm font-bold text-[#0f172a] dark:text-[#e6edf3] truncate">
-              {data.companyName || 'Nyhet'}
-            </h4>
-            {/* Metadata row */}
-            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 font-mono">
-              {data.orgNumber && <span>{data.orgNumber}</span>}
+            {/* Company + headline on one line */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-[#0f172a] dark:text-[#e6edf3] truncate">
+                {data.companyName || 'Nyhet'}
+              </span>
               {data.protocolType && (
-                <>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    {data.protocolType}
-                  </span>
-                </>
+                <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded font-medium shrink-0">
+                  {data.protocolType}
+                </span>
               )}
-              {data.protocolDate && (
-                <>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {data.protocolDate}
-                  </span>
-                </>
+              {data.newsValue !== undefined && (
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${getNewsValueColor(data.newsValue)}`}>
+                  {data.newsValue}/10
+                </span>
               )}
             </div>
           </div>
-
-          {/* News value badge */}
-          {data.newsValue !== undefined && (
-            <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getNewsValueColor(data.newsValue)}`}>
-              {data.newsValue}/10
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-4">
         {/* Headline */}
         {data.headline && (
-          <h3 className="text-sm font-semibold text-[#0f172a] dark:text-[#e6edf3] leading-snug mb-2">
+          <p className="text-[11px] font-medium text-[#0f172a] dark:text-[#e6edf3] mt-1.5 line-clamp-2">
             {data.headline}
-          </h3>
-        )}
-
-        {/* Notice text (truncated) */}
-        {data.noticeText && (
-          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
-            {data.noticeText}
           </p>
         )}
-      </div>
 
-      {/* Footer with action */}
-      {data.url && (
-        <div className="px-4 pb-3">
+        {/* Action link */}
+        {data.url && (
           <a
             href={data.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1e40af] hover:bg-[#1e3a8a] text-white text-xs font-medium rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium text-blue-600 dark:text-blue-400 hover:underline"
           >
-            <TrendingUp className="w-3.5 h-3.5" />
-            Öppna i LoopDesk
-            <ExternalLink className="w-3 h-3 opacity-60" />
+            Öppna <ExternalLink className="w-2.5 h-2.5" />
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
