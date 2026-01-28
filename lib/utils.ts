@@ -158,13 +158,26 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
   // Extract nyemission faktaruta from extracted_data
   const nyemission = analysis.extracted_data?.kapitalåtgärder?.nyemission
   if (nyemission && nyemission.beslutad) {
+    // Get emissionsbelopp from multiple sources (calculations.emission or extracted_data, or calculate)
+    const emissionCalc = (analysis.calculations as Record<string, unknown>)?.emission as Record<string, unknown> | undefined
+    const emissionsbeloppKr =
+      emissionCalc?.emissionsbelopp_kr as number | undefined ||
+      nyemission.emissionsbelopp_kr ||
+      (nyemission.antal_nya_aktier && nyemission.teckningskurs_kr
+        ? nyemission.antal_nya_aktier * nyemission.teckningskurs_kr
+        : null)
+
+    // Get utspädning from calculations.utspädning.utspädning_procent
+    const utspädningCalc = (analysis.calculations as Record<string, unknown>)?.utspädning as Record<string, unknown> | undefined
+    const utspädningProcent = utspädningCalc?.utspädning_procent as number | undefined
+
     item.nyemissionFaktaruta = {
       bolagsnamn: analysis.company_name || '',
       emissionstyp: nyemission.typ || 'Nyemission',
       antalAktier: nyemission.antal_nya_aktier ? nyemission.antal_nya_aktier.toLocaleString('sv-SE') : '-',
       teckningskurs: nyemission.teckningskurs_kr ? `${nyemission.teckningskurs_kr.toLocaleString('sv-SE')} kr` : '-',
-      emissionsbelopp: nyemission.emissionsbelopp_kr ? `${(nyemission.emissionsbelopp_kr / 1_000_000).toFixed(1)} mkr` : '-',
-      utspädning: analysis.calculations?.utspädning_procent ? `${analysis.calculations.utspädning_procent.toFixed(1)}%` : '-',
+      emissionsbelopp: emissionsbeloppKr ? `${(emissionsbeloppKr / 1_000_000).toFixed(1)} mkr` : '-',
+      utspädning: utspädningProcent ? `${utspädningProcent.toFixed(1)}%` : '-',
       teckningsperiod: '',
     }
   }
