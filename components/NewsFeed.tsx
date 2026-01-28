@@ -17,11 +17,15 @@ interface NewsFeedProps {
   initialItems: NewsItem[]
 }
 
+type EventTypeFilter = 'konkurs' | 'nyemission' | 'styrelseforandring' | 'vdbyte' | 'rekonstruktion' | 'other'
+
 interface FollowSettings {
   enabled: boolean
   mode: 'all' | 'selected'
   selectedCompanies: { org_number: string; company_name: string }[]
   slackWebhookUrl: string
+  eventTypes: EventTypeFilter[]
+  compactView: boolean
 }
 
 // Estimated item heights - will be measured dynamically
@@ -125,6 +129,7 @@ interface VirtualRowProps {
   items: NewsItem[]
   gap: number
   dynamicRowHeight: ReturnType<typeof useDynamicRowHeight>
+  compactView: boolean
 }
 
 // Row component for the virtualized list - react-window 2.x format
@@ -135,6 +140,7 @@ function VirtualRow({
   items,
   gap,
   dynamicRowHeight,
+  compactView,
 }: {
   index: number
   style: CSSProperties
@@ -153,16 +159,17 @@ function VirtualRow({
 
   if (!item) return null
 
-  // Adjust style to include gap as margin
+  // Adjust style to include gap as margin - smaller gap in compact view
+  const adjustedGap = compactView ? Math.min(gap, 8) : gap
   const adjustedStyle: CSSProperties = {
     ...style,
-    paddingBottom: gap,
+    paddingBottom: adjustedGap,
   }
 
   return (
     <div style={adjustedStyle} {...ariaAttributes} data-index={index}>
       <div ref={rowRef}>
-        <NewsCard item={item} />
+        <NewsCard item={item} compact={compactView} />
       </div>
     </div>
   )
@@ -177,6 +184,27 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
   const { addNotification } = useNotificationHistory()
   const [listHeight, setListHeight] = useState(600)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [compactView, setCompactView] = useState(false)
+
+  // Listen for localStorage changes to sync compactView
+  useEffect(() => {
+    const updateCompactView = () => {
+      const settings = getFollowSettings()
+      setCompactView(settings?.compactView || false)
+    }
+
+    // Initial load
+    updateCompactView()
+
+    // Listen for storage events (from other tabs) and custom events (same tab)
+    window.addEventListener('storage', updateCompactView)
+    window.addEventListener('loopdesk-settings-changed', updateCompactView)
+
+    return () => {
+      window.removeEventListener('storage', updateCompactView)
+      window.removeEventListener('loopdesk-settings-changed', updateCompactView)
+    }
+  }, [])
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -196,10 +224,30 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     setToastQueue(prev => prev.filter(item => item.id !== id))
   }, [])
 
+  // Detect event type from NewsItem
+  const detectEventTypeFromItem = useCallback((item: NewsItem): EventTypeFilter => {
+    const headline = (item.headline || '').toLowerCase()
+    const noticeText = (item.noticeText || '').toLowerCase()
+    const protocolType = (item.protocolType || '').toLowerCase()
+    const combined = `${headline} ${noticeText} ${protocolType}`
+
+    if (combined.includes('konkurs')) return 'konkurs'
+    if (combined.includes('nyemission') || combined.includes('emission')) return 'nyemission'
+    if (combined.includes('styrelse')) return 'styrelseforandring'
+    if (combined.includes('vd') && (combined.includes('byte') || combined.includes('ny ') || combined.includes('avgår'))) return 'vdbyte'
+    if (combined.includes('rekonstruktion')) return 'rekonstruktion'
+    return 'other'
+  }, [])
+
   // Check if we should notify for this item - memoized
   const shouldNotify = useCallback((item: NewsItem): boolean => {
     const settings = getFollowSettings()
     if (!settings || !settings.enabled) return false
+
+    // Check event type filter
+    const eventType = detectEventTypeFromItem(item)
+    const allowedTypes = settings.eventTypes || ['konkurs', 'nyemission', 'styrelseforandring', 'vdbyte', 'rekonstruktion', 'other']
+    if (!allowedTypes.includes(eventType)) return false
 
     if (settings.mode === 'all') return true
 
@@ -207,7 +255,7 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     return settings.selectedCompanies.some(
       c => c.org_number === item.orgNumber || c.org_number.replace('-', '') === item.orgNumber.replace('-', '')
     )
-  }, [])
+  }, [detectEventTypeFromItem])
 
   // Realtime message handler - memoized to prevent recreation
   const handleRealtimeMessage = useCallback((message: RealtimeMessage) => {
@@ -328,17 +376,18 @@ export default function NewsFeed({ initialItems }: NewsFeedProps) {
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
-  // Reset heights when gap changes (viewport changes between mobile/desktop)
+  // Reset heights when gap or compactView changes
   useEffect(() => {
     setHeightKey(k => k + 1)
-  }, [gap])
+  }, [gap, compactView])
 
   // Row props - memoized to prevent unnecessary re-renders
   const rowProps = useMemo(() => ({
     items,
     gap,
     dynamicRowHeight,
-  }), [items, gap, dynamicRowHeight])
+    compactView,
+  }), [items, gap, dynamicRowHeight, compactView])
 
   return (
     <div className="animate-fade-in" ref={containerRef}>

@@ -8,6 +8,7 @@ import ShareButton from './ShareButton'
 
 interface NewsCardProps {
   item: NewsItem
+  compact?: boolean
 }
 
 // Format date as "12 juni -24"
@@ -54,7 +55,7 @@ function getProtocolLabel(protocolType?: string): { line1: string; suffix: strin
   return null
 }
 
-export default function NewsCard({ item }: NewsCardProps) {
+export default function NewsCard({ item, compact = false }: NewsCardProps) {
   const [logoError, setLogoError] = useState(false)
   const [logoLoading, setLogoLoading] = useState(true)
   const eventType = detectEventType(item)
@@ -64,7 +65,7 @@ export default function NewsCard({ item }: NewsCardProps) {
   // Get formatted event date and protocol label
   const formattedDate = formatEventDate(item.eventDate)
   const protocolLabel = getProtocolLabel(item.protocolType)
-  const showTwoLineLabel = protocolLabel && formattedDate
+  const showTwoLineLabel = protocolLabel && formattedDate && !compact
 
   // Render the protocol badge (two-line format with date, or simple label)
   const renderProtocolBadge = (compact = false) => {
@@ -108,6 +109,66 @@ export default function NewsCard({ item }: NewsCardProps) {
     return null
   }
 
+  // Compact view - single line with essential info
+  if (compact) {
+    return (
+      <article className="relative group bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
+        <Link href={`/news/${item.id}`} className="flex items-center gap-3 p-3">
+          {/* Small logo */}
+          <div className="relative w-8 h-8 flex-shrink-0">
+            {!logoError ? (
+              <img
+                src={logoUrl}
+                alt=""
+                className={`w-full h-full object-contain rounded-lg transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => setLogoLoading(false)}
+                onError={() => {
+                  setLogoError(true)
+                  setLogoLoading(false)
+                }}
+              />
+            ) : (
+              <div className="w-full h-full rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <span className="text-gray-500 dark:text-gray-400 font-semibold text-[10px]">
+                  {item.companyName.substring(0, 2).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">
+                {item.companyName}
+              </span>
+              {eventConfig && (
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded font-medium text-white whitespace-nowrap flex-shrink-0"
+                  style={{ backgroundColor: eventConfig.color }}
+                >
+                  {eventConfig.label}
+                </span>
+              )}
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0">
+                {formatRelativeTime(item.timestamp)}
+              </span>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {item.headline || item.noticeText || `Ny händelse för ${item.companyName}`}
+            </p>
+          </div>
+
+          {/* Chevron */}
+          <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </article>
+    )
+  }
+
+  // Full view (original)
   return (
     <article className="relative group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100/80 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer">
       <Link href={`/news/${item.id}`} className="block p-4 md:p-6">

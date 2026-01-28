@@ -7,11 +7,25 @@ interface Company {
   company_name: string
 }
 
-interface FollowSettings {
+// Event types that can be filtered
+export type EventTypeFilter = 'konkurs' | 'nyemission' | 'styrelseforandring' | 'vdbyte' | 'rekonstruktion' | 'other'
+
+export const EVENT_TYPE_CONFIG: Record<EventTypeFilter, { label: string; emoji: string; color: string }> = {
+  konkurs: { label: 'Konkurs', emoji: '🔴', color: '#dc3545' },
+  nyemission: { label: 'Nyemission', emoji: '💰', color: '#28a745' },
+  styrelseforandring: { label: 'Styrelseförändring', emoji: '👥', color: '#6f42c1' },
+  vdbyte: { label: 'VD-byte', emoji: '👔', color: '#fd7e14' },
+  rekonstruktion: { label: 'Rekonstruktion', emoji: '⚠️', color: '#ffc107' },
+  other: { label: 'Övrigt', emoji: '📄', color: '#6c757d' },
+}
+
+export interface FollowSettings {
   enabled: boolean
   mode: 'all' | 'selected'
   selectedCompanies: Company[]
   slackWebhookUrl: string
+  eventTypes: EventTypeFilter[]
+  compactView: boolean
 }
 
 const DEFAULT_SETTINGS: FollowSettings = {
@@ -19,6 +33,8 @@ const DEFAULT_SETTINGS: FollowSettings = {
   mode: 'all',
   selectedCompanies: [],
   slackWebhookUrl: '',
+  eventTypes: ['konkurs', 'nyemission', 'styrelseforandring', 'vdbyte', 'rekonstruktion', 'other'],
+  compactView: false,
 }
 
 export default function FollowCompanies() {
@@ -48,6 +64,8 @@ export default function FollowCompanies() {
   const saveSettings = useCallback((newSettings: FollowSettings) => {
     setSettings(newSettings)
     localStorage.setItem('loopdesk_follow_settings', JSON.stringify(newSettings))
+    // Dispatch custom event for same-tab listeners
+    window.dispatchEvent(new CustomEvent('loopdesk-settings-changed'))
   }, [])
 
   // Search companies
@@ -128,6 +146,18 @@ export default function FollowCompanies() {
   const updateWebhookUrl = (url: string) => {
     saveSettings({ ...settings, slackWebhookUrl: url })
     setTestResult(null) // Reset test result when URL changes
+  }
+
+  const toggleEventType = (eventType: EventTypeFilter) => {
+    const current = settings.eventTypes || []
+    const newTypes = current.includes(eventType)
+      ? current.filter(t => t !== eventType)
+      : [...current, eventType]
+    saveSettings({ ...settings, eventTypes: newTypes })
+  }
+
+  const toggleCompactView = () => {
+    saveSettings({ ...settings, compactView: !settings.compactView })
   }
 
   const testSlackWebhook = async () => {
@@ -306,6 +336,64 @@ export default function FollowCompanies() {
                   </a>
                   {' '}i din Slack-workspace för att få notiser.
                 </p>
+              </div>
+
+              {/* Event type filters */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  Händelsetyper att bevaka
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(Object.keys(EVENT_TYPE_CONFIG) as EventTypeFilter[]).map(type => {
+                    const config = EVENT_TYPE_CONFIG[type]
+                    const isSelected = (settings.eventTypes || []).includes(type)
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => toggleEventType(type)}
+                        className={`
+                          inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all
+                          ${isSelected
+                            ? 'text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 opacity-50'}
+                        `}
+                        style={isSelected ? { backgroundColor: config.color } : undefined}
+                      >
+                        <span>{config.emoji}</span>
+                        <span>{config.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="mt-1.5 text-[10px] text-gray-400">
+                  Klicka för att aktivera/inaktivera händelsetyper.
+                </p>
+              </div>
+
+              {/* Compact view toggle */}
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    Kompakt vy
+                  </label>
+                  <p className="text-[10px] text-gray-400">
+                    Visa fler nyheter per skärm
+                  </p>
+                </div>
+                <button
+                  onClick={toggleCompactView}
+                  className={`
+                    relative w-10 h-5 rounded-full transition-colors duration-300 flex-shrink-0
+                    ${settings.compactView ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}
+                  `}
+                >
+                  <span
+                    className={`
+                      absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300
+                      ${settings.compactView ? 'translate-x-5' : 'translate-x-0.5'}
+                    `}
+                  />
+                </button>
               </div>
 
               {/* Company search (only when mode is 'selected') */}
