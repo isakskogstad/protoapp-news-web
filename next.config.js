@@ -23,6 +23,11 @@ const nextConfig = {
     // Allow favicons from media sites (used with regular img tags, not Next Image)
     unoptimized: false,
   },
+  webpack: (config) => {
+    // Handle canvas for react-pdf
+    config.resolve.alias.canvas = false
+    return config
+  },
 }
 
 module.exports = nextConfig

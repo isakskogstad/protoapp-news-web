@@ -13,6 +13,7 @@ import BolagsfaktaModule from './BolagsfaktaModule'
 import ArsredovisningarModule from './ArsredovisningarModule'
 import ShareToChat from './ShareToChat'
 import NewsSidebar from './NewsSidebar'
+import PDFPreview from './PDFPreview'
 
 interface NewsDetailProps {
   item: NewsItem
@@ -231,37 +232,19 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
           {/* Expanded content - PDF viewer */}
           {hasPdf && sourceExpanded && (
             <div
-              className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down"
+              className="mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden animate-slide-down cursor-pointer"
+              onClick={() => setFullscreenPdf(true)}
             >
-              <div
-                className="relative bg-gray-100 dark:bg-gray-800 cursor-pointer"
-                style={{ height: '300px' }}
-                onClick={() => setFullscreenPdf(true)}
-              >
-                {pdfLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">Laddar...</p>
-                    </div>
-                  </div>
-                )}
-                <iframe
-                  src={`${item.sourceUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className={`w-full h-full border-0 pointer-events-none transition-opacity ${pdfLoading ? 'opacity-0' : 'opacity-100'}`}
-                  onLoad={() => setPdfLoading(false)}
-                  onError={() => {
-                    setPdfLoading(false)
-                    setPdfError(true)
-                  }}
-                  title="PDF-dokument"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent flex items-end justify-center pb-4 pointer-events-none">
-                  <span className="text-xs font-medium text-white bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
-                    Klicka för att läsa i helskärm
-                  </span>
-                </div>
-              </div>
+              <PDFPreview
+                url={item.sourceUrl!}
+                compact={true}
+                maxHeight={300}
+                onLoadSuccess={() => setPdfLoading(false)}
+                onLoadError={() => {
+                  setPdfLoading(false)
+                  setPdfError(true)
+                }}
+              />
             </div>
           )}
 
@@ -283,10 +266,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div
             ref={expandedContentRef}
-            className="relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl w-full max-w-5xl h-[85vh]"
+            className="relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col"
           >
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Protokoll</span>
@@ -309,12 +292,13 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                 </button>
               </div>
             </div>
-            {/* PDF iframe - full height */}
-            <iframe
-              src={`${item.sourceUrl}#toolbar=1&navpanes=1`}
-              className="w-full h-full border-0 pt-14"
-              title="PDF-dokument helskärm"
-            />
+            {/* PDF viewer - full height */}
+            <div className="flex-1 overflow-hidden">
+              <PDFPreview
+                url={item.sourceUrl!}
+                compact={false}
+              />
+            </div>
           </div>
         </div>
       )}

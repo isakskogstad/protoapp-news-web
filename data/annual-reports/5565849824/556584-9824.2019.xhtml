@@ -1,0 +1,1462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+		xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" 
+		xmlns:num="http://www.xbrl.org/dtr/type/numeric" 
+		xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+		xmlns:ixt="http://www.xbrl.org/inlineXBRL/transformation/2010-04-20" 
+		xmlns:xlink="http://www.w3.org/1999/xlink" 
+		xmlns:link="http://www.xbrl.org/2003/linkbase" 
+		xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+		xmlns:ix="http://www.xbrl.org/2013/inlineXBRL" 
+		xmlns:ixt3="http://www.xbrl.org/inlineXBRL/transformation/2011-07-31" 
+		xmlns:enum="http://xbrl.org/2014/extensible-enumerations" 
+		xmlns:se-ar-base="http://www.far.se/se/fr/ar/base/2017-09-30"
+		xmlns:se-gen-base="http://www.taxonomier.se/se/fr/gen-base/2018-12-17" 
+		xmlns:se-cd-base="http://www.taxonomier.se/se/fr/cd-base/2018-12-17" 
+		xmlns:se-k3-type="http://www.taxonomier.se/se/fr/k3/datatype"
+		xmlns:se-bol-base="http://www.bolagsverket.se/se/fr/comp-base/2017-09-30"
+		xmlns:se-k2-type="http://www.taxonomier.se/se/fr/k2/datatype">
+	<head>
+		<title>Årsredovisning för Corpower Ocean AB (556584-9824)</title>
+		<!--
+		<link type="text/css" href="style.css" rel="stylesheet" media="all"/>
+		<link type="text/css" href="ar.prod.css" rel="stylesheet" media="all"/>
+-->
+		<meta name="programvara" content="E-revisor.se"/>
+		<meta name="programversion" content="2020 2.3 K3 200217"/>
+		<meta name="revisionsberattelse-sha256" content="b2260b6178a822c85377bf40339d969a3e16c54ff02bcabe5ded397e9a1b5775"/>
+		<meta name="revisionsberattelse-sha256" content="b2260b6178a822c85377bf40339d969a3e16c54ff02bcabe5ded397e9a1b5775"/>
+		<style type="text/css">
+
+/*allmänt */
+
+html, body {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 11px;
+	font-weight: 400;
+	margin: 0;
+	padding: 0;
+	color: #000000;margin: 0px;
+}
+
+
+body {
+  background: rgb(204,204,204); /*grå bakgrund default */
+}
+
+#ARk2form {
+ padding-left: 40px;	
+ padding-right: 40px;	
+}
+
+.ar-page {
+  background: white;
+  /*width: 595px;*/
+  width: 21cm;
+  /*height: 29.7cm;*/
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 0.5cm;
+  box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  padding: 15mm;
+  page-break-after: always;
+}
+@media print { /*inställningar för utskrift, pdf (prince, BV) */
+  body, .ar-page {
+    width: 100% !important; /*Behövs för skapande av PDF i Prince och hos BV samt print av XBRL*/
+    margin: 0 0 0 0;
+	box-shadow: 0 0 0 white; /*skugga tas bort*/
+	background: white; /*behövs då defaultfärg är grå*/
+	padding: 0 0 0 0;
+  }
+  body * { /*Behövs för pdf hos BV*/
+	font-size: 11px;
+  }
+  @page {
+	  /*margin: 4cm !important;*/
+	  }
+}
+
+@page {
+    size: A4;
+	/*margin: 0 0 0 0 !important;
+	padding: 0 0 0 0 !important;
+	for pdf*/
+	body, .ar-page {
+    /*width: 100% !important;
+    /*margin: 0 0 0 0 !important;
+    padding: 0 0 0 0 !important;
+	box-shadow: 0 0 0 white;
+	background: white;*/
+  	}
+    
+}
+
+@page { /*bara PRINCE förstår denna. BV använder wkhtmlpdf som är enkel och inte stödjer pagerule*/
+  margin: 40px !important; /*40px ger ungefär samma margin som wkhtmlpdf */
+}
+
+
+/*rubrikstorlek 
+#ARk2form.k2 {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 11px;
+	font-weight: 400;
+	margin: 0;
+	padding: 0;
+	color: #000000;margin: 0px;
+}*/
+
+/*standardatable i mallen K2 */
+#ARk2form.k2 .k2table {table-layout: fixed; width:100%;border-collapse: collapse}
+#ARk2form.k2 .k2table tr {height:18px} 
+#ARk2form.k2 .k2table td[colspan="6"] {text-align: left;padding:1px;white-space: normal} /* 190405 Extra om colspan så span får radbryt */
+#ARk2form.k2 .k2table td {text-align: left;padding:1px;white-space: nowrap;} /* Nowrap för att ej göra line break */
+#ARk2form.k2 .k2table td+td {text-align: right;width:70px;} 
+#ARk2form.k2 .k2table td+td+td {text-align: right;width:70px;} 
+#ARk2form.k2 .k2table td+td+td+td {text-align: right;width:110px;}
+#ARk2form.k2 .k2table td+td+td+td+td {text-align: right;width:110px;}
+#ARk2form.k2 .k2table td+td+td+td+td+td {text-align: right;width:110px;}
+
+/*table likadan som oversikt, behövs då kolumner döljs for översikten används för andra delar i ÅR där kolumner inte döljs på samma sätt*/
+#ARk2form.k2 .k2tableX {table-layout: fixed; width:100%;border-collapse: collapse}
+#ARk2form.k2 .k2tableX tr {height:18px} 
+#ARk2form.k2 .k2tableX td {text-align: left;padding:1px;white-space: nowrap;} /* Nowrap för att ej göra line break */
+#ARk2form.k2 .k2tableX td+td {text-align: right;width:10px;} 
+#ARk2form.k2 .k2tableX td+td+td {text-align: right;width:100px;} 
+#ARk2form.k2 .k2tableX td+td+td+td {text-align: right;width:100px;}
+#ARk2form.k2 .k2tableX td+td+td+td+td {text-align: right;width:100px;}
+#ARk2form.k2 .k2tableX td+td+td+td+td+td {text-align: right;width:100px;}
+
+/*special för andelar*/
+#ARk2form.k2 .k2tableFINATANDELAR {table-layout: fixed; width:100%;border-collapse: collapse;}
+#ARk2form.k2 .k2tableFINATANDELAR * {font-size: 9px;} 
+#ARk2form.k2 .k2tableFINATANDELAR tr {height:18px} 
+#ARk2form.k2 .k2tableFINATANDELAR td {text-align: left;padding:1px;white-space: normal} /* Normal för att  göra line break */
+#ARk2form.k2 .k2tableFINATANDELAR td+td {text-align: right;width:70px;} 
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td {text-align: right;width:80px;} 
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td {text-align: right;width:65px;}
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td+td {text-align: right;width:65px;}
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td+td+td {text-align: right;width:65px;}
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td+td+td+td {text-align: right;width:65px;}
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td+td+td+td+td {text-align: right;width:65px;}
+#ARk2form.k2 .k2tableFINATANDELAR td+td+td+td+td+td+td+td+td {text-align: right;width:65px;}
+
+/*special för not moderföretag K3 och k2*/
+#ARk2form.k2 .k2tableY {table-layout: fixed; width:100%;border-collapse: collapse}
+#ARk2form.k2 .k2tableY tr {height:18px} 
+#ARk2form.k2 .k2tableY td[colspan="6"] {text-align: left;padding:1px;white-space: normal} /* 190405 Extra om colspan så span får radbryt */
+#ARk2form.k2 .k2tableY td {text-align: left;padding:1px;white-space: nowrap;} /* Nowrap för att ej göra line break */
+#ARk2form.k2 .k2tableY td+td {width:270px;} 
+#ARk2form.k2 .k2tableY td+td+td {width:50px;} 
+#ARk2form.k2 .k2tableY td+td+td+td {width:50px;}
+#ARk2form.k2 .k2tableY td+td+td+td+td {width:50px;}
+#ARk2form.k2 .k2tableY td+td+td+td+td+td {width:50px;}
+
+/*190511 för table avskrivningar i k3 */
+#ARk2form.k2 .k2tableavskr {table-layout: fixed; width:100%;border-collapse: collapse}
+#ARk2form.k2 .k2tableavskr tr {line-height:18px} 
+#ARk2form.k2 .k2tableavskr td {text-align: left;padding:1px;} /* Nowrap för att ej göra line break */
+#ARk2form.k2 .k2tableavskr td+td {text-align: right;width:30px;} 
+#ARk2form.k2 .k2tableavskr td+td+td {text-align: right;width:70px;} 
+#ARk2form.k2 .k2tableavskr td+td+td+td {text-align: right;width:70px;}
+#ARk2form.k2 .k2tableavskr td+td+td+td+td {text-align: right;width:70px;}
+#ARk2form.k2 .k2tableavskr td+td+td+td+td+td {text-align: right;width:70px;}
+
+/*table för principer, oklart om den används */
+.princ {table-layout: fixed; width:100%;border-collapse: collapse}
+.princ tr {line-height:18px} 
+.princ td {text-align: left;padding:1px;white-space:} /* Nowrap för att ej göra line break */
+
+/*table för flerårsöversikt, oklart om den används */
+.k2over {table-layout: fixed; width:100%;border-collapse: collapse}
+.k2over tr {height:18px} 
+.k2over td {text-align: left;padding:1px;white-space: nowrap;} /* Nowrap för att ej göra line break */
+.k2over td+td {text-align: right;width:10px;} 
+.k2over td+td+td {text-align: right;width:100px;} 
+.k2over td+td+td+td {text-align: right;width:100px;}
+.k2over td+td+td+td+td {text-align: right;width:100px;}
+.k2over td+td+td+td+td+td {text-align: right;width:100px;}
+
+
+/*table för not eget kapital, oklart om den används */
+.k2ekAlt1,.k2ekAlt2 {table-layout: fixed; width:100%;border-collapse: collapse}
+.k2ekAlt1 tr,.k2ekAlt2 tr {height:18px}
+.k2ekAlt1 tr td:last-child *,.k2ekAlt2 tr td:last-child * {font-weight: bold}
+.k2ekAlt1 * {font-size:11px;}
+.k2ekAlt1 tr td:not(:first-child) {text-align: right;width:90px;}
+.k2ekAlt2 * {font-size:10px;}
+.k2ekAlt2 tr td:not(:first-child) {text-align: right;width:70px;}
+
+/*Används ej 
+.xhide {display:none}
+.xshow {display:block}
+.space {height:24px}
+.red * {color:red}
+
+*/
+
+/*Bottenjusterar text i tablecell */
+#ARk2form table td {vertical-align:bottom} /* Overrun standard css */
+
+
+/*NOTFÄLTET */
+#ARk2form input[id^="NOTno"] { width: 15px;}
+
+/*INPUTFÄLTET */
+#ARk2form input {text-align:right;border:0px;width:100%;height:18px;background-color:whitesmoke}
+#ARk2form textarea {border:0px;width:665px;background-color:whitesmoke}
+
+
+/*Diverse */
+#ARk2form .fbl {text-align:left} /*vänsterjustera vissa element */
+#ARk2form .fbr {text-align:right} /*vänsterjustera vissa element */
+#ARk2form .diff * {color:red} /*diffraden får röd text */
+#ARk2form .nobrnot input.note,#ARk2form .nob,#ARk2form .nob * {font-weight:normal} /*rader i table som har fetstil, noten skall inte vara fetstil */
+
+
+/*egna rubrikstorlekar ej ÅR eller utskrift */
+.k2h1,.k2h1 *{
+	font-size: 24px;
+	padding-bottom:10px;
+	prince-bookmark-level: none;
+	margin-bottom:0px;
+	font-weight: bold;
+}
+.k2h2,.k2h2 *{
+	font-size: 16px;
+	padding-bottom:10px;
+	prince-bookmark-level: none;
+	margin-bottom:0px;
+	font-weight: bold;
+}
+.k2h3,.k2h3 *{
+	font-size: 14px;
+	padding-bottom:10px;
+	prince-bookmark-level: none;
+	margin-bottom:0px;
+	font-weight: bold;
+}
+.k2h4,.k2h4 *{
+	font-size: 12px;
+	padding-bottom:10px;
+	prince-bookmark-level: none;
+	margin-bottom:0px;
+	font-weight: bold;
+}
+
+/* Show on screen not print or opposite  */
+.sshp{display:block;}
+.hssp{display:none;}
+
+/*för underskrifter */
+.sign, .sign2{float:left;width:195px;height:30px;margin-right:20px; margin-top:60px;display:none}
+
+/*för utseende, sidbrytning */
+.pbafter {page-break-after: always} /* Tar bort justering vid screen som gjorde utseende bättre vid inmatning */
+.pbbefore {page-break-before: always} /* Tar bort justering vid screen som gjorde utseende bättre vid inmatning */
+
+.hide {display:none;}
+
+
+/*ALLMÄNT*/
+.br * {font-weight:bold} /*rader i table blir fetstil */
+span.note {font-weight:normal !important;} /*not behåller normal stil */
+.ir * {font-style:italic} /*rader i table blir kursiva */
+
+/*egna rubrikstorlekar*/
+.hd1 {
+	font-size: 24px;
+	padding-bottom:10px;
+	margin-bottom:0px;
+}
+.hd2 {
+	font-size: 16px;
+	padding-bottom:10px;
+	margin-bottom:0px;
+}
+.hd3 {
+	font-size: 14px;
+	padding-bottom:10px;
+	margin-bottom:0px;
+}
+.hd4 {
+	font-size: 12px;
+	padding-bottom:10px;
+	margin-bottom:0px;
+}
+/*div*/
+.b{font-weight:bold;}
+.i{font-style:italic;}.l{text-align:left;}
+.px18b {font-size: 18px;font-weight:bold;}
+.px14b {font-size: 14px;font-weight:bold;}
+.px12b {font-size: 12px;font-weight:bold;}
+.px11 *{font-size:11px !important;} /*Force size for note eget kapital*/
+[id^="NOT"] {font-weight: normal;font-style: normal !important} /*Not är aldrig fet eller kursiv*/
+
+
+
+
+
+/*xxxxx */
+.ar-toc {
+	width: 50%;
+}
+.ar-toc td + td {
+	text-align: right;
+}
+.ar-toc th {
+	text-align: left;
+}.ar-toc th + th {
+	text-align: right;
+}
+.ar-toc td a {
+	color: rgb(0, 0, 0); text-decoration: none;
+}
+
+.ar-page-hdr {
+	text-align: right; overflow: hidden; margin-bottom: 10%; white-space: nowrap;
+	
+}
+.ar-page-hdr span:not(.pagecount) {
+	text-align: left; float: left;
+}
+
+.ar-signature-2 {
+	margin-top: 2em;
+}
+.ar-signature-2 div.name {
+	width: 40%; padding-top: 4em; vertical-align: top; display: inline-block;
+}
+
+
+
+	
+table {
+	width: 100%; border-collapse: collapse;
+}
+	
+	
+[contextRef] {width: 100% !important;} /*krävs för span som inherit */
+[contextRef] span,span.note {width: 100% !important;background-color:#e4e4e4;display: inline-block;}	 /*block krävs för span */
+#signrevisor {width: 100% !important;background-color:#e4e4e4;display: inline-block;}	 /*block krävs för span */
+
+
+span.note:before { /*krävs för tom span skall visas https://stackoverflow.com/questions/16744094/show-background-of-empty-span */
+    content: "\200D";
+    display:inline-block;
+ } 	
+span.note{width: 25% !important;}
+
+
+/*extra för pdf genererad av BV som skapar tom sida */
+
+/*.ar-page:last-of-type {
+    page-break-after: avoid;
+}*/
+
+/*Revisionsberättelse*/
+#divRB {
+ padding-left: 40px;	
+ padding-right: 40px;	
+}
+#divRB,#divRB *{
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 9px;
+	font-weight: 400;
+	color: #000000; /*Diff screen*/
+}
+#divRB h2, #divRB h2 *{
+	font-size: 22px;
+	font-weight: bold;
+	margin-top: 10px;
+    margin-bottom: 10px;
+}
+#divRB h3, #divRB h3 * {
+	font-size: 18px;
+	font-weight: bold;
+	margin-top: 8px;
+    margin-bottom: 8px;
+}
+#divRB h4, #divRB h4 * {
+	font-size: 14px;
+	font-weight: bold;
+	margin-top: 6px;
+    margin-bottom: 6px;
+}
+#divRB p {
+	margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+#divRB form {
+	margin: 0;
+}
+#ARlogoholder  {
+	display: inline-block; /* or block */
+	padding-bottom: 100px;
+}		
+		</style>
+
+		
+		
+	</head>
+
+
+    
+    
+<body> 
+
+<div id="ARk2form" class="k2">
+		<div style="display:none">
+			<ix:header>
+				<ix:hidden>
+					<ix:nonNumeric name="se-cd-base:Sprak" contextRef="PERIOD0">sv</ix:nonNumeric>
+					<ix:nonNumeric name="se-cd-base:Land" contextRef="PERIOD0">SE</ix:nonNumeric>
+					<ix:nonNumeric name="se-cd-base:Redovisningsvaluta" contextRef="PERIOD0">SEK</ix:nonNumeric>
+					<ix:nonNumeric name="se-cd-base:Beloppsformat" contextRef="PERIOD0">NORMALFORM</ix:nonNumeric>
+					
+				</ix:hidden>
+				<ix:references>
+					<link:schemaRef xlink:type="simple" xlink:href="http://xbrl.taxonomier.se/se/fr/gaap/k3/risbs/2018-12-17/se-k3-risbs-2018-12-17.xsd"/>
+					<link:schemaRef xlink:type="simple" xlink:href="http://xbrl.taxonomier.se/se/fr/gaap/coa/rplc/2018-12-17/se-coa-rplc-2018-12-17.xsd"/>
+
+					
+				</ix:references>
+				<ix:resources><xbrli:context id="BALANS3"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:instant>2016-12-31</xbrli:instant></xbrli:period></xbrli:context><xbrli:context id="PERIOD3"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:startDate>2016-01-01</xbrli:startDate><xbrli:endDate>2016-12-31</xbrli:endDate></xbrli:period></xbrli:context><xbrli:context id="BALANS2"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:instant>2017-12-31</xbrli:instant></xbrli:period></xbrli:context><xbrli:context id="PERIOD2"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:startDate>2017-01-01</xbrli:startDate><xbrli:endDate>2017-12-31</xbrli:endDate></xbrli:period></xbrli:context><xbrli:context id="BALANS1"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:instant>2018-12-31</xbrli:instant></xbrli:period></xbrli:context><xbrli:context id="PERIOD1"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:startDate>2018-01-01</xbrli:startDate><xbrli:endDate>2018-12-31</xbrli:endDate></xbrli:period></xbrli:context><xbrli:context id="BALANS0"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:instant>2019-12-31</xbrli:instant></xbrli:period></xbrli:context><xbrli:context id="PERIOD0"><xbrli:entity><xbrli:identifier scheme="http://www.bolagsverket.se">556584-9824</xbrli:identifier></xbrli:entity><xbrli:period><xbrli:startDate>2019-01-01</xbrli:startDate><xbrli:endDate>2019-12-31</xbrli:endDate></xbrli:period></xbrli:context>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<xbrli:unit id="valuta">
+						<xbrli:measure>iso4217:SEK</xbrli:measure>
+					</xbrli:unit>
+					<xbrli:unit id="procent">
+						<xbrli:measure>xbrli:pure</xbrli:measure>
+					</xbrli:unit>
+					<xbrli:unit id="antal-personer">
+						<xbrli:measure>se-k3-type:AntalPersoner</xbrli:measure>
+					</xbrli:unit>
+					<xbrli:unit id="andelar">
+						<xbrli:measure>xbrli:shares</xbrli:measure>
+					</xbrli:unit>
+				</ix:resources>
+			</ix:header>
+		</div>
+			<div class="ar-page" id="ar3-page-1"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">1</span> (13)</div>
+				
+				<div class="k2h1">Årsredovisning</div>
+				<div class="k2h2"><ix:nonNumeric name="se-cd-base:ForetagetsNamn" contextRef="PERIOD0">Corpower Ocean AB</ix:nonNumeric></div>
+				Organisationsnummer: <ix:nonNumeric name="se-cd-base:Organisationsnummer" contextRef="PERIOD0">556584-9824</ix:nonNumeric><br/>
+				Räkenskapsår:
+					<ix:nonNumeric name="se-cd-base:RakenskapsarForstaDag" contextRef="PERIOD0">2019-01-01</ix:nonNumeric> - 
+					<ix:nonNumeric name="se-cd-base:RakenskapsarSistaDag" contextRef="PERIOD0">2019-12-31</ix:nonNumeric>
+					
+				<br/>
+				<br/>
+				<br/>
+				
+				<p><ix:nonNumeric name="se-gen-base:FinansiellRapport" contextRef="PERIOD0">Styrelsen och verkställande direktören avger följande årsredovisning</ix:nonNumeric>.</p>
+				<table class="ar-toc">
+					<thead>
+						<tr>
+							<th scope="col">Innehåll</th>
+							<th scope="col">Sida</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								Förvaltningsberättelse</td>
+							<td>
+								<a href="#anchorFB">2</a>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Förändringar i eget kapital</td>
+							<td>
+								<a href="#anchorEK">4</a>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Resultaträkning</td>
+							<td>
+								<a href="#anchorRR">5</a>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Balansräkning</td>
+							<td>
+								<a href="#anchorBR">6</a>
+							</td>
+						</tr>
+						
+						<tr>
+							<td>
+								Noter</td>
+							<td>
+								<a href="#anchorNOT">8</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<br/><p><ix:nonNumeric name="se-cd-base:MatEnhet" contextRef="PERIOD0">Om inte annat särskilt anges, redovisas alla belopp i hela kronor.</ix:nonNumeric> Uppgifter inom parentes avser föregående år.</p>
+				<p>Företagets säte: <ix:nonNumeric name="se-cd-base:ForetagetsSate" contextRef="PERIOD0">Stockholm</ix:nonNumeric></p>
+				<br/><br/><br/><br/>
+				<div id="ar-certification">
+					<strong>Fastställelseintyg</strong><br/>
+					<p id="FI1"><ix:nonNumeric name="se-bol-base:ArsstammaIntygande" contextRef="BALANS0" continuedAt="intygande_forts"><ix:nonNumeric name="se-bol-base:FaststallelseResultatBalansrakning" contextRef="BALANS0">Jag intygar att resultaträkningen och balansräkningen har fastställts på årsstämma</ix:nonNumeric> <ix:nonNumeric name="se-bol-base:Arsstamma" contextRef="BALANS0">2020-06-29</ix:nonNumeric>. <br/><ix:nonNumeric name="se-bol-base:ArsstammaResultatDispositionGodkannaStyrelsensForslag" contextRef="BALANS0" id="FIstammadispgod">Årsstämman beslöt att godkänna styrelsens förslag till vinstdisposition.</ix:nonNumeric></ix:nonNumeric></p>
+					<!-- Observera mellanslaget inom continuation taggen och innan följande nonNumeric tagg, detta för att få ett mellanslag i mellan meningarna i intygandetexten vid transformering till xbrl -->
+					<p><ix:continuation id="intygande_forts"> <ix:nonNumeric name="se-bol-base:IntygandeOriginalInnehall" contextRef="BALANS0">Jag intygar att innehållet i dessa elektroniska handlingar överensstämmer med originalen och att originalen undertecknats av samtliga personer som enligt lag ska underteckna dessa.</ix:nonNumeric></ix:continuation></p>
+					
+					<p><strong><ix:nonNumeric name="se-bol-base:UnderskriftFaststallelseintygElektroniskt" contextRef="BALANS0">Elektroniskt underskriven av</ix:nonNumeric></strong><br/>
+					<ix:nonNumeric name="se-bol-base:UnderskriftFaststallelseintygForetradareTilltalsnamn" contextRef="PERIOD0">Per Andreas</ix:nonNumeric> <ix:nonNumeric name="se-bol-base:UnderskriftFaststallelseintygForetradareEfternamn" contextRef="PERIOD0">Gunnarsson</ix:nonNumeric><br/><ix:nonNumeric name="se-bol-base:UnderskriftFaststallelseintygForetradareForetradarroll" contextRef="PERIOD0">Styrelseledamot</ix:nonNumeric><br/>
+					<ix:nonNumeric name="se-bol-base:UnderskriftFastallelseintygDatum" contextRef="BALANS0" id="ID_DATUM_UNDERTECKNANDE_FASTSTALLELSEINTYG">2020-06-29</ix:nonNumeric>
+					</p>
+				</div>
+				
+			</div>
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">2</span> (13)</div>
+<table class="princ" id="anchorFB">
+<tbody><tr class="k2h2"><td><h5 id="forvaltningsberattelse">Förvaltningsberättelse</h5></td></tr>
+</tbody></table>
+<table>
+<tbody><tr class="k2h3"><td>Verksamheten</td></tr>
+</tbody></table>
+<table class="princ">
+<tbody><tr class="b"><td>Viktiga förhållanden och väsentliga händelser</td></tr>
+<tr class="i"><td>Verksamhetens art och inriktning  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:VerksamhetenArtInriktning">Styrelsen och verkställande direktören för Corpower Ocean AB, 556584-9824, med säte i Stockholm, får härmed avge årsredovisning för räkenskapsåret 2019-01-01--2019-12-31.<br/><br/>CorPower Ocean AB utvecklar vågkraftverk för robust och kostnadseffektiv utvinning av el från havsvågor. Produktutveckling och verifiering görs tillsammans med europeiska samarbetspartners där arbetet följer en strukturerad process i fem steg.<br/><br/>Baserat på resultat från ett vågkraftverk i skala 1:2 som testades vid Okneyöarna i norra Skottland har bolaget under 2019 utvecklat en ny generation elektromekanisk drivlina som omvandlar vågrörelser till el. Detta arbete, som bedrivits inom det europeiska projektet WaveBoost, möjliggör högre tillförlitlighet och prestanda i framtida maskiner.<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+
+
+<table class="princ ht">
+<tbody><tr class="i"><td>Viktiga förändringar i verksamheten  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:ViktigaForandringarVerksamheten">Under 2019 har tanktester av nästa generations C4-verk genomförts i modell-skala vid universiteten i Edinburgh och Plymouth, vilket bidragit till ett förbättrat förankringssystem och ökad säkerhet kring laster i stormförhållanden.
+<br/>
+<br/>Konstruktion av kommande C4-verk i fullskala har pågått, där vissa delsystem hade börjat byggas hos underleverantörer vid årets slut.
+<br/>
+<br/>Under året har en nyemission tillfört ägarkapital. Ett ökat intresse för bolagets teknik har setts från kunder och finansiärer efter framgångsrika tester på Orkney som avslutades 2018. Företaget sysselsatte mot slutet av 2019 motsvarande 33 fulltidspersoner, anställda och konsulter inräknade.<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="k2over ht">
+<tbody><tr class="k2h3"><td>Flerårsöversikt </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td>2019-12-31</td><td>2018-12-31</td><td>2017-12-31</td><td>2016-12-31</td></tr>
+<tr><td>Nettoomsättning <span class="fboversiktenhet nothr">(kr)</span></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">3 671 735</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">5 023 719</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD2" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">5 181 531</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD3" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">9 138 394</ix:nonFraction></td></tr>
+
+<tr class="hr"><td>Resultat efter finansiella poster <span class="fboversiktenhet nothr">(kr)</span></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD2" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">45 378</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD3" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">414</ix:nonFraction></td></tr>
+
+
+
+
+
+
+<tr class="proc"><td>Soliditet (%)</td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Soliditet" unitRef="procent" decimals="INF" scale="-2" format="ixt:numspacecomma">75,8</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Soliditet" unitRef="procent" decimals="INF" scale="-2" format="ixt:numspacecomma">43,6</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS2" name="se-gen-base:Soliditet" unitRef="procent" decimals="INF" scale="-2" format="ixt:numspacecomma">35</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS3" name="se-gen-base:Soliditet" unitRef="procent" decimals="INF" scale="-2" format="ixt:numspacecomma">13</ix:nonFraction></td></tr>
+
+</tbody></table>
+<table class="princ">
+<tbody>
+<tr><td><br/></td></tr>
+</tbody></table>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">3</span> (13)</div>
+<table class="princ ht">
+<tbody><tr class="k2h3"><td>Nyckeltalsdefinitioner  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:Nyckeltalsdefinitioner">Nettoomsättning<br/><br/>Rörelsens huvudintäkter, fakturerade kostnader, sidointäkter samt intäktskorrigeringar.<br/>Resultat efter finansiella poster<br/>Resultat efter finansiella intäkter och kostnader men före bokslutsdispositioner och skatter.<br/><br/>Balansomslutning<br/>Företagets samlade tillgångar.<br/><br/>Soliditet (%)<br/>Justerat eget kapital (eget kapital och obeskattade reserver med avdrag för uppskjuten skatt) i procent av balansomslutning.</ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+<table class="k2tableX noPY nottkr">
+<tbody><tr class="k2h3"><td>Resultatdisposition </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Till årsstämmans förfogande står följande medel (kr):</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr"><td>Överkursfond</td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Overkursfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">69 068 960</ix:nonFraction></td><td></td><td></td><td></td></tr>
+
+<tr><td>Balanserat resultat</td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseratResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">34 564 313</ix:nonFraction></td><td></td><td></td><td></td></tr>
+<tr><td>Årets resultat</td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:AretsResultatEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Summa</td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FrittEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 056 741</ix:nonFraction></td><td></td><td></td><td></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Styrelsen föreslår att medlen disponeras enligt följande (kr):</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+
+
+
+
+
+
+<tr><td>Balanseras i ny räkning</td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:ForslagDispositionBalanserasINyRakning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 056 741</ix:nonFraction></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Summa</td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:ForslagDisposition" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 056 741</ix:nonFraction></td><td></td><td></td><td></td></tr>
+
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+</div>
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">4</span> (13)</div>
+
+
+
+<span id="anchorEK"></span>
+
+
+<span class="sshp">  </span><table class="k2ekAlt2"><tbody><tr class="k2h3"><td>Förändringar i eget kapital</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td id="NOTekHEAD0" class="colnotek0"><b>Aktie-<br/>kapital</b></td><td id="NOTekHEAD2" class="colnotek2"><b>Pågående ny- <br/>och<br/>fondem.</b></td><td id="NOTekHEAD5" class="colnotek5"><b>Reservfond</b></td><td id="NOTekHEAD7" class="colnotek7"><b>Fond för <br/>utv.-<br/>utgifter</b></td><td id="NOTekHEAD9" class="colnotek9"><b>Överkurs-<br/>fond</b></td><td id="NOTekHEAD11" class="colnotek11"><b>Balanserat<br/>resultat</b></td><td id="NOTekHEAD12" class="colnotek12"><b>Årets<br/>resultat</b></td><td id="NOTekHEAD13" class="colnotek13"><b>Summa</b></td></tr><tr><td><b>Belopp vid årets ingång</b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Aktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">100 000</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:EjRegistreratAktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">19 345</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Reservfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">489</ix:nonFraction></b></td><td><b></b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Overkursfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 194 655</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseratResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">5 131 375</ix:nonFraction></b></td><td><b>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:AretsResultatEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS1" name="se-gen-base:ForandringEgetKapitalTotalt" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">18 258 374</ix:nonFraction></b></td></tr><tr class="hr rownotek"><td>Balanseras i ny räkning</td><td></td><td></td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalBalanseratResultatBalanserasNyRakning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalAretsResultatBalanserasNyRakning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">10 187 490</ix:nonFraction></td><td></td></tr><tr class="hr rownotek"><td>Erhållna aktieägartillskott</td><td></td><td></td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalBalanseratResultatErhallnaAktieagartillskott" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">488</ix:nonFraction></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalTotaltErhallnaAktieagartillskott" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">488</ix:nonFraction></td></tr><tr class="hr rownotek"><td>Nyemission</td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalAktiekapitalNyemission" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">43 426</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalEjRegistreratAktiekapitalNyemission" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">19 345</ix:nonFraction></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalOverkursfondNyemission" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">45 874 305</ix:nonFraction></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalTotaltNyemission" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">45 898 386</ix:nonFraction></td></tr><tr class="hr rownotek"><td>Förändring av reservfond</td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalReservfondForandringReservfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">489</ix:nonFraction></td><td></td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalTotaltForandringReservfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">489</ix:nonFraction></td></tr><tr class="hr rownotek"><td>Aktivering av utvecklingsutgifter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalFondUtvecklingsutgifterAktiveringUtvecklingsutgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalBalanseratResultatAktiveringUtvecklingsutgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></td><td></td><td></td></tr><tr class="hr rownotek"><td>Årets resultat</td><td></td><td></td><td></td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalAretsResultatAretsResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ForandringEgetKapitalTotaltAretsResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td></tr><tr><td><b>Belopp vid årets utgång</b></td><td><b><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Aktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">143 426</ix:nonFraction></b></td><td><b></b></td><td><b></b></td><td><b><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FondUtvecklingsutgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Overkursfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">69 068 960</ix:nonFraction></b></td><td><b>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseratResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">34 564 313</ix:nonFraction></b></td><td><b>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:AretsResultatEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></b></td><td><b><ix:nonFraction contextRef="BALANS0" name="se-gen-base:ForandringEgetKapitalTotalt" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">61 708 853</ix:nonFraction></b></td></tr></tbody></table><br/><br/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">5</span> (13)</div>
+<table class="k2table" id="anchorRR">
+<tbody><tr class="k2h2"><td><h5 id="resultatrakning">Resultaträkning</h5></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br rarRR1"><td></td><td></td><td></td><td>Not</td><td>2019-01-01</td><td>2018-01-01</td></tr>
+<tr class="br rarRR2"><td></td><td></td><td></td><td><span class="nob">1  </span></td><td>2019-12-31</td><td>2018-12-31</td></tr>
+<tr><td></td><td></td><td></td><td><span class="nob"> </span></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table">
+<tbody><tr class="ir"><td>Rörelseintäkter, lagerförändringar m.m. </td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+
+<tr class="SIEcat4"><td>Nettoomsättning</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">3 671 735</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:Nettoomsattning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">5 023 719</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat6"><td>Aktiverat arbete för egen räkning</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:AktiveratArbeteEgenRakning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">19 912 470</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:AktiveratArbeteEgenRakning" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">9 100 478</ix:nonFraction></td></tr>
+
+
+
+
+
+
+<tr class="hr SIEcat13"><td>Övriga rörelseintäkter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:OvrigaRorelseintakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">31 178 787</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:OvrigaRorelseintakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">7 301 974</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa rörelseintäkter, lagerförändringar m.m. </td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:RorelseintakterLagerforandringarMm" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">54 762 992</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:RorelseintakterLagerforandringarMm" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">21 426 171</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table">
+<tbody><tr class="ir"><td>Rörelsekostnader</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat14"><td>Råvaror och förnödenheter</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:RavarorFornodenheterKostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">21 381 015</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:RavarorFornodenheterKostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">8 420 949</ix:nonFraction></td></tr>
+
+
+<tr class="hr SIEcat17"><td>Övriga externa kostnader</td><td></td><td></td><td><span class="nob">  </span></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:OvrigaExternaKostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">15 639 472</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:OvrigaExternaKostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">6 712 330</ix:nonFraction></td></tr>
+<tr class="hr SIEcat18"><td>Personalkostnader</td><td></td><td></td><td>2</td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:Personalkostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">22 475 304</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:Personalkostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">16 009 187</ix:nonFraction></td></tr>
+<tr class="hr SIEcat19"><td>Av- och nedskrivningar av materiella och immateriella anläggningstillgångar</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:AvskrivningarNedskrivningarMateriellaImmateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 285</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:AvskrivningarNedskrivningarMateriellaImmateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">743 668</ix:nonFraction></td></tr>
+
+
+<tr class="hr SIEcat22"><td>Övriga rörelsekostnader </td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:OvrigaRorelsekostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">157 817</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:OvrigaRorelsekostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">25 468</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa rörelsekostnader</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:Rorelsekostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">59 685 893</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:Rorelsekostnader" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">31 911 602</ix:nonFraction></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Rörelseresultat</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:Rorelseresultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">4 922 901</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:Rorelseresultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 485 431</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+<tr class="ir"><td>Resultat från finansiella poster</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+
+<tr class="hr SIEcat25"><td>Resultat från övriga värdepapper och fordringar som är anläggningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ResultatOvrigaFinansiellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">172</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:ResultatOvrigaFinansiellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+<tr class="hr SIEcat26"><td>Övriga ränteintäkter och liknande resultatposter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:OvrigaRanteintakterLiknandeResultatposter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:OvrigaRanteintakterLiknandeResultatposter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">311 772</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat28"><td>Räntekostnader och liknande resultatposter</td><td></td><td></td><td>3</td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:RantekostnaderLiknandeResultatposter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 474 823</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:RantekostnaderLiknandeResultatposter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">13 831</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa resultat från finansiella poster</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:FinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 474 995</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:FinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">297 941</ix:nonFraction></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Resultat efter finansiella poster</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:ResultatEfterFinansiellaPoster" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2table">
+<tbody><tr class="br"><td>Resultat före skatt</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:ResultatForeSkatt" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:ResultatForeSkatt" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Årets resultat</td><td></td><td></td><td><span class="nob"></span></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:AretsResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:AretsResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td></tr>
+</tbody></table>
+</div>
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">6</span> (13)</div>
+<table class="k2table" id="anchorBR">
+<tbody><tr class="k2h2"><td><h5 id="balansrakning">Balansräkning</h5></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br rarBR"><td></td><td></td><td></td><td>Not</td><td>2019-12-31</td><td>2018-12-31</td></tr>
+<tr class="br"><td>TILLGÅNGAR</td><td></td><td></td><td><span class="nob">1</span></td><td></td><td></td></tr>
+
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2table"><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Anläggningstillgångar</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table ht">
+<tbody><tr class="ir"><td>Immateriella anläggningstillgångar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat100"><td>Balanserade utgifter för utvecklingsarbeten och liknande arbeten</td><td></td><td></td><td>4</td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">9 596 215</ix:nonFraction></td></tr>
+<tr class="hr SIEcat101"><td>Koncessioner, patent, licenser, varumärken samt liknande rättigheter</td><td></td><td></td><td>5</td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 413 869</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 020 057</ix:nonFraction></td></tr>
+
+
+
+<tr class="br"><td>Summa immateriella anläggningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:ImmateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">30 922 555</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:ImmateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">10 616 272</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table ht">
+<tbody><tr class="ir"><td>Materiella anläggningstillgångar</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+<tr class="hr SIEcat106"><td>Maskiner och andra tekniska anläggningar</td><td></td><td></td><td>6</td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">88 901</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">16 000</ix:nonFraction></td></tr>
+
+
+
+
+<tr class="br"><td>Summa materiella anläggningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:MateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">88 901</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:MateriellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">16 000</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table ht">
+<tbody><tr class="ir"><td>Finansiella anläggningstillgångar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat111"><td>Andelar i  koncernföretag</td><td></td><td></td><td>7</td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:AndelarKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 696</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:AndelarKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td></tr>
+<tr class="hr SIEcat112"><td>Fordringar hos koncernföretag</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FordringarKoncernforetagLangfristiga" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">109 106</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:FordringarKoncernforetagLangfristiga" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+
+
+
+
+
+
+
+<tr class="hr SIEcat118"><td>Andra långfristiga fordringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:AndraLangfristigaFordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 030 000</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:AndraLangfristigaFordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa finansiella anläggningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FinansiellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 150 802</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:FinansiellaAnlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td></tr>
+</tbody></table>
+<table class="k2table">
+<tbody><tr class="br"><td>Summa anläggningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Anlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">33 162 258</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Anlaggningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">10 643 729</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2table">
+<tbody><tr class="br"><td>Omsättningstillgångar</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2table ht">
+<tbody><tr class="ir"><td>Kortfristiga fordringar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat125"><td>Kundfordringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Kundfordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Kundfordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 779 820</ix:nonFraction></td></tr>
+
+
+
+
+<tr class="hr SIEcat128"><td>Övriga fordringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:OvrigaFordringarKortfristiga" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">699 206</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:OvrigaFordringarKortfristiga" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">101 587</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat131"><td>Förutbetalda kostnader och upplupna intäkter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:ForutbetaldaKostnaderUpplupnaIntakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">3 927 576</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:ForutbetaldaKostnaderUpplupnaIntakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa kortfristiga fordringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KortfristigaFordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">4 626 782</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KortfristigaFordringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 881 407</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2table">
+<tbody><tr class="ir"><td>Kassa och bank</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat134"><td>Kassa och bank</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KassaBankExklRedovisningsmedel" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">43 643 951</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KassaBankExklRedovisningsmedel" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 371 937</ix:nonFraction></td></tr>
+
+<tr class="br"><td>Summa kassa och bank</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KassaBank" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">43 643 951</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KassaBank" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 371 937</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Summa omsättningstillgångar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Omsattningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">48 270 733</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Omsattningstillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">31 253 344</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>SUMMA TILLGÅNGAR</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Tillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">81 432 991</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Tillgangar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">41 897 073</ix:nonFraction></td></tr>
+</tbody></table>
+</div>
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">7</span> (13)</div>
+<table class="k2table">
+<tbody><tr class="k2h2"><td><h5>Balansräkning</h5></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br rarBR"><td></td><td></td><td></td><td>Not</td><td>2019-12-31</td><td>2018-12-31</td></tr>
+<tr class="br"><td>EGET KAPITAL OCH SKULDER</td><td></td><td></td><td><span class="nob">1</span></td><td></td><td></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Eget kapital </td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table ht orgAB orgEF">
+<tbody><tr class="ir"><td>Bundet eget kapital</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="SIEcat200"><td>Aktiekapital</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Aktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">143 426</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Aktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">100 000</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat202"><td>Pågående ny- och fondemission</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:EjRegistreratAktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:EjRegistreratAktiekapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">19 345</ix:nonFraction></td></tr>
+
+
+<tr class="hr SIEcat205"><td>Reservfond</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Reservfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Reservfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">489</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat208"><td>Fond för utvecklingsutgifter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FondUtvecklingsutgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:FondUtvecklingsutgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+
+<tr class="br"><td>Summa bundet eget kapital</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:BundetEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 652 112</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BundetEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">119 834</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="ir"><td>Fritt eget kapital</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr SIEcat209"><td>Överkursfond</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Overkursfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">69 068 960</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Overkursfond" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 194 655</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat211"><td>Balanserat resultat</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseratResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">34 564 313</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseratResultat" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">5 131 375</ix:nonFraction></td></tr>
+<tr class="SIEcat212"><td>Årets resultat</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:AretsResultatEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">2 447 906</ix:nonFraction></td><td>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:AretsResultatEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma" sign="-">10 187 490</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa fritt eget kapital</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:FrittEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 056 741</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:FrittEgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">18 138 540</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa eget kapital  </td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:EgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">61 708 853</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:EgetKapital" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">18 258 374</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+<table class="k2table ht">
+<tbody><tr class="br"><td>Långfristiga skulder</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+<tr class="hr SIEcat236"><td>Övriga skulder till kreditinstitut</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:OvrigaLangfristigaSkulderKreditinstitut" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:OvrigaLangfristigaSkulderKreditinstitut" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">81 633</ix:nonFraction></td></tr>
+
+
+
+
+
+
+<tr class="br"><td>Summa långfristiga skulder</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:LangfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:LangfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">81 633</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table ht">
+<tbody><tr class="br"><td>Kortfristiga skulder</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+
+
+<tr class="hr SIEcat247"><td>Leverantörsskulder</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Leverantorsskulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 356 927</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Leverantorsskulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 708 231</ix:nonFraction></td></tr>
+
+
+
+
+<tr class="hr SIEcat251"><td>Aktuella skatteskulder</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:Skatteskulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">272 040</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:Skatteskulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">272 704</ix:nonFraction></td></tr>
+
+
+<tr class="hr SIEcat254"><td>Övriga skulder</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:OvrigaKortfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 018 463</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:OvrigaKortfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">595 968</ix:nonFraction></td></tr>
+
+<tr class="hr SIEcat255"><td>Upplupna kostnader och förutbetalda intäkter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:UpplupnaKostnaderForutbetaldaIntakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">17 076 708</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:UpplupnaKostnaderForutbetaldaIntakter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">20 980 163</ix:nonFraction></td></tr>
+<tr class="br"><td>Summa kortfristiga skulder</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KortfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">19 724 138</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KortfristigaSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 557 066</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table">
+<tbody><tr class="br"><td>SUMMA EGET KAPITAL OCH SKULDER</td><td></td><td></td><td><span class="nob"> </span></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:EgetKapitalSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">81 432 991</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:EgetKapitalSkulder" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">41 897 073</ix:nonFraction></td></tr>
+
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+</div>
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">8</span> (13)</div>
+<table class="k2table noPY" id="anchorNOT">
+<tbody><tr class="k2h2"><td><h5 id="noter">Noter</h5></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td>Not 1. Redovisnings- och värderingsprinciper</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="princ">
+<tbody><tr class="ir"><td>Redovisnings- och värderingsprinciper  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsVarderingsprinciper">Årsredovisningen upprättas med tillämpning av årsredovisningslagen och Bokföringsnämndens allmänna råd BFNAR 2012:1 Årsredovisning och koncernredovisning (K3).<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+<table class="princ ht">
+<tbody><tr class="ir"><td>Avvikelser från grundläggande principer (skäl, effekt. vid kvittning även bruttobelopp)  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperAvvikelserGrundlaggandePrinciper">Avvikelse från redovisningsprincip, omräkning av jämförelsetal
+<br/>Företaget som upprättar en K3¬årsredovisningen ska rätta felet genom att räkna om jämförelsetalen för förgående år om felet uppstod det året. Om felet uppstod räkenskapsår innan jämförelseåret ska istället den ingående balansen för föregående räkenskapsår räknas om.
+<br/>För räkenskapsåret/årsredovisningen 2018 har under 2019 uppmärksammats två fel:
+<br/>-	Balansposten immateriella anläggningstillgångar, balanserade utgifter för utvecklingsarbeten och liknande arbeten om 9 596 215 kr fanns ej redovisat motsvarande belopp under balansposten fond för utvecklingsarbeten i bundet eget kapital för räkenskapsåret 2018. Detta skulle i jämförelsesiffrorna endast inneburit en omföring från fritt eget kapital till bundet eget kapital (fond för utvecklingsarbeten). Rättelse har skett till utgående balanser 2019-12-31.
+<br/>-	Tidigare års erhållna och förbrukade bidrag för projekt Waveboost har de facto löpande påverkats av valutakursförändringar om totalt 1 843 974 kr (se not 4 räntekostnader och liknande resultatposter). Någon valutakursförändring har tidigare år ej bokförts på dessa erhållna och förbrukade bidrag vilket under innevarande år 2019 framkommit vid projektets slutavräkning. Valutakursförändringarnas påverkan slår på flera år tillbaka i tiden, men bolaget kan ej utan väsentlig arbetsinsats säkerställa hur mycket av totala valutakursdifferensen som härrör sig till respektive år innan 2019. Rättelse har skett till utgående balanser 2019-12-31 vilket innebär en resultatpåverkan om – 1 843 974 kr på resultaträkningens räntekostnader och liknande resultatposter, ett belopp som vid omräkning av ingående balanser skulle minskat fritt eget kapital (fördelat på ingående balanserat resultat samt årets resultat för 2018).<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="princ ht">
+<tbody><tr class="ir"><td>Intäkter  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperIntakter">Intäkter har tagits upp till verkligt värde av vad som erhållits eller kommer att erhållas och redovisas i den omfattning det är sannolikt att de ekonomiska fördelarna kommer att tillgodogöras bolaget och intäkterna kan beräknas på ett tillförlitligt sätt.<br/><br/>Ersättning i form av ränta, royalty eller utdelning redovisas som intäkt när det är sannolikt att företaget kommer att få de ekonomiska fördelar som är förknippade med transaktionen och när inkomsten kan beräknas på ett tillförlitligt sätt.<br/><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+<table class="princ ht">
+<tbody><tr class="ir"><td>Offentliga bidrag  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperOffentligaBidrag">Offentliga bidrag redovisas som intäkt då den framtida prestation som krävs för att erhålla bidraget utförs. I de fall bidraget erhålls innan prestationen utförts, redovisas bidraget som skuld i balansräkningen. Offentliga bidrag värderas till det verkliga värdet av vad som erhållits eller kommer att erhållas.</ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">9</span> (13)</div>
+<table class="princ ht">
+<tbody><tr class="ir"><td>Ersättningar till anställda  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperErsattningAnstallda">Ersättningar till anställda avser alla typer av ersättningar som koncernen lämnar till de anställda. Koncernens ersättningar innefattar bland annat löner, betald semester, betald frånvaro, bonus och ersättningar efter avslutad anställning (pensioner). Redovisning sker i takt med intjänandet.<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+<table class="princ ht">
+<tbody><tr class="ir"><td>Aktivering av internt upparbetade immateriella anläggningstillgångar  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperAktiveringInterntUpparbetadeImmateriellaAnlaggningstillgangar">Balanserade utgifter för utvecklingsarbeten och liknande arbeten<br/><br/>Vid redovisning av utgifter för utveckling tillämpas aktiveringsmodellen. Metoden innebär att samtliga utgifter som uppfyller kriterierna nedan aktiveras som immateriell anläggningstillgång och skrivs av under tillgångens beräknade nyttjandeperiod.<br/><br/><br/>- Det är tekniskt möjligt att färdigställa den immateriella anläggningstillgången så att den kan användas eller säljas.<br/><br/>- Avsikten är att färdigställa den immateriella anläggningstillgången och att använda eller sälja den.<br/><br/><br/>- Förutsättningar finns för att använda eller sälja den immateriella anläggningstillgången.<br/><br/>- Det är sannolikt att den immateriella anläggningstillgången kommer att generera framtida ekonomiska fördelar.<br/><br/><br/>- Det finns erforderliga och adekvata tekniska, ekonomiska och andra resurser för att fullfölja utvecklingen och för att använda eller sälja den immateriella anläggningstillgången.<br/><br/>- De utgifter som är hänförliga till den immateriella anläggningstillgången kan beräknas på ett tillförlitligt sätt.<br/><br/>Anskaffningsvärdet för en internt upparbetas immateriell anläggningstillgång utgörs av samtliga direkt hänförbara utgifter (t.ex. material och löner).<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+</div>
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">10</span> (13)</div>
+<table class="k2tableavskr noPY ht">
+<tbody><tr class="ir"><td>Redovisningsprinciper immateriella anläggningstillgångar  </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperImmateriellaAnlaggningstillgangar">Immateriella anläggningstillgångar redovisas till anskaffningsvärde minskat med ackumulerade avskrivningar och eventuella nedskrivningar.</ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2tableavskr noPY ht">
+<tbody><tr><td>Redovisningsprinciper för avskrivningar immateriella anläggningstillgångar  </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperAvskrivningImmateriellaAnlaggningstillgangar">Avskrivningsbart belopp utgörs av anskaffningsvärdet med avdrag för beräknat restvärde om detta bedöms vara väsentligt. Avskrivning sker linjärt över den förväntade nyttjandeperioden. Avskrivningen redovisas som kostnad i resultat räkningen.</ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2tableavskr noPY ht">
+<tbody><tr><td>Tillämpade avskrivningstider:</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr"><td><ix:tuple name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbetenTuple" tupleID="AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten_row1_PERIOD0"/><ix:nonNumeric name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbetenBenamning" contextRef="PERIOD0" order="1.0" tupleRef="AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten_row1_PERIOD0">Balanserade utgifter för utvecklingsarbeten och liknande arbeten</ix:nonNumeric></td><td></td><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbetenAr" order="2.0" tupleRef="AvskrivningsprincipImmateriellaAnlaggningstillgangarBalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten_row1_PERIOD0">5</ix:nonNumeric></td><td><div style="text-align:left;border:none"> år</div></td><td></td><td></td></tr>
+<tr class="hr"><td><ix:tuple name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheterTuple" tupleID="AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheter_row1_PERIOD0"/><ix:nonNumeric name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheterBenamning" contextRef="PERIOD0" order="1.0" tupleRef="AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheter_row1_PERIOD0">Koncessioner, patent, licenser, varumärken samt liknande rättigheter</ix:nonNumeric></td><td></td><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheterAr" order="2.0" tupleRef="AvskrivningsprincipImmateriellaAnlaggningstillgangarKoncessionerPatentLicenserVarumarkenLiknandeRattigheter_row1_PERIOD0">5</ix:nonNumeric></td><td><div style="text-align:left;border:none"> år</div></td><td></td><td></td></tr>
+
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AvskrivningarImmateriellaAnlaggningstillgangarKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+<table class="k2tableavskr noPY ht">
+<tbody><tr class="ir"><td>Redovisningsprinciper materiella anläggningstillgångar  </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperMateriellaAnlaggningstillgangar">Materiella anläggningstillgångar redovisas till anskaffningsvärde minskat med ackumulerade avskrivningar och eventuella nedskrivningar.<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Redovisningsprinciper för avskrivningar materiella anläggningstillgångar  </td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperAvskrivningMateriellaAnlaggningstillgangar">Avskrivningsbart belopp utgörs av anskaffningsvärdet med avdrag för beräknat restvärde om detta bedöms vara väsentligt. Avskrivning sker linjärt över den förväntade nyttjandeperioden.</ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Tillämpade avskrivningstider:</td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+<tr class="hr"><td><ix:tuple name="se-gen-base:AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationerTuple" tupleID="AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationer_row1_PERIOD0"/><ix:nonNumeric name="se-gen-base:AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationerBenamning" contextRef="PERIOD0" order="1.0" tupleRef="AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationer_row1_PERIOD0">Inventarier, verktyg och installationer</ix:nonNumeric></td><td></td><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationerAr" order="2.0" tupleRef="AvskrivningsprincipMateriellaAnlaggningstillgangarInventarierVerktygInstallationer_row1_PERIOD0">5</ix:nonNumeric></td><td><div style="text-align:left;border:none"> år</div></td><td></td><td></td></tr>
+
+
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AvskrivningarMateriellaAnlaggningstillgangarKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+</div>
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">11</span> (13)</div>
+<table class="princ ht">
+<tbody><tr class="ir"><td>Andelar i koncernföretag, intresseföretag, gemensamt styrda företag och företag som det finns ägarintresse i  </td></tr>
+<tr><td><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:RedovisningsprinciperAndelarKoncernforetagIntresseforetagGemensamtStyrdaForetagAgarintressen">Andelar i dotterföretag redovisas i enlighet med kapitel 9 BFNAR 2012:1 (4 kap. 3 § första stycket Årsredovisningslagen). Aktieägartillskott redovisas enligt kapitel 6 BFNAR 2012:1. Lämnade aktieägartillskott redovisas som en ökning av andelens redovisade värde. Återbetalning av lämnat tillskott redovisas som en minskning av andelens redovisade värde. Nedskrivning av värdet på andelar i dotterföretag sker enligt 4 kap. 5 § första, andra och fjärde styckena Årsredovisningslagen via resultat räkningen om det kan antas att värdenegången är bestående. Andelar i intresseföretag redovisas i enlighet med kapitel 14 BFNAR 2012:1 (4 kap. 3 a § Årsredovisningslagen). Aktieägartillskott redovisas enligt kapitel 6 BFNAR 2012:1. Lämnade aktieägartillskott redovisas som en ökning av andelens redovisade värde. Återbetalning av lämnat tillskott redovisas som en minsk- ning av andelens redovisade värde. Nedskrivning av värdet på andelar i intresseföretag sker enligt 4 kap. 5 § första, andra och fjärde styckena Årsredovisningslagen via resultaträkningen om det kan antas att värdenegången är bestående.</ix:nonNumeric></td></tr>
+<tr><td><br/></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="k2table NOTnoRRpers">
+<tbody><tr class="br"><td>Not <span class="noteno">2</span>. Personal</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<table class="k2table NOTnoRRpers k3mindre">
+<tbody><tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYstart">2019-01-01</span><br/>-<span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYstart">2018-01-01</span><br/>-<span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr><td>Medelantal anställda</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:MedelantaletAnstallda" unitRef="antal-personer" decimals="INF" scale="0" format="ixt:numspacecomma">31</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:MedelantaletAnstallda" unitRef="antal-personer" decimals="INF" scale="0" format="ixt:numspacecomma">27</ix:nonFraction></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:MedelantaletAnstalldaKommentar"><br/><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="k2table NOTnoRRfinrtakost">
+<tbody><tr class="br"><td>Not <span class="noteno">3</span>. Räntekostnader och liknande resultatposter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYstart">2019-01-01</span><br/>-<span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYstart">2018-01-01</span><br/>-<span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr><td>Räntekostnader och liknande resultatposter som avser skulder till koncernföretag</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:RantekostnaderLiknandeResultatposterSkulderKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 474 823</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:RantekostnaderLiknandeResultatposterSkulderKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:NotRantekostnaderLiknandeResultatposterKommentar">Summan 2 451 337 kr är valutakursvinster, av dem är 1 843 974 kr en justering som syftar till<br/> valutaförändringen på erhållna och förbrukade bidrag för tidigare år.<br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+
+
+
+<table class="k2table NOTnoBRimatbalutg">
+<tbody><tr class="br"><td>Not <span class="noteno">4</span>. Balanserade utgifter för utvecklingsarbeten och liknande arbeten</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr class="hr"><td>Ingående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">12 178 997</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS2" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">4 226 426</ix:nonFraction></td></tr>
+<tr class="hr"><td>Aktiverade utgifter</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenAktiveradeUtgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">19 912 471</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenAktiveradeUtgifter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">9 100 478</ix:nonFraction></td></tr>
+
+
+<tr class="hr"><td>Försäljningar/utrangeringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 147 907</ix:nonFraction></td></tr>
+
+
+<tr class="br"><td>Utgående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 091 468</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">12 178 997</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr"><td>Ingående avskrivningar</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 582 782</ix:nonFraction></td><td>-<ix:nonFraction contextRef="BALANS2" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 995 019</ix:nonFraction></td></tr>
+
+<tr class="hr"><td>Försäljningar/utrangeringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAvskrivningarForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAvskrivningarForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 147 907</ix:nonFraction></td></tr>
+
+<tr class="hr"><td>Årets avskrivningar </td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAvskrivningarAretsAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAvskrivningarAretsAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">735 670</ix:nonFraction></td></tr>
+
+<tr class="br hr"><td>Utgående avskrivningar</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 582 782</ix:nonFraction></td><td>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">2 582 782</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+<table class="k2table NOTnoBRimatbalutg">
+<tbody><tr class="br"><td>Redovisat värde</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">29 508 686</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">9 596 215</ix:nonFraction></td></tr>
+
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:NotBalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">12</span> (13)</div>
+<table class="k2table NOTnoBRimatkonc">
+<tbody><tr class="br"><td>Not <span class="noteno">5</span>. Koncessioner, patent, licenser, varumärken samt liknande rättigheter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr class="hr"><td>Ingående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 020 057</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS2" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">704 378</ix:nonFraction></td></tr>
+
+
+
+
+<tr class="hr"><td>Omklassificeringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterForandringAnskaffningsvardenOmklassificeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">393 812</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterForandringAnskaffningsvardenOmklassificeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">315 679</ix:nonFraction></td></tr>
+
+<tr class="br"><td>Utgående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 413 869</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheterAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 020 057</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+
+
+
+
+
+
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+<table class="k2table NOTnoBRimatkonc">
+<tbody><tr class="br"><td>Redovisat värde</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 413 869</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:KoncessionerPatentLicenserVarumarkenLiknandeRattigheter" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">1 020 057</ix:nonFraction></td></tr>
+
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:NotKoncessionerPatentLicenserVarumarkenLiknandeRattigheterKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="k2table NOTnoBRmatmask">
+<tbody><tr class="br"><td>Not <span class="noteno">6</span>. Maskiner och andra tekniska anläggningar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr class="hr"><td>Ingående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 998</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS2" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">472 783</ix:nonFraction></td></tr>
+<tr class="hr"><td>Inköp</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAnskaffningsvardenInkop" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">105 185</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAnskaffningsvardenInkop" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 998</ix:nonFraction></td></tr>
+
+
+<tr class="hr"><td>Försäljningar/utrangeringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAnskaffningsvardenForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAnskaffningsvardenForsaljningarUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">472 783</ix:nonFraction></td></tr>
+
+
+<tr class="br"><td>Utgående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">129 183</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">23 998</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="hr"><td>Ingående avskrivningar</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">7 998</ix:nonFraction></td><td>-<ix:nonFraction contextRef="BALANS2" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">211 418</ix:nonFraction></td></tr>
+
+<tr class="hr"><td>Försäljningar/utrangeringar</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAvskrivningarAterfordaAvskrivningarForsaljningarRespUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAvskrivningarAterfordaAvskrivningarForsaljningarRespUtrangeringar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">211 418</ix:nonFraction></td></tr>
+
+<tr class="hr"><td>Årets avskrivningar </td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="PERIOD0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAvskrivningarAretsAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">32 284</ix:nonFraction></td><td>-<ix:nonFraction contextRef="PERIOD1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarForandringAvskrivningarAretsAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">7 998</ix:nonFraction></td></tr>
+
+<tr class="br hr"><td>Utgående avskrivningar</td><td></td><td></td><td></td><td>-<ix:nonFraction contextRef="BALANS0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">40 282</ix:nonFraction></td><td>-<ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningarAvskrivningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">7 998</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+<table class="k2table NOTnoBRmatmask">
+<tbody><tr class="br"><td>Redovisat värde</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:MaskinerAndraTekniskaAnlaggningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">88 901</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:MaskinerAndraTekniskaAnlaggningar" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">16 000</ix:nonFraction></td></tr>
+
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:NotMaskinerAndraTekniskaAnlaggningarKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table class="k2table NOTnoBRfinatandkonc">
+<tbody><tr class="br"><td>Not <span class="noteno">7</span>. Andelar i koncernföretag</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="br"><td></td><td></td><td></td><td></td><td><span class="htmlCYfin">2019-12-31</span></td><td><span class="htmlPYfin">2018-12-31</span></td></tr>
+<tr class="hr"><td>Ingående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:AndelarKoncernforetagAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS2" name="se-gen-base:AndelarKoncernforetagAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td></tr>
+
+
+
+
+
+
+
+
+<tr class="hr"><td>Omräkningsdifferenser</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="PERIOD0" name="se-gen-base:AndelarKoncernforetagForandringAnskaffningsvardenOmrakningsdifferenser" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">239</ix:nonFraction></td><td><ix:nonFraction contextRef="PERIOD1" name="se-gen-base:AndelarKoncernforetagForandringAnskaffningsvardenOmrakningsdifferenser" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">0</ix:nonFraction></td></tr>
+<tr class="br"><td>Utgående anskaffningsvärden</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:AndelarKoncernforetagAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 696</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:AndelarKoncernforetagAnskaffningsvarden" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+
+
+<table class="k2table NOTnoBRfinatandkonc">
+<tbody><tr class="br"><td>Redovisat värde</td><td></td><td></td><td></td><td><ix:nonFraction contextRef="BALANS0" name="se-gen-base:AndelarKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 696</ix:nonFraction></td><td><ix:nonFraction contextRef="BALANS1" name="se-gen-base:AndelarKoncernforetag" unitRef="valuta" decimals="INF" scale="0" format="ixt:numspacecomma">11 457</ix:nonFraction></td></tr>
+
+<tr><td colspan="6"><ix:nonNumeric contextRef="PERIOD0" name="se-gen-base:AndelarKoncernforetagKommentar"><br/></ix:nonNumeric></td></tr>
+<tr><td><br/></td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<span id="NOTandelkoncSPECANDELAR" class="removeinxbrl"></span>
+
+
+
+
+
+
+
+
+
+<span id="NOTandelintrSPECANDELAR" class="removeinxbrl nottkr"></span>
+
+
+
+
+
+
+
+
+
+<span id="NOTandelagarSPECANDELAR" class="removeinxbrl nottkr"></span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="ar-page"><div class="ar-page-hdr"><span>Corpower Ocean AB<br/>556584-9824</span><span class="pagecount">13</span> (13)</div>
+<div class="ar-signature-2">
+	
+	<ix:nonNumeric name="se-gen-base:UndertecknandeArsredovisningOrt" contextRef="PERIOD0">Stockholm</ix:nonNumeric>
+	<ix:nonNumeric name="se-gen-base:UndertecknandeArsredovisningDatum" contextRef="PERIOD0">2020-06-26</ix:nonNumeric>
+	
+	<span id="ar-signature-2-signtuple"><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple1"/><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple2"/><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple3"/><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple4"/><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple5"/><ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple6"/></span>
+	<p></p><div class="name"><i>Per Andreas Gunnarsson<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple1">Per Andreas</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple1">Gunnarsson</ix:nonNumeric><br/><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareForetradarroll" contextRef="PERIOD0" order="3.0" tupleRef="UnderskriftArsredovisningForetradareTuple1">Styrelseordförande</ix:nonNumeric></div><div class="name"><i>Patrik Roger Möller<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple2">Patrik Roger</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple2">Möller</ix:nonNumeric><br/><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareForetradarroll" contextRef="PERIOD0" order="3.0" tupleRef="UnderskriftArsredovisningForetradareTuple2">Verkställande direktör</ix:nonNumeric></div><div class="name"><i>Claes Karl-Erik Eriksson<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple3">Claes Karl-Erik</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple3">Eriksson</ix:nonNumeric></div><div class="name"><i>Lars Ingvar Eriksson<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple4">Lars Ingvar</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple4">Eriksson</ix:nonNumeric></div><div class="name"><i>Markus Hökfelt<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple5">Markus</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple5">Hökfelt</ix:nonNumeric></div><div class="name"><i>Christina Margareta Lundbäck<br/></i><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple6">Christina Margareta</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple6">Lundbäck</ix:nonNumeric></div><p></p>
+</div>
+
+<div class="ar-signature-2" id="signARrevisor">
+	<span id="signARrevisorPATECKN">Min revisionsberättelse har lämnats <ix:nonNumeric name="se-gen-base:RevisorspateckningRevisionsberattelseEnligtStandardutformning" contextRef="PERIOD0">2020-06-29</ix:nonNumeric></span>
+	
+	<span id="ar-signatureREV-2-signtuple"><ix:tuple name="se-gen-base:UnderskriftRevisorspateckningTuple" tupleID="UnderskriftRevisorspateckningTuple1"/></span>
+	<p></p><div class="name"><i> <br/></i>Daniel Johansson<br/><ix:nonNumeric name="se-gen-base:UnderskriftRevisorspateckningRevisorTilltalsnamn" contextRef="PERIOD0" order="1.0" tupleRef="UnderskriftRevisorspateckningTuple1">Daniel</ix:nonNumeric> <ix:nonNumeric name="se-gen-base:UnderskriftRevisorspateckningRevisorEfternamn" contextRef="PERIOD0" order="2.0" tupleRef="UnderskriftRevisorspateckningTuple1">Johansson</ix:nonNumeric><br/><ix:nonNumeric name="se-gen-base:UnderskriftRevisorspateckningRevisorTitel" contextRef="PERIOD0" order="3.0" tupleRef="UnderskriftRevisorspateckningTuple1">Auktoriserad revisor</ix:nonNumeric></div><p></p>
+</div>
+</div>
+
+
+
+
+
+
+
+
+			
+	
+	
+	
+	
+	
+	
+	</div></body></html>

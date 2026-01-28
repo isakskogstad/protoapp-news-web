@@ -1,0 +1,1606 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+      xmlns:ixt="http://www.xbrl.org/inlineXBRL/transformation/2010-04-20"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:link="http://www.xbrl.org/2003/linkbase"
+      xmlns:xbrli="http://www.xbrl.org/2003/instance"
+      xmlns:ix="http://www.xbrl.org/2013/inlineXBRL"
+	  xmlns:se-gen-base="http://www.taxonomier.se/se/fr/gen-base/2018-12-17" 
+	  xmlns:se-cd-base="http://www.taxonomier.se/se/fr/cd-base/2018-12-17"
+	  xmlns:se-comp-base="http://www.bolagsverket.se/se/fr/comp-base/2017-09-30"
+      xmlns:se-misc-base="http://www.taxonomier.se/se/fr/misc-base/2017-09-30"
+      xmlns:se-k3-type="http://www.taxonomier.se/se/fr/k3/datatype">
+<head>
+    <title>Årsredovisning för Keep the change Sweden AB, 2022-01-01 - 2022-12-31</title>
+    <meta name="programvara" content="Visma Advisor Period &amp; Year-end Closing" />
+    <meta name="programversion" content="1.0" />
+    <style type="text/css">
+        /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
+
+/* Document
+   ========================================================================== */
+
+/**
+ * 1. Correct the line height in all browsers.
+ * 2. Prevent adjustments of font size after orientation changes in iOS.
+ */
+
+html {
+    line-height: 1.15; /* 1 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/* Sections
+   ========================================================================== */
+
+/**
+ * Remove the margin in all browsers.
+ */
+
+body {
+    margin: 0;
+    overflow-wrap: break-word;
+}
+
+/**
+ * Render the `main` element consistently in IE.
+ */
+
+main {
+    display: block;
+}
+
+/**
+ * Correct the font size and margin on `h1` elements within `section` and
+ * `article` contexts in Chrome, Firefox, and Safari.
+ */
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+h1, h2, h3, h4, h5 {
+    color: black !important;
+}
+
+b,
+strong {
+    font-weight: bolder;
+}
+
+
+/**
+ * Add the correct font size in all browsers.
+ */
+
+small {
+    font-size: 80%;
+}
+/*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
+
+/* Annual report CSS below */
+
+@page {
+    size: A4 portrait;
+    margin: 3mm 25.4mm 3mm 25.4mm;
+}
+
+@media screen {
+    .page {
+        margin: auto;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        padding: 3mm 25.4mm 3mm 25.4mm;
+        border: 1px solid rgb(240, 240, 240);
+        border-image: none;
+        min-height: 29.6926cm;
+        max-width: 20.9804cm;
+        box-shadow: 0.25em 0.25em 0.3em #999;
+        box-sizing: border-box;
+    }
+
+        /* Fix styling for report center */
+        .page.new-html-print {
+            margin: 0;
+            padding: 0;
+            border: unset;
+            box-shadow: unset;
+            min-height: unset;
+            max-width: unset;
+            color: black !important;
+        }
+
+            .page.new-html-print .page-header {
+                margin-top: 0 !important;
+            }
+
+    .new-html-print.page-break {
+        page-break-before: always;
+        break-before: always;
+    }
+
+    .new-html-print .same-page-document, .new-html-print .new-page-document {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Table settings */
+    .new-html-print table tr {
+        background: var(--background-color);
+    }
+
+        .new-html-print table tr:nth-child(even) {
+            background: var(--background-color);
+        }
+}
+
+@media print {
+
+    @page {
+        margin: 3mm 10mm 3mm 10mm; /* wkhtmltopdf that bolagsverket uses does not respect @page margin. This setting should match what they use as left/right margins at least. */
+    }
+
+    .page {
+        margin: 0;
+        padding: 1px 15.4mm 0 15.4mm; /* padding-top: 0 breaks top margin when printing in firefox */
+    }
+
+        /* Fix styling for preview and VismaSign pdf */
+        .page.new-html-print {
+            margin: 0;
+            padding: 0;
+            border: unset;
+            color: black !important;
+        }
+
+            .page.new-html-print .page-header {
+                margin-top: 20px !important;
+            }
+
+    /* moved to a separate class since we cannot have a page break on the first page due to MS Edge and MSIE renders a page break before the first page */
+    .page-break {
+        page-break-before: always;
+        break-before: always;
+    }
+
+    .same-page-document, .new-page-document {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+
+body {
+    min-height: 100%;
+    font-family: Arial;
+    font-size: 10pt;
+}
+
+div {
+    margin: 0;
+}
+
+.empty-div {
+    height: 0;
+}
+
+.page-header {
+    width: 100%;
+    margin-top: 7mm;
+    margin-bottom: 6mm;
+}
+
+    .page-header, .page-header td {
+        font-size: 9pt;
+    }
+
+.pagination {
+    text-align: right;
+}
+
+/* To get the wanted font-size on subheaders like Regnskapsprinsipper and Verksamheten */
+.same-page-document h2 {
+    font-size: 13pt;
+}
+
+.signatures-same-page-padding {
+    padding-top: 25pt;
+}
+
+.cover-page {
+    margin-top: 32mm;
+    font-size: 14pt;
+    text-align: center;
+}
+
+    .cover-page .name {
+        font-size: 22pt;
+        font-weight: bold;
+    }
+
+    .cover-page p.title {
+        font-size: 16pt;
+        font-weight: bold;
+    }
+
+.table-header-infotext {
+    text-align: right;
+    margin-bottom: 0;
+}
+
+p {
+    white-space: pre-wrap;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+h1 {
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 12pt;
+}
+
+    h2.header-11-normal {
+        font-size: 11pt;
+        font-weight: normal;
+        margin-top: 20pt;
+        margin-bottom: 2.790pt;
+    }
+
+h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 12pt;
+}
+
+h4 {
+    font-size: 11pt;
+    font-weight: bold;
+    font-style: italic;
+    margin-bottom: 0;
+    margin-top: 12pt;
+}
+
+h5 {
+    font-size: 10pt;
+    font-weight: bold;
+    margin-bottom: 0;
+    margin-top: 12pt;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    /* table-layout: fixed; */
+}
+
+.text-block p {
+    margin-top: 0;
+}
+
+.signature-high-row {
+    height: 29mm;
+    vertical-align: top;
+}
+
+.signature-row {
+    height: 13mm;
+    vertical-align: top;
+}
+
+.signature-cell {
+    width: 44mm;
+    height: 8mm;
+    text-align: left;
+    padding-left: 0;
+}
+
+.signature-placeholder-cell {
+    width: 6mm;
+    height: 8mm;
+}
+
+.clarification-of-signature {
+    border-top: 1px solid grey;
+}
+
+td.padding-right-10 {
+    padding-right: 10px;
+}
+
+td {
+    height: 2.67mm;
+    vertical-align: top;
+    padding-left: 1.25mm;
+    padding-right: 0;
+    line-height: 1.2em;
+    font-size: 10pt; /* Redundant, but fixes table font-size when bolagsverket renders PDF. Should match body font-size. */
+}
+
+    td:first-child {
+        padding-left: 0;
+    }
+
+tr.header td {
+    border-bottom: 1px solid grey;
+    font-style: italic;
+    vertical-align: bottom;
+}
+
+tr.subheader {
+    font-weight: bold;
+}
+
+tr.Sum_row td {
+    font-weight: bold;
+    border-top: 1px solid grey;
+    padding-top: 1mm;
+    padding-bottom: 2mm;
+}
+
+    tr.Sum_row td.text {
+        border-top: none;
+    }
+
+tr.SumIncludeClosestSumAbove_row td {
+    font-weight: bold;
+}
+
+tr.SumOfSums_row td {
+    font-weight: bold;
+    border-top: 1px solid grey;
+    padding-top: 1mm;
+    padding-bottom: 2mm;
+}
+
+    tr.SumOfSums_row td.text {
+        border-top: none;
+    }
+
+tr.NotBoldWithSumLine td {
+    font-weight: normal;
+    border-top: 1px solid grey;
+}
+
+tr.BoldWithoutSumLine td {
+    font-weight: bold;
+    border-top: none;
+    padding-top: 1mm;
+}
+
+tr.BoldWithSumLine td {
+    font-weight: bold;
+    border-top: 1px solid grey;
+    padding-top: 1mm;
+}
+
+    tr.BoldWithSumLine td.text {
+        border-top: none;
+    }
+
+.italic {
+    font-style: italic;
+}
+
+.text-align-right {
+    text-align: right;
+}
+
+.first-col {
+    width: 55%;
+}
+
+td {
+    width: 15%;
+}
+
+.col-width-35percent {
+    width: 35%;
+}
+
+.col-1-of-2 {
+    width: 85%;
+}
+
+.col-2-of-2 {
+    width: 15%;
+}
+
+.col-1-of-3 {
+    width: 70%;
+}
+
+.col-2-of-3 {
+    width: 15%;
+}
+
+.col-3-of-3 {
+    width: 15%;
+}
+
+.col-1-of-4 {
+    width: 55%;
+}
+
+.col-2-of-4 {
+    width: 15%;
+}
+
+.col-3-of-4 {
+    width: 15%;
+}
+
+.col-4-of-4 {
+    width: 15%;
+}
+
+.col-1-of-5 {
+    width: 40%;
+}
+
+.col-2-of-5 {
+    width: 15%;
+}
+
+.col-3-of-5 {
+    width: 15%;
+}
+
+.col-4-of-5 {
+    width: 15%;
+}
+
+.col-5-of-5 {
+    width: 15%;
+}
+
+.col-1-of-6 {
+    width: 50%;
+}
+
+.col-2-of-6 {
+    width: 10%;
+}
+
+.col-3-of-6 {
+    width: 10%;
+}
+
+.col-4-of-6 {
+    width: 10%;
+}
+
+.col-5-of-6 {
+    width: 10%;
+}
+
+.col-6-of-6 {
+    width: 10%;
+}
+
+.col-1-of-7 {
+    width: 40%;
+}
+
+.col-2-of-7 {
+    width: 10%;
+}
+
+.col-3-of-7 {
+    width: 10%;
+}
+
+.col-4-of-7 {
+    width: 10%;
+}
+
+.col-5-of-7 {
+    width: 10%;
+}
+
+.col-6-of-7 {
+    width: 10%;
+}
+
+.col-7-of-7 {
+    width: 10%;
+}
+
+.col-1-of-8 {
+    width: 50%;
+}
+
+.col-1-of-9 {
+    width: 50%;
+}
+
+.col-1-of-10 {
+    width: 50%;
+}
+
+.display-none {
+    display: none;
+}
+
+.margin-top-1cm {
+    margin-top: 1cm;
+}
+
+.margin-bottom-1cm {
+    margin-bottom: 1cm;
+}
+
+.margin-top-3cm {
+    margin-top: 3cm;
+}
+
+p.digitalSignatureBy {
+    margin-top: 0.75cm;
+    margin-bottom: 0.75cm;
+    font-weight: bold;
+}
+
+.table-of-contents {
+    margin-top: 10mm;
+    margin-bottom: 10mm;
+}
+
+    .table-of-contents table {
+        width: 60%;
+        margin: auto;
+    }
+
+    .table-of-contents td {
+        font-size: 12pt;
+    }
+
+    .table-of-contents .toc-header {
+        text-align: left;
+    }
+
+    .table-of-contents .toc-page {
+        text-align: right;
+    }
+table.table-OvrigaAvsattningar_Typ { table-layout: fixed; }
+table.table-OvrigaAvsattningar_Typ .col-c0 { width: 56.37mm; }
+table.table-OvrigaAvsattningar_Typ .col-c1 { width: 98.00mm; }
+table.table-OvrigaAvsattningar_Typ .col-c2 { width: .00mm; }
+table.table-OvrigaAvsattningar_Typ .col-c3 { width: .00mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple { table-layout: fixed; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple td { font-size: 8pt; padding-left: 1mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c0 { width: 29.38mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c1 { width: 17.25mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c2 { width: 15.68mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c3 { width: 10.98mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c4 { width: 17.25mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c5 { width: 17.25mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c6 { width: 10.98mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c7 { width: 14.11mm; }
+table.table-InnehavAndelarAgarintressenOvrigaForetagInklusiveUppgiftForetagTuple .col-c8 { width: 17.25mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple { table-layout: fixed; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c0 { width: 59.04mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c1 { width: 21.56mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c2 { width: 23.52mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c3 { width: 19.60mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c4 { width: 29.40mm; }
+table.table-FusionBolagTuple { table-layout: fixed; }
+table.table-FusionBolagTuple td { font-size: 8pt; padding-left: 1mm; }
+table.table-FusionBolagTuple .col-c0 { width: 45.50mm; }
+table.table-FusionBolagTuple .col-c1 { width: 17.25mm; }
+table.table-FusionBolagTuple .col-c2 { width: 15.68mm; }
+table.table-FusionBolagTuple .col-c3 { width: 18.82mm; }
+table.table-FusionBolagTuple .col-c4 { width: 17.25mm; }
+table.table-FusionBolagTuple .col-c5 { width: 18.82mm; }
+table.table-FusionBolagTuple .col-c6 { width: 18.82mm; }
+table.table-FusionOverlatandeForetagBalansrakningTuple { table-layout: fixed; }
+table.table-FusionOverlatandeForetagBalansrakningTuple .col-c0 { width: 72.05mm; }
+table.table-FusionOverlatandeForetagBalansrakningTuple .col-c1 { width: 39.20mm; }
+table.table-FusionOverlatandeForetagBalansrakningTuple .col-c2 { width: 21.56mm; }
+table.table-FusionOverlatandeForetagBalansrakningTuple .col-c3 { width: 21.56mm; }
+table.table-RattelseFelTuple { table-layout: fixed; }
+table.table-RattelseFelTuple .col-c0 { width: 35.52mm; }
+table.table-RattelseFelTuple .col-c1 { width: 39.20mm; }
+table.table-RattelseFelTuple .col-c2 { width: 25.48mm; }
+table.table-RattelseFelTuple .col-c3 { width: 25.48mm; }
+table.table-RattelseFelTuple .col-c4 { width: 27.44mm; }
+table.table-UpplysningModerforetagTuple { table-layout: fixed; }
+table.table-UpplysningModerforetagTuple td { font-size: 8pt; padding-left: 1mm; }
+table.table-UpplysningModerforetagTuple .col-c0 { width: 54.88mm; }
+table.table-UpplysningModerforetagTuple .col-c1 { width: 45.36mm; }
+table.table-UpplysningModerforetagTuple .col-c2 { width: 23.52mm; }
+table.table-UpplysningModerforetagTuple .col-c3 { width: 31.36mm; }
+table.table-StalldaSakerheterEgnaSkulderAvsattningarTuple { table-layout: fixed; }
+table.table-StalldaSakerheterEgnaSkulderAvsattningarTuple .col-c0 { width: 70.09mm; }
+table.table-StalldaSakerheterEgnaSkulderAvsattningarTuple .col-c1 { width: 41.16mm; }
+table.table-StalldaSakerheterEgnaSkulderAvsattningarTuple .col-c2 { width: 21.56mm; }
+table.table-StalldaSakerheterEgnaSkulderAvsattningarTuple .col-c3 { width: 21.56mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple { table-layout: fixed; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple td { font-size: 8pt; padding-left: 1mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c0 { width: 29.38mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c1 { width: 17.25mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c2 { width: 15.68mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c3 { width: 10.98mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c4 { width: 17.25mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c5 { width: 17.25mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c6 { width: 10.98mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c7 { width: 14.11mm; }
+table.table-InnehavAndelarIntresseforetagGemensamtStyrdaForetagInklusiveUppgiftForetagTuple .col-c8 { width: 17.25mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple { table-layout: fixed; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple td { font-size: 8pt; padding-left: 1mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c0 { width: 29.38mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c1 { width: 17.25mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c2 { width: 15.68mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c3 { width: 10.98mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c4 { width: 17.25mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c5 { width: 17.25mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c6 { width: 10.98mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c7 { width: 14.11mm; }
+table.table-InnehavAndelarKoncernforetagInklusiveUppgiftForetagTuple .col-c8 { width: 17.25mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple { table-layout: fixed; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c0 { width: 36.23mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c1 { width: 29.40mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c2 { width: 21.56mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c3 { width: 21.56mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c4 { width: 21.56mm; }
+table.table-LonerAndraErsattningarPubliktAktiebolagTuple .col-c5 { width: 21.56mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple { table-layout: fixed; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c0 { width: 59.04mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c1 { width: 21.56mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c2 { width: 23.52mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c3 { width: 19.60mm; }
+table.table-SpecifikationForslagUtdelningAktieslagTuple .col-c4 { width: 29.40mm; }
+
+    </style>
+</head>
+<body>
+    <div class="display-none">
+        <ix:header>
+            <ix:hidden>
+                <ix:nonNumeric name="se-cd-base:Sprak" contextRef="period0">sv</ix:nonNumeric>
+                <ix:nonNumeric name="se-cd-base:Land" contextRef="period0">SE</ix:nonNumeric>
+                <ix:nonNumeric name="se-cd-base:Redovisningsvaluta" contextRef="period0">SEK</ix:nonNumeric>
+                <ix:nonNumeric name="se-cd-base:RakenskapsarForstaDag" contextRef="period0">2022-01-01</ix:nonNumeric>
+                <ix:nonNumeric name="se-cd-base:RakenskapsarSistaDag" contextRef="period0">2022-12-31</ix:nonNumeric>
+                <ix:nonNumeric name="se-misc-base:ArsredovisningEjTaggadInformation" contextRef="period0">false</ix:nonNumeric>
+                
+            </ix:hidden>
+            <ix:references>
+                <link:schemaRef xlink:type="simple" xlink:href="http://xbrl.taxonomier.se/se/fr/gaap/k3/risbs/2018-12-17/se-k3-risbs-2018-12-17.xsd" />
+                <link:schemaRef xlink:type="simple" xlink:href="http://xbrl.taxonomier.se/se/fr/gaap/coa/rplc/2018-12-17/se-coa-rplc-2018-12-17.xsd" />
+                <link:schemaRef xlink:type="simple" xlink:href="http://xbrl.taxonomier.se/se/fr/misc/race/2017-09-30/se-misc-race-2017-09-30.xsd" />
+            </ix:references>
+            <ix:resources>
+                <xbrli:context id="period0">
+    <xbrli:entity>
+        <xbrli:identifier scheme="http://www.bolagsverket.se">556524-5122</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+        <xbrli:startDate>2022-01-01</xbrli:startDate>
+        <xbrli:endDate>2022-12-31</xbrli:endDate>
+    </xbrli:period>
+</xbrli:context><xbrli:context id="period1">
+    <xbrli:entity>
+        <xbrli:identifier scheme="http://www.bolagsverket.se">556524-5122</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+        <xbrli:startDate>2021-01-01</xbrli:startDate>
+        <xbrli:endDate>2021-12-31</xbrli:endDate>
+    </xbrli:period>
+</xbrli:context>
+                <xbrli:context id="balans0">
+    <xbrli:entity>
+        <xbrli:identifier scheme="http://www.bolagsverket.se">556524-5122</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+        <xbrli:instant>2022-12-31</xbrli:instant>
+    </xbrli:period>
+</xbrli:context><xbrli:context id="balans1">
+    <xbrli:entity>
+        <xbrli:identifier scheme="http://www.bolagsverket.se">556524-5122</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+        <xbrli:instant>2021-12-31</xbrli:instant>
+    </xbrli:period>
+</xbrli:context>
+                <xbrli:unit id="SEK">
+                    <xbrli:measure>iso4217:SEK</xbrli:measure>
+                </xbrli:unit>
+                <xbrli:unit id="procent">
+                    <xbrli:measure>xbrli:pure</xbrli:measure>
+                </xbrli:unit>
+                <xbrli:unit id="antal-personer">
+                    <xbrli:measure>se-k3-type:AntalPersoner</xbrli:measure>
+                </xbrli:unit>
+                <xbrli:unit id="andelar">
+                    <xbrli:measure>xbrli:shares</xbrli:measure>
+                </xbrli:unit>
+            </ix:resources>
+        </ix:header>
+    </div>
+    <div class='page '><div class="new-page-document cover-page">
+    <p class="title">Årsredovisning för</p>
+    <h1 class="name"><ix:nonNumeric name="se-cd-base:ForetagetsNamn" contextRef="period0">Keep the change Sweden AB</ix:nonNumeric></h1>
+    <p><ix:nonNumeric name="se-cd-base:Organisationsnummer" contextRef="period0">556524-5122</ix:nonNumeric></p>
+    <div class="margin-top-1cm margin-bottom-1cm">
+        <p>Räkenskapsåret</p>
+        <p><b>2022-01-01 - 2022-12-31</b></p>
+    </div>
+    <div class='table-of-contents'>
+<table>
+<tr><td class='toc-header'>Förvaltningsberättelse</td><td class='toc-page'>1</td></tr>
+<tr><td class='toc-header'>Resultaträkning</td><td class='toc-page'>2</td></tr>
+<tr><td class='toc-header'>Balansräkning</td><td class='toc-page'>3</td></tr>
+<tr><td class='toc-header'>Noter</td><td class='toc-page'>5</td></tr>
+<tr><td class='toc-header'>Underskrifter</td><td class='toc-page'>6</td></tr>
+</table>
+</div>
+
+</div>
+<div class="document same-page-document">
+    <div class="margin-top-3cm">
+        <h2>Fastställelseintyg</h2>
+        <p><ix:nonNumeric name="se-comp-base:ArsstammaIntygande" contextRef="balans0" continuedAt="intygande_forts"><ix:nonNumeric name="se-comp-base:FaststallelseResultatBalansrakning" contextRef="balans0">Jag intygar att resultaträkningen och balansräkningen har fastställts på årsstämma</ix:nonNumeric>&#160;<ix:nonNumeric name="se-comp-base:Arsstamma" contextRef="balans0">2023-06-28</ix:nonNumeric>.&#160;<br /><ix:nonNumeric name="se-comp-base:ArsstammaResultatDispositionGodkannaStyrelsensForslag" contextRef="balans0">Årsstämman beslöt att godkänna styrelsens förslag till vinstdisposition.</ix:nonNumeric>&#160;</ix:nonNumeric></p>
+        <p><ix:continuation id="intygande_forts"><ix:nonNumeric name="se-comp-base:IntygandeOriginalInnehall" contextRef="balans0">Jag intygar att innehållet i dessa elektroniska handlingar överensstämmer med originalen och att originalen undertecknats av samtliga personer som enligt lag ska underteckna dessa.</ix:nonNumeric></ix:continuation></p>
+        <p></p>
+        <p class="digitalSignatureBy"><ix:nonNumeric name="se-comp-base:UnderskriftFaststallelseintygElektroniskt" contextRef="balans0">Elektroniskt underskriven av</ix:nonNumeric></p>
+        <p><ix:nonNumeric name="se-comp-base:UnderskriftFaststallelseintygForetradareTilltalsnamn" contextRef="period0">Ragnar </ix:nonNumeric>&#160;<ix:nonNumeric name="se-comp-base:UnderskriftFaststallelseintygForetradareEfternamn" contextRef="period0">Sethson</ix:nonNumeric><br /><ix:nonNumeric name="se-comp-base:UnderskriftFaststallelseintygForetradareForetradarroll" contextRef="period0">Styrelseledamot</ix:nonNumeric></p>
+        <p><ix:nonNumeric name="se-comp-base:UnderskriftFastallelseintygDatum" contextRef="balans0" id="ID_DATUM_UNDERTECKNANDE_FASTSTALLELSEINTYG">2023-06-29</ix:nonNumeric></p>
+    </div>
+</div>
+
+</div>
+<div class='page page-break'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>1/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <h2>Förvaltningsberättelse</h2>
+    
+</div><p><ix:nonNumeric name="se-gen-base:FinansiellRapport" contextRef="period0" continuedAt="cont_1">Styrelsen </ix:nonNumeric>för&#160;Keep the change Sweden AB,&#160;<span class='nowrap'>556524-5122</span>, <ix:continuation id="cont_1">avger följande årsredovisning</ix:continuation>&#160;för räkenskapsåret&#160;<span class='nowrap'>2022-01-01 - 2022-12-31</span>.</p>
+
+<div class="document same-page-document">
+    <h2>Verksamheten</h2>
+    <div class="text-block">
+    <h5>Verksamhetens art och inriktning</h5>
+    <p><ix:nonNumeric name="se-gen-base:VerksamhetenArtInriktning" contextRef="period0">Aktiebolaget ska bedriva konsultation och affärsutveckling inom digitalisering, dataskydd, förändringsledning och transformation genom uppdrag eller delägande i nya eller befintliga företag, jämte därmed förenlig verksamhet. Vidare skall företaget utveckla och tillhandahålla tjänster och inom hållbar mobilitet genom digitala flöden, uthyrnings- och delningstjänster med datainsamling och analys. Bolaget skall bedriva hyrbilsverksamhet, fordonshandel, äga och förvalta fast och lös egendom.</ix:nonNumeric></p>
+</div>
+</div>
+<div class="document same-page-document">
+    <h2>Rättvisande översikt över utvecklingen</h2>
+    <p class='table-header-infotext'>Belopp i kr</p>
+<div>
+    <table class="table-Flerarsoversikt">
+        <tr class="header   ">
+    <td class="col-1-of-3 text">&#160;</td>
+<td class="col-2-of-3 text text-align-right">2022</td>
+<td class="col-3-of-3 text text-align-right">2021</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Nettoomsättning</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Nettoomsattning" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >314 998</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Nettoomsattning" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >11 672</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Rörelseresultat</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Rorelseresultat" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >298 812</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:Rorelseresultat" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Resultat efter finansiella poster</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ResultatEfterFinansiellaPoster" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >298 812</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ResultatEfterFinansiellaPoster" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Rörelsemarginal %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Rorelsemarginal" contextRef="period0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >0</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Rorelsemarginal" contextRef="period1"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >0</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Avkastning på totalt kapital %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AvkastningTotaltKapital" contextRef="period0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >52,4</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AvkastningTotaltKapital" contextRef="period1"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" sign="-">18,7</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Avkastning på sysselsatt kapital %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AvkastningSysselsattKapital" contextRef="period0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >68,7</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AvkastningSysselsattKapital" contextRef="period1"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" sign="-">18,7</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Avkastning på eget kapital %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AvkastningEgetKapital" contextRef="period0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >68,7</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AvkastningEgetKapital" contextRef="period1"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" sign="-">18,7</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Balansomslutning</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Balansomslutning" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >570 784</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Balansomslutning" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Kassalikviditet %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Kassalikviditet" contextRef="balans0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >0</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Soliditet %</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Soliditet" contextRef="balans0"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >76,2</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Soliditet" contextRef="balans1"
+                              unitRef="procent" format="ixt:numcomma" scale="-2" decimals="INF" >100</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+<div class="document same-page-document">
+    <h2>Förändringar i eget kapital</h2>
+    <div>
+    <table class="table-ForandringEgetKapitalAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-4 text">&#160;</td>
+<td class="col-2-of-4 text text-align-right">Aktie-<br />
+kapital</td>
+<td class="col-3-of-4 text text-align-right">Balanserat resultat</td>
+<td class="col-4-of-4 text text-align-right">Årets resultat</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Ingående balans</td>
+<td class="col-2-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Aktiekapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseratResultat" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >18 692</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AretsResultatEgetKapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Balanseras i ny räkning</td>
+<td class="col-2-of-4 text">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ForandringEgetKapitalBalanseratResultatBalanserasNyRakning" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForandringEgetKapitalAretsResultatBalanserasNyRakning" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >18 692</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Årets resultat</td>
+<td class="col-2-of-4 text">&#160;</td>
+<td class="col-3-of-4 text">&#160;</td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForandringEgetKapitalAretsResultatAretsResultat" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Utgående balans</td>
+<td class="col-2-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Aktiekapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseratResultat" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AretsResultatEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+<div class="document same-page-document">
+    <h2>Resultatdisposition</h2>
+    <p class='table-header-infotext'>Belopp i kr</p>
+<div>
+    <table class="table-MedelDisponeraAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-2 text">Till årsstämmans förfogande står följande medel:</td>
+<td class="col-2-of-2 text text-align-right">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-2 text">Årets resultat</td>
+<td class="col-2-of-2 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AretsResultatEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-2 text">Medel att disponera</td>
+<td class="col-2-of-2 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:FrittEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+    </table>
+</div><div>
+    <table class="table-ForslagDispositionAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-2 text">Styrelsen föreslår att medlen disponeras enligt följande:</td>
+<td class="col-2-of-2 text text-align-right">&#160;</td>
+</tr>
+<tr class="display-none   ">
+    <td class="col-1-of-2 text">Utdelning</td>
+<td class="col-2-of-2 integer-value text-align-right">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-2 text">Balanseras i ny räkning</td>
+<td class="col-2-of-2 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForslagDispositionBalanserasINyRakning" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-2 text">Summa</td>
+<td class="col-2-of-2 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForslagDisposition" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+</div>
+<div class='page page-break'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>2/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <h2>Resultaträkning</h2>
+    <div>
+    <table class="table-ResultatrakningKostnadsslagsindeladAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-4 text">Belopp i kr</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">Not</td>
+<td class="col-3-of-4 text text-align-right">2022-01-01 - 2022-12-31</td>
+<td class="col-4-of-4 text text-align-right">2021-01-01 - 2021-12-31</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Rörelsens intäkter, lagerförändringar m.m.</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Nettoomsättning</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Nettoomsattning" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >314 998</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Nettoomsattning" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >11 672</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Förändring av lager av färdiga varor och av varor under tillverkning, inklusive pågående arbeten för annans räkning</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForandringLagerProdukterIArbeteFardigaVarorPagaendeArbetenAnnansRakning" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ForandringLagerProdukterIArbeteFardigaVarorPagaendeArbetenAnnansRakning" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">1 464</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa rörelsens intäkter, lagerförändringar m.m.</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:RorelseintakterLagerforandringarMm" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >314 998</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:RorelseintakterLagerforandringarMm" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >10 208</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Rörelsens kostnader</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Råvaror och förnödenheter</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:RavarorFornodenheterKostnader" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:RavarorFornodenheterKostnader" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >877</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Övriga externa kostnader</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:OvrigaExternaKostnader" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >16 186</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:OvrigaExternaKostnader" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >28 023</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa rörelsens kostnader</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:Rorelsekostnader" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >16 186</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:Rorelsekostnader" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >28 900</ix:nonFraction></td>
+</tr>
+<tr class="data  SumOfSums_row ">
+    <td class="col-1-of-4 text">Rörelseresultat</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Rorelseresultat" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >298 812</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:Rorelseresultat" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data  SumOfSums_row ">
+    <td class="col-1-of-4 text">Resultat efter finansiella poster</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ResultatEfterFinansiellaPoster" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >298 812</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ResultatEfterFinansiellaPoster" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Bokslutsdispositioner</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Erhållna koncernbidrag</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ErhallnaKoncernbidrag" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ErhallnaKoncernbidrag" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Förändring av periodiseringsfonder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ForandringPeriodiseringsfond" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">77 762</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ForandringPeriodiseringsfond" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa bokslutsdispositioner</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Bokslutsdispositioner" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >22 238</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Bokslutsdispositioner" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  SumOfSums_row ">
+    <td class="col-1-of-4 text">Resultat före skatt</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ResultatForeSkatt" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >321 050</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:ResultatForeSkatt" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Skatter</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Skatt på årets resultat</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:SkattAretsResultat" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >48 055</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:SkattAretsResultat" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa skatter</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">-48 055</td>
+<td class="col-4-of-4 integer-value text-align-right">0</td>
+</tr>
+<tr class="data  BoldWithSumLine ">
+    <td class="col-1-of-4 text">Årets resultat</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AretsResultat" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AretsResultat" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+</div>
+<div class='page page-break'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>3/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <h2>Balansräkning</h2>
+    <div>
+    <table class="table-BalansrakningAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-4 text">Belopp i kr</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">Not</td>
+<td class="col-3-of-4 text text-align-right">2022-12-31</td>
+<td class="col-4-of-4 text text-align-right">2021-12-31</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">TILLGÅNGAR</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Anläggningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Immateriella anläggningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Balanserade utgifter för utvecklingsarbeten och liknande arbeten</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">2</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa immateriella anläggningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ImmateriellaAnlaggningstillgangar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ImmateriellaAnlaggningstillgangar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa anläggningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Anlaggningstillgangar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Anlaggningstillgangar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Omsättningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Kortfristiga fordringar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Kundfordringar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Kundfordringar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >393 750</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Kundfordringar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Fordringar hos koncernföretag</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:FordringarKoncernforetagKortfristiga" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >55 049</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:FordringarKoncernforetagKortfristiga" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >55 049</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Övriga fordringar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:OvrigaFordringarKortfristiga" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >201</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:OvrigaFordringarKortfristiga" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >6 436</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa kortfristiga fordringar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KortfristigaFordringar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >449 000</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KortfristigaFordringar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >61 485</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Kassa och bank</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Kassa och bank</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KassaBankExklRedovisningsmedel" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >76 089</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KassaBankExklRedovisningsmedel" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >38 515</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa kassa och bank</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KassaBank" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >76 089</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KassaBank" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >38 515</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa omsättningstillgångar</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Omsattningstillgangar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >525 089</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Omsattningstillgangar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">SUMMA TILLGÅNGAR</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Tillgangar" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >570 784</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Tillgangar" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+
+    </table>
+</div>
+</div></div>
+<div class='page page-break forced-page-break-table'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>4/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <h2>Balansräkning</h2>
+    <div>
+    <table class="table-BalansrakningAbstract">
+        <tr class="header   ">
+    <td class="col-1-of-4 text">Belopp i kr</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">Not</td>
+<td class="col-3-of-4 text text-align-right">2022-12-31</td>
+<td class="col-4-of-4 text text-align-right">2021-12-31</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">EGET KAPITAL OCH SKULDER</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Bundet eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Aktiekapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Aktiekapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Aktiekapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa bundet eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BundetEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BundetEgetKapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Fritt eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Balanserat resultat</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseratResultat" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseratResultat" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >18 692</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Årets resultat</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:AretsResultatEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+-<ix:nonFraction name="se-gen-base:AretsResultatEgetKapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" sign="-">18 692</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa fritt eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:FrittEgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >272 995</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:FrittEgetKapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa eget kapital</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:EgetKapital" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >372 995</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:EgetKapital" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Obeskattade reserver</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Periodiseringsfonder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Periodiseringsfonder" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >77 762</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Periodiseringsfonder" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa obeskattade reserver</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ObeskattadeReserver" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >77 762</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:ObeskattadeReserver" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  BoldWithoutSumLine ">
+    <td class="col-1-of-4 text">Kortfristiga skulder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4">&#160;</td>
+<td class="col-4-of-4">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Aktuella skatteskulder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Skatteskulder" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >48 055</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:Skatteskulder" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Övriga skulder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:OvrigaKortfristigaSkulder" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >65 972</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:OvrigaKortfristigaSkulder" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-4 text">Upplupna kostnader och förutbetalda intäkter</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:UpplupnaKostnaderForutbetaldaIntakter" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >6 000</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:UpplupnaKostnaderForutbetaldaIntakter" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">Summa kortfristiga skulder</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KortfristigaSkulder" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >120 027</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:KortfristigaSkulder" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-4 text">SUMMA EGET KAPITAL OCH SKULDER</td>
+<td class="col-2-of-4 text text-align-right padding-right-10">&#160;</td>
+<td class="col-3-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:EgetKapitalSkulder" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >570 784</ix:nonFraction></td>
+<td class="col-4-of-4 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:EgetKapitalSkulder" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >100 000</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+</div>
+<div class='page page-break'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>5/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <h2>Noter</h2>
+    
+</div><p><ix:nonNumeric name="se-cd-base:MatEnhet" contextRef="period0">Belopp i kr om inget annat anges.</ix:nonNumeric></p>
+
+<div class="document same-page-document">
+    <h2>Not 1 Redovisnings- och värderingsprinciper</h2>
+    <div class="text-block">
+    <h5>Redovisnings- och värderingsprinciper</h5>
+    <p><ix:nonNumeric name="se-gen-base:RedovisningsVarderingsprinciper" contextRef="period0">Årsredovisningen har upprättats i enlighet med årsredovisningslagen och Bokföringsnämndens allmänna råd BFNAR 2012:1 Årsredovisning och koncernredovisning (K3).</ix:nonNumeric></p>
+</div>
+</div>
+<div class="document same-page-document">
+    <h2>Not 2 Balanserade utgifter för utvecklingsarbeten och liknande arbeten</h2>
+    <div>
+    <table class="table-">
+        <tr class="header   ">
+    <td class="col-1-of-3 text">&#160;</td>
+<td class="col-2-of-3 text text-align-right">2022-12-31</td>
+<td class="col-3-of-3 text text-align-right">2021-12-31</td>
+</tr>
+<tr class="data subheader  ">
+    <td class="col-1-of-3 text">Förändringar av anskaffningsvärden</td>
+<td class="col-2-of-3 text">&#160;</td>
+<td class="col-3-of-3 text">&#160;</td>
+</tr>
+<tr class="data   ">
+    <td class="col-1-of-3 text">Aktiverade utgifter</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenAktiveradeUtgifter" contextRef="period0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenForandringAnskaffningsvardenAktiveradeUtgifter" contextRef="period1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  Sum_row ">
+    <td class="col-1-of-3 text">Utgående anskaffningsvärden</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknadeArbetenAnskaffningsvarden" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+<tr class="data  SumOfSums_row ">
+    <td class="col-1-of-3 text">Redovisat värde</td>
+<td class="col-2-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" contextRef="balans0"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >45 695</ix:nonFraction></td>
+<td class="col-3-of-3 integer-value text-align-right">
+<ix:nonFraction name="se-gen-base:BalanseradeUtgifterUtvecklingsarbetenLiknandeArbeten" contextRef="balans1"
+                              unitRef="SEK" format="ixt:numspacecomma" scale="0" decimals="0" >0</ix:nonFraction></td>
+</tr>
+    </table>
+</div>
+</div>
+</div>
+<div class='page page-break'><div class='empty-div'>&#160;</div>
+<div class='page-header'><table><tr><td class='page-header-name'>Keep the change Sweden AB</td><td class='pagination'>6/6</td></tr><tr><td class='page-header-org'>556524-5122</td></tr></table></div>
+<div class="document new-page-document">
+    <div>
+        <h2>Underskrifter</h2>
+        <div class="margin-top-1cm margin-bottom-1cm"><span><ix:nonNumeric name="se-gen-base:UndertecknandeArsredovisningOrt" contextRef="period0">Stockholm</ix:nonNumeric></span>&#160;<span></span></div>
+        <div>
+            <ix:tuple name="se-gen-base:UnderskriftArsredovisningForetradareTuple" tupleID="UnderskriftArsredovisningForetradareTuple1" />
+            <table>
+    <tr class="signature-row">
+    <td class="signature-cell">
+    <table>
+        <tr>
+            <td><span class="italic">Ragnar  Sethson</span><br /></td><td class="text-align-right"><ix:nonNumeric name="se-gen-base:UndertecknandeDatum" order="4.0" tupleRef="UnderskriftArsredovisningForetradareTuple1" contextRef="period0">2023-06-28</ix:nonNumeric></td>
+        </tr>
+        <tr>
+            <td class="clarification-of-signature"><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareTilltalsnamn" order="1.0" tupleRef="UnderskriftArsredovisningForetradareTuple1" contextRef="period0">Ragnar </ix:nonNumeric>&#160;<ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareEfternamn" order="2.0" tupleRef="UnderskriftArsredovisningForetradareTuple1" contextRef="period0">Sethson</ix:nonNumeric></td><td class="text-align-right clarification-of-signature">Datum</td>
+        </tr>
+        <tr>
+            <td><ix:nonNumeric name="se-gen-base:UnderskriftArsredovisningForetradareForetradarroll" order="3.0" tupleRef="UnderskriftArsredovisningForetradareTuple1" contextRef="period0">Styrelseledamot</ix:nonNumeric></td>
+        </tr>
+    </table>
+</td>
+<td class="signature-placeholder-cell">
+    <div>
+        <span>&#160;</span>
+    </div>
+    <div>&#160;</div>
+</td>
+</tr>
+</table>
+        </div>
+        
+    </div>
+</div>
+
+</div>
+</body>
+</html>
