@@ -138,57 +138,42 @@ export default function NotificationDropdown() {
   const isSafari = typeof navigator !== 'undefined' &&
     /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 
+  // Check if notifications are actually working
+  const notificationsWorking = typeof Notification !== 'undefined' && Notification.permission === 'granted'
+
   const handleToggleClick = async () => {
-    // Check browser support directly
-    if (typeof Notification === 'undefined') {
-      alert('Din webbläsare stöder inte notiser.')
+    // Always allow opening the dropdown to configure preferences
+    if (isOpen) {
+      setIsOpen(false)
       return
     }
 
-    // Check actual browser permission (not React state which may be stale)
-    const currentPermission = Notification.permission
-
-    if (currentPermission === 'denied') {
-      if (isSafari) {
-        alert('Notiser blockerade i Safari.\n\n1. Gå till Safari → Inställningar → Webbplatser → Meddelanden\n2. Hitta denna webbplats och välj "Tillåt"\n3. Ladda om sidan')
-      } else {
-        alert('Notiser är blockerade. Ändra i webbläsarens inställningar (klicka på hänglåset i adressfältet).')
-      }
-      return
-    }
-
-    // If already granted, just open dropdown and ensure localStorage is set
-    if (currentPermission === 'granted') {
+    // If notifications already work, just open
+    if (notificationsWorking) {
       localStorage.setItem('loopdesk_notifications_enabled', 'true')
-      setIsOpen(!isOpen)
+      setIsOpen(true)
       return
     }
 
-    // Permission is 'default' - need to request
-    try {
-      const permission = await Notification.requestPermission()
-      if (permission === 'granted') {
-        localStorage.setItem('loopdesk_notifications_enabled', 'true')
-        // Show confirmation notification
-        new Notification('LoopDesk', {
-          body: 'Notiser aktiverade! Du får nu notiser om nya händelser.',
-          icon: '/icon-192.png',
-        })
-        setIsOpen(true)
-      } else if (isSafari) {
-        // Safari-specific guidance
-        alert('Safari kräver att appen läggs till i Dock för notiser.\n\n1. Gå till Arkiv → Lägg till i Dock (⇧⌘D)\n2. Öppna appen från Docken\n3. Klicka på klockan igen')
-      } else {
-        alert('Du behöver tillåta notiser för att använda denna funktion.')
-      }
-    } catch (error) {
-      console.error('Notification permission error:', error)
-      if (isSafari) {
-        alert('Safari kräver att appen läggs till i Dock för notiser.\n\n1. Gå till Arkiv → Lägg till i Dock (⇧⌘D)\n2. Öppna appen från Docken\n3. Klicka på klockan igen')
-      } else {
-        alert('Kunde inte aktivera notiser. Försök igen.')
+    // Try to request permission (may fail in Safari)
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission()
+        if (permission === 'granted') {
+          localStorage.setItem('loopdesk_notifications_enabled', 'true')
+          new Notification('LoopDesk', {
+            body: 'Notiser aktiverade!',
+            icon: '/icon-192.png',
+          })
+        }
+      } catch (e) {
+        console.log('Permission request failed:', e)
       }
     }
+
+    // Open dropdown regardless - let user configure preferences
+    // They'll work when/if browser permission is granted
+    setIsOpen(true)
   }
 
   // Display list: search results or watched companies
@@ -201,32 +186,24 @@ export default function NotificationDropdown() {
         onClick={handleToggleClick}
         disabled={notifications.loading}
         className={`p-2 rounded-md transition-colors relative ${
-          notifications.enabled || (typeof Notification !== 'undefined' && Notification.permission === 'granted')
+          notificationsWorking
             ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200'
-            : typeof Notification === 'undefined'
-              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
         }`}
-        title={
-          !notifications.supported ? 'Notiser stöds inte' :
-          notifications.permission === 'denied' ? 'Notiser blockerade' :
-          notifications.enabled ? 'Hantera notiser' : 'Aktivera notiser'
-        }
+        title="Hantera notiser"
       >
         {notifications.loading ? (
           <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : !notifications.supported || notifications.permission === 'denied' ? (
-          <BellOff className="w-5 h-5" />
         ) : (
           <Bell className="w-5 h-5" />
         )}
-        {notifications.enabled && (
+        {notificationsWorking && (
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900" />
         )}
       </button>
 
       {/* Dropdown */}
-      {isOpen && notifications.enabled && (
+      {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -238,6 +215,19 @@ export default function NotificationDropdown() {
               <X className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Warning banner if notifications not working */}
+          {!notificationsWorking && (
+            <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                {isSafari ? (
+                  <>⚠️ Safari: Använd Chrome för notiser, eller lägg till appen i Dock (Arkiv → Lägg till i Dock)</>
+                ) : (
+                  <>⚠️ Notiser ej aktiverade. Klicka på hänglåset i adressfältet för att tillåta.</>
+                )}
+              </p>
+            </div>
+          )}
 
           {/* Mode selector */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
