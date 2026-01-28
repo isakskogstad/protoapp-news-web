@@ -767,9 +767,11 @@ function getCategory(item: NewsItem): string {
 // Format category for display (handle snake_case and make readable)
 function formatCategory(category: string): string {
   // Convert snake_case to readable format
+  // Note: \b doesn't work with Swedish chars (ä,ö,å), so we use lowercase + capitalize after whitespace
   return category
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
+    .toLowerCase()
+    .replace(/(^|\s)(\S)/g, (_, space, char) => space + char.toUpperCase())
 }
 
 // News Item Component - Clean vertical layout in left column
