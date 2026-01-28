@@ -221,7 +221,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
   // Determine content availability
   const hasPdfUrl = item.sourceType === 'pdf' && !!item.sourceUrl
-  const hasPdf = hasPdfUrl && pdfExists === true
+  // Show PDF viewer unless we've confirmed it's missing (pdfExists === false)
+  const hasPdf = hasPdfUrl && pdfExists !== false
   const hasKungorelse = item.sourceType === 'kungorelse'
   const hasBolagsInfo = !!item.bolagsInfo
   const hasKallelse = !!item.kallelseFaktaruta
@@ -231,9 +232,10 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
 
   // Get the primary faktaruta (first one that exists)
   const hasFaktaruta = hasKallelse || hasNyemission || hasKonkurs || hasStyrelse
-  // Show source section if we have kungorelse, or if we have a PDF URL (even if checking/missing)
+  // Show source section if we have kungorelse, or if we have a PDF URL
   const hasSource = hasPdfUrl || hasKungorelse
-  const pdfMissing = hasPdfUrl && pdfExists === false
+  // PDF is confirmed missing only after HEAD check returns false
+  const pdfConfirmedMissing = hasPdfUrl && pdfExists === false
 
   // Extract keywords for PDF search
   const pdfKeywords = hasPdf ? extractKeywords(item) : []
@@ -349,10 +351,8 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
             className="w-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-4 flex items-center justify-between hover:bg-[#f8fafc] dark:hover:bg-[#21262d] hover:border-[#1e40af]/30 dark:hover:border-[#58a6ff]/30 transition-all group pulse-on-hover shadow-sm"
           >
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:bg-[#e2e8f0] dark:group-hover:bg-[#30363d] transition-colors ${pdfMissing ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-[#f1f5f9] dark:bg-[#21262d]'}`}>
-                {pdfChecking ? (
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#64748b] dark:text-[#8b949e] animate-spin" />
-                ) : pdfMissing ? (
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:bg-[#e2e8f0] dark:group-hover:bg-[#30363d] transition-colors ${pdfConfirmedMissing ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-[#f1f5f9] dark:bg-[#21262d]'}`}>
+                {pdfConfirmedMissing ? (
                   <FileX className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
                 ) : (
                   <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#64748b] dark:text-[#8b949e]" />
@@ -360,9 +360,9 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
               </div>
               <div className="flex flex-col items-start min-w-0">
                 <span className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-[#e6edf3] truncate">
-                  {hasKungorelse ? 'Visa kungörelse' : pdfChecking ? 'Kontrollerar...' : pdfMissing ? 'Protokoll ej tillgängligt' : 'Visa protokoll'}
+                  {hasKungorelse ? 'Visa kungörelse' : pdfConfirmedMissing ? 'Protokoll ej tillgängligt' : 'Visa protokoll'}
                 </span>
-                {pdfMissing && (
+                {pdfConfirmedMissing && (
                   <span className="text-[10px] text-amber-600 dark:text-amber-400">
                     PDF-filen saknas i arkivet
                   </span>
@@ -382,7 +382,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
                   Ladda ner
                 </a>
               )}
-              {!pdfMissing && (
+              {!pdfConfirmedMissing && (
                 (hasPdfUrl ? sourceExpanded : kungorelseExpanded) ? (
                   <ChevronUp className="w-5 h-5 text-[#64748b] dark:text-[#8b949e] transition-transform group-hover:text-[#1e40af] dark:group-hover:text-[#58a6ff]" />
                 ) : (
@@ -406,7 +406,7 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
           )}
 
           {/* PDF missing placeholder */}
-          {pdfMissing && sourceExpanded && (
+          {pdfConfirmedMissing && sourceExpanded && (
             <div className="mt-2 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/50 rounded-xl overflow-hidden animate-slide-down">
               <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
