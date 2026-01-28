@@ -63,6 +63,22 @@ function getMediaLogo(source?: string): string | null {
   return null
 }
 
+// Check if article was published today
+function isPublishedToday(publishedDate?: string): boolean {
+  if (!publishedDate) return false
+  const lower = publishedDate.toLowerCase()
+  // Check for common "today" patterns
+  if (lower.includes('idag') || lower.includes('today') || lower === 'nu' || lower === 'now') {
+    return true
+  }
+  // Check for time-only patterns like "14:30", "2 timmar sedan", "3 hours ago"
+  if (/^\d{1,2}:\d{2}$/.test(lower) ||
+      /^\d+\s*(timm|hour|min|sek|sec)/i.test(lower)) {
+    return true
+  }
+  return false
+}
+
 export default function NewsCoverage({ companyName }: NewsCoverageProps) {
   const [articles, setArticles] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -130,68 +146,75 @@ export default function NewsCoverage({ companyName }: NewsCoverageProps) {
         </h3>
       </div>
 
-      {/* Articles list */}
+      {/* Articles list - sorted newest first */}
       <ul className="space-y-2">
-        {articles.map((article, i) => (
-          <li
-            key={i}
-            className={`
-              transition-all duration-300 ease-out
-              ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}
-            `}
-            style={{ transitionDelay: `${200 + i * 75}ms` }}
-          >
-            <a
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-lg hover:bg-blue-100/50 dark:hover:bg-blue-800/30 transition-colors group"
+        {articles.map((article, i) => {
+          const isToday = isPublishedToday(article.publishedDate)
+          return (
+            <li
+              key={i}
+              className={`
+                transition-all duration-300 ease-out
+                ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}
+              `}
+              style={{ transitionDelay: `${200 + i * 75}ms` }}
             >
-              {/* Media logo or fallback dot */}
-              {getMediaLogo(article.source) ? (
-                <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0 mt-0.5 bg-white dark:bg-gray-700">
-                  <img
-                    src={getMediaLogo(article.source)!}
-                    alt=""
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      target.parentElement!.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 m-auto"></div>'
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
-                  {article.title}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  {article.source && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                      {article.source}
-                    </span>
-                  )}
-                  {article.publishedDate && (
-                    <>
-                      <span className="text-gray-300 dark:text-gray-600">·</span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {article.publishedDate}
+              <a
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-lg hover:bg-blue-100/50 dark:hover:bg-blue-800/30 transition-colors group"
+              >
+                {/* Fresh indicator for today's articles */}
+                {isToday && (
+                  <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 flex-shrink-0 mt-2 animate-pulse" title="Publicerad idag" />
+                )}
+                {/* Media logo or fallback dot */}
+                {getMediaLogo(article.source) ? (
+                  <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0 mt-0.5 bg-white dark:bg-gray-700">
+                    <img
+                      src={getMediaLogo(article.source)!}
+                      alt=""
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        target.parentElement!.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 m-auto"></div>'
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                    {article.title}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {article.source && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {article.source}
                       </span>
-                    </>
-                  )}
+                    )}
+                    {article.publishedDate && (
+                      <>
+                        <span className="text-gray-300 dark:text-gray-600">·</span>
+                        <span className={`text-xs ${isToday ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {article.publishedDate}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          </li>
-        ))}
+                <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )
