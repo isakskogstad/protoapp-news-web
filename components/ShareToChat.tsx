@@ -69,6 +69,7 @@ export default function ShareToChat({
         body: JSON.stringify({
           text: fallbackText,
           blocks,
+          asUser: true, // Send as the logged-in user, not as bot
         }),
       })
 

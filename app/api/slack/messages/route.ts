@@ -295,19 +295,31 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { text, thread_ts, blocks } = body
+    const { text, thread_ts, blocks, asUser } = body
 
     if (!text?.trim()) {
       return NextResponse.json({ error: 'Message text is required' }, { status: 400 })
     }
 
     const userName = session.user?.name || session.user?.email || 'Anonym'
+    const userSlackToken = (session.user as any)?.slackAccessToken
 
-    // If blocks are provided, use them (for rich messages like ShareToChat)
-    // Otherwise, format as user message
+    // Determine which token to use
+    // Use user token if available and asUser is true (for ShareToChat etc.)
+    const useUserToken = asUser && userSlackToken
+    const token = useUserToken ? userSlackToken : SLACK_BOT_TOKEN
+
+    // If using bot token, prefix with username for regular messages (not blocks)
+    // If using user token, message will show as from the user automatically
+    const messageText = useUserToken
+      ? text.trim()
+      : blocks
+        ? text.trim()
+        : `*${userName}:* ${text.trim()}`
+
     const payload: Record<string, unknown> = {
       channel: SLACK_CHANNEL_ID,
-      text: blocks ? text.trim() : `*${userName}:* ${text.trim()}`,
+      text: messageText,
       unfurl_links: true,
       unfurl_media: true,
     }
@@ -325,7 +337,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -334,10 +346,34 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
 
     if (!data.ok) {
+      // If user token failed, try with bot token as fallback
+      if (useUserToken && data.error === 'not_in_channel') {
+        // User needs to join the channel first, use bot instead
+        const botPayload = {
+          ...payload,
+          text: blocks ? text.trim() : `*${userName}:* ${text.trim()}`,
+        }
+
+        const botResponse = await fetch('https://slack.com/api/chat.postMessage', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(botPayload),
+        })
+
+        const botData = await botResponse.json()
+        if (!botData.ok) {
+          return NextResponse.json({ error: botData.error }, { status: 500 })
+        }
+        return NextResponse.json({ success: true, ts: botData.ts, message: botData.message, sentAsBot: true })
+      }
+
       return NextResponse.json({ error: data.error }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, ts: data.ts, message: data.message })
+    return NextResponse.json({ success: true, ts: data.ts, message: data.message, sentAsUser: useUserToken })
 
   } catch (error) {
     console.error('Error sending Slack message:', error)

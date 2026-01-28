@@ -10,6 +10,12 @@ export const authOptions: NextAuthOptions = {
     SlackProvider({
       clientId: process.env.SLACK_CLIENT_ID!,
       clientSecret: process.env.SLACK_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          // Request user scopes to post as user
+          user_scope: 'chat:write,users:read',
+        },
+      },
     }),
   ],
   callbacks: {
@@ -34,10 +40,20 @@ export const authOptions: NextAuthOptions = {
 
       return true
     },
+    async jwt({ token, account }) {
+      // Save Slack access token to JWT on initial sign in
+      if (account) {
+        token.slackAccessToken = account.access_token
+        token.slackUserId = account.providerAccountId
+      }
+      return token
+    },
     async session({ session, token }) {
-      // Add user ID to session
-      if (session.user && token.sub) {
+      // Add user ID and Slack token to session
+      if (session.user) {
         (session.user as any).id = token.sub
+        (session.user as any).slackAccessToken = token.slackAccessToken
+        (session.user as any).slackUserId = token.slackUserId
       }
       return session
     },
