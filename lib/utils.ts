@@ -171,9 +171,18 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     const utspädningCalc = (analysis.calculations as Record<string, unknown>)?.utspädning as Record<string, unknown> | undefined
     const utspädningProcent = utspädningCalc?.utspädning_procent as number | undefined
 
+    // Format emission type: "riktad_emission" -> "Riktad emission"
+    const formatEmissionstyp = (typ?: string): string => {
+      if (!typ) return 'Nyemission'
+      return typ
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .replace(/(^|\s)(\S)/g, (_, space, char) => space + char.toUpperCase())
+    }
+
     item.nyemissionFaktaruta = {
       bolagsnamn: analysis.company_name || '',
-      emissionstyp: nyemission.typ || 'Nyemission',
+      emissionstyp: formatEmissionstyp(nyemission.typ),
       antalAktier: nyemission.antal_nya_aktier ? nyemission.antal_nya_aktier.toLocaleString('sv-SE') : '-',
       teckningskurs: nyemission.teckningskurs_kr ? `${nyemission.teckningskurs_kr.toLocaleString('sv-SE')} kr` : '-',
       emissionsbelopp: emissionsbeloppKr ? `${(emissionsbeloppKr / 1_000_000).toFixed(1)} mkr` : '-',
