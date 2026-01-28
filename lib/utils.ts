@@ -152,16 +152,22 @@ export function mapProtocolTypeToCategory(protocolType?: string): string {
 }
 
 export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
-  // Generate PDF source URL
-  const cleanOrg = (analysis.org_number || '').replace(/-/g, '')
-  const protocolDate = analysis.protocol_date || ''
+  // Use storage_path from database if available, otherwise generate URL
+  let sourceUrl: string | undefined
 
-  // Determine category based on protocol type (must match Swift ProtocolCategory.from())
-  const category = mapProtocolTypeToCategory(analysis.protocol_type)
+  if (analysis.storage_path) {
+    // Use the actual storage path from the database
+    sourceUrl = `${SUPABASE_URL}/storage/v1/object/public/Protokoll/${analysis.storage_path}`
+  } else {
+    // Fallback: Generate PDF source URL (legacy behavior)
+    const cleanOrg = (analysis.org_number || '').replace(/-/g, '')
+    const protocolDate = analysis.protocol_date || ''
+    const category = mapProtocolTypeToCategory(analysis.protocol_type)
 
-  const sourceUrl = cleanOrg && protocolDate
-    ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
-    : undefined
+    sourceUrl = cleanOrg && protocolDate
+      ? `${SUPABASE_URL}/storage/v1/object/public/Protokoll/protokoll/${category}/${cleanOrg}/${protocolDate}.pdf`
+      : undefined
+  }
 
   // Extract event date (stämmodatum) from extracted_data.metadata.datum
   const metadataData = analysis.extracted_data?.metadata as Record<string, unknown> | undefined

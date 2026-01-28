@@ -62,6 +62,7 @@ export interface ProtocolAnalysis {
   company_name?: string
   protocol_type?: string
   protocol_date?: string
+  storage_path?: string  // Actual path in Supabase Storage
   news_content?: NewsContent
   signals?: AnalysisSignals
   extracted_data?: ExtractedData
