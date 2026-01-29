@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   isNotificationSupported,
   getNotificationPermission,
-  requestNotificationPermission,
-  subscribeToPush,
+  enableNotifications,
   unsubscribeFromPush,
   isSubscribed,
 } from '@/lib/notifications'
@@ -40,18 +39,10 @@ export default function NotificationToggle() {
         await unsubscribeFromPush()
         setSubscribed(false)
       } else {
-        // Request permission if needed
-        if (permission !== 'granted') {
-          const newPermission = await requestNotificationPermission()
-          setPermission(newPermission)
-          if (newPermission !== 'granted') {
-            setLoading(false)
-            return
-          }
-        }
-        // Subscribe
-        const subscription = await subscribeToPush()
-        setSubscribed(!!subscription)
+        // Enable notifications (handles permission request + subscription + localStorage flag)
+        const success = await enableNotifications()
+        setPermission(getNotificationPermission())
+        setSubscribed(success)
       }
     } finally {
       setLoading(false)

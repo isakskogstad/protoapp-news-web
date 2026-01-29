@@ -16,6 +16,7 @@ import { useSSE } from '@/lib/hooks/useSSE'
 // Using native img for profile images with error handling
 import GlobalSidebar from './GlobalSidebar'
 import FollowCompanies from './FollowCompanies'
+import NotificationToggle from './NotificationToggle'
 
 interface DashboardPageProps {
   initialItems: NewsItem[]
@@ -42,6 +43,140 @@ function toggleBookmark(id: string): boolean {
 }
 
 // Notification utilities are now imported from useNotifications hook
+
+// Slack notification settings
+type EventTypeFilter = 'konkurs' | 'nyemission' | 'styrelseforandring' | 'vdbyte' | 'rekonstruktion' | 'other'
+
+interface FollowSettings {
+  enabled: boolean
+  mode: 'all' | 'selected'
+  selectedCompanies: { org_number: string; company_name: string }[]
+  slackWebhookUrl: string
+  slackChannelId: string
+  slackChannelName: string
+  eventTypes: EventTypeFilter[]
+}
+
+function getFollowSettings(): FollowSettings | null {
+  if (typeof window === 'undefined') return null
+  const stored = localStorage.getItem('loopdesk_follow_settings')
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+function detectEventType(item: NewsItem): EventTypeFilter {
+  const headline = (item.headline || '').toLowerCase()
+  const noticeText = (item.noticeText || '').toLowerCase()
+  const protocolType = (item.protocolType || '').toLowerCase()
+  const combined = `${headline} ${noticeText} ${protocolType}`
+
+  if (combined.includes('konkurs')) return 'konkurs'
+  if (combined.includes('nyemission') || combined.includes('emission')) return 'nyemission'
+  if (combined.includes('styrelse')) return 'styrelseforandring'
+  if (combined.includes('vd') && (combined.includes('byte') || combined.includes('ny ') || combined.includes('avgår'))) return 'vdbyte'
+  if (combined.includes('rekonstruktion')) return 'rekonstruktion'
+  return 'other'
+}
+
+function shouldNotifySlack(item: NewsItem): boolean {
+  const settings = getFollowSettings()
+  if (!settings || !settings.enabled) return false
+
+  const eventType = detectEventType(item)
+  const allowedTypes = settings.eventTypes || ['konkurs', 'nyemission', 'styrelseforandring', 'vdbyte', 'rekonstruktion', 'other']
+  if (!allowedTypes.includes(eventType)) return false
+
+  if (settings.mode === 'all') return true
+
+  return settings.selectedCompanies.some(
+    c => c.org_number === item.orgNumber || c.org_number.replace('-', '') === item.orgNumber?.replace('-', '')
+  )
+}
+
+async function sendSlackNotification(item: NewsItem): Promise<void> {
+  const settings = getFollowSettings()
+  if (!settings?.slackChannelId && !settings?.slackWebhookUrl) return
+
+  const headline = item.headline || item.noticeText || 'Ny händelse'
+  const newsValueEmoji = item.newsValue && item.newsValue >= 7 ? ':rotating_light:' :
+                         item.newsValue && item.newsValue >= 4 ? ':bell:' : ':newspaper:'
+
+  const message = {
+    text: `${item.companyName}: ${headline}`,
+    blocks: [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `${item.companyName}`,
+          emoji: true,
+        },
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${newsValueEmoji} *${headline}*`,
+        },
+      },
+      ...(item.noticeText && item.noticeText !== headline ? [{
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: item.noticeText.length > 300 ? item.noticeText.substring(0, 300) + '...' : item.noticeText,
+        },
+      }] : []),
+      {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: `${item.protocolType || 'Protokoll'} • ${item.orgNumber || ''}`,
+          },
+        ],
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'Öppna i LoopDesk',
+              emoji: true,
+            },
+            url: `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`,
+            action_id: 'open_news',
+          },
+        ],
+      },
+    ],
+  }
+
+  try {
+    if (settings.slackChannelId) {
+      await fetch('/api/slack/send-to-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: settings.slackChannelId, message }),
+      })
+    } else if (settings.slackWebhookUrl) {
+      await fetch('/api/slack/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl: settings.slackWebhookUrl, message }),
+      })
+    }
+  } catch (error) {
+    console.error('Failed to send Slack notification:', error)
+  }
+}
 
 // Settings Modal
 function SettingsModal({ onClose }: { onClose: () => void }) {
@@ -260,6 +395,9 @@ function DashboardHeader({
           >
             <Search className="w-5 h-5" />
           </button>
+
+          {/* Browser notification toggle */}
+          <NotificationToggle />
 
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block" />
 
@@ -1035,13 +1173,18 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
         return [message.payload!, ...prev]
       })
 
-      // Show notification if enabled (with sound)
+      // Show browser notification if enabled (with sound)
       if (message.payload.headline) {
         notifications.showNotificationWithSound(
           message.payload.companyName || 'Ny nyhet',
           message.payload.headline,
           `/news/${message.payload.id}`
         )
+      }
+
+      // Send Slack notification if enabled
+      if (shouldNotifySlack(message.payload)) {
+        sendSlackNotification(message.payload)
       }
     }
 
