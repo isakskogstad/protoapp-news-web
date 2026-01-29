@@ -360,11 +360,27 @@ function formatResultsForAI(result: QueryResult): string {
   return formatted
 }
 
-// Main function to generate AI response
+// Callback type for streaming updates
+export type StreamCallback = (text: string, isComplete: boolean) => Promise<void>
+
+// Main function to generate AI response (non-streaming, kept for backwards compatibility)
 export async function generateAIResponse(
   userMessage: string,
   conversationHistory: SlackMessage[] = []
 ): Promise<string> {
+  let fullText = ''
+  await generateAIResponseStreaming(userMessage, conversationHistory, async (text) => {
+    fullText = text
+  })
+  return fullText
+}
+
+// Streaming version that calls back with progressive updates
+export async function generateAIResponseStreaming(
+  userMessage: string,
+  conversationHistory: SlackMessage[] = [],
+  onUpdate: StreamCallback
+): Promise<void> {
   try {
     // Detect intent and query database
     const intent = detectQueryIntent(userMessage)
@@ -386,23 +402,40 @@ export async function generateAIResponse(
       { role: 'user' as const, content: userMessage }
     ]
 
-    // Call Claude Opus 4.5
+    // Call Claude Opus 4.5 with streaming
     const client = getAnthropic()
 
-    const response = await client.messages.create({
+    let accumulatedText = ''
+    let lastUpdateTime = Date.now()
+    const UPDATE_INTERVAL_MS = 500 // Update Slack every 500ms to avoid rate limits
+
+    const stream = client.messages.stream({
       model: 'claude-opus-4-5-20251101',
       max_tokens: 1000,
       system: SYSTEM_PROMPT + databaseContext,
       messages,
     })
 
-    // Extract text from Claude response
-    const textBlock = response.content.find(block => block.type === 'text')
-    return textBlock && 'text' in textBlock ? textBlock.text : 'Jag kunde inte generera ett svar. Försök igen.'
+    stream.on('text', async (text) => {
+      accumulatedText += text
+
+      // Throttle updates to avoid Slack rate limits
+      const now = Date.now()
+      if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
+        lastUpdateTime = now
+        await onUpdate(accumulatedText + ' ▌', false) // Add cursor indicator
+      }
+    })
+
+    // Wait for the stream to complete
+    await stream.finalMessage()
+
+    // Send final update without cursor
+    await onUpdate(accumulatedText, true)
 
   } catch (error) {
     console.error('AI generation error:', error)
-    return 'Ett fel uppstod när jag försökte svara. Försök igen om en stund.'
+    await onUpdate('Ett fel uppstod när jag försökte svara. Försök igen om en stund.', true)
   }
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateAIResponse, getThreadHistory } from '@/lib/slack-ai'
+import { generateAIResponseStreaming, getThreadHistory } from '@/lib/slack-ai'
 
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET
@@ -25,10 +25,10 @@ async function getBotUserId(): Promise<string | null> {
   return null
 }
 
-// Post a message to Slack
-async function postMessage(channel: string, text: string, threadTs?: string): Promise<void> {
+// Post a message to Slack and return the message timestamp
+async function postMessage(channel: string, text: string, threadTs?: string): Promise<string | null> {
   try {
-    await fetch('https://slack.com/api/chat.postMessage', {
+    const response = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
@@ -42,15 +42,18 @@ async function postMessage(channel: string, text: string, threadTs?: string): Pr
         unfurl_media: false,
       }),
     })
+    const data = await response.json()
+    return data.ok ? data.ts : null
   } catch (error) {
     console.error('Error posting message:', error)
+    return null
   }
 }
 
-// Add a reaction to show we're processing
-async function addReaction(channel: string, timestamp: string, emoji: string): Promise<void> {
+// Update an existing message
+async function updateMessage(channel: string, messageTs: string, text: string): Promise<void> {
   try {
-    await fetch('https://slack.com/api/reactions.add', {
+    await fetch('https://slack.com/api/chat.update', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
@@ -58,32 +61,14 @@ async function addReaction(channel: string, timestamp: string, emoji: string): P
       },
       body: JSON.stringify({
         channel,
-        timestamp,
-        name: emoji,
+        ts: messageTs,
+        text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     })
   } catch (error) {
-    // Ignore reaction errors (might already exist)
-  }
-}
-
-// Remove a reaction
-async function removeReaction(channel: string, timestamp: string, emoji: string): Promise<void> {
-  try {
-    await fetch('https://slack.com/api/reactions.remove', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        channel,
-        timestamp,
-        name: emoji,
-      }),
-    })
-  } catch (error) {
-    // Ignore reaction errors
+    console.error('Error updating message:', error)
   }
 }
 
@@ -156,9 +141,6 @@ async function handleEvent(event: {
       return
     }
 
-    // Show thinking reaction
-    await addReaction(event.channel, event.ts, 'thinking_face')
-
     try {
       // Get thread history if in a thread
       const threadTs = event.thread_ts || event.ts
@@ -166,15 +148,21 @@ async function handleEvent(event: {
         ? await getThreadHistory(event.channel, event.thread_ts, botId)
         : []
 
-      // Generate AI response
-      const response = await generateAIResponse(cleanText, history)
+      // Post initial message with typing indicator
+      const messageTs = await postMessage(event.channel, '⏳ Tänker...', threadTs)
 
-      // Remove thinking reaction and reply
-      await removeReaction(event.channel, event.ts, 'thinking_face')
-      await postMessage(event.channel, response, threadTs)
+      if (!messageTs) {
+        await postMessage(event.channel, '❌ Kunde inte starta svar', threadTs)
+        return
+      }
+
+      // Generate AI response with streaming updates
+      await generateAIResponseStreaming(cleanText, history, async (text, isComplete) => {
+        // Update the message with streamed content
+        await updateMessage(event.channel, messageTs, isComplete ? text : text)
+      })
     } catch (error) {
       console.error('AI generation error:', error)
-      await removeReaction(event.channel, event.ts, 'thinking_face')
       await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
     }
   }
@@ -187,9 +175,6 @@ async function handleEvent(event: {
       return
     }
 
-    // Show thinking reaction
-    await addReaction(event.channel, event.ts, 'thinking_face')
-
     try {
       // Get thread history if in a thread
       const threadTs = event.thread_ts || event.ts
@@ -197,15 +182,21 @@ async function handleEvent(event: {
         ? await getThreadHistory(event.channel, event.thread_ts, botId)
         : []
 
-      // Generate AI response
-      const response = await generateAIResponse(event.text, history)
+      // Post initial message with typing indicator
+      const messageTs = await postMessage(event.channel, '⏳ Tänker...', threadTs)
 
-      // Remove thinking reaction and reply
-      await removeReaction(event.channel, event.ts, 'thinking_face')
-      await postMessage(event.channel, response, threadTs)
+      if (!messageTs) {
+        await postMessage(event.channel, '❌ Kunde inte starta svar', threadTs)
+        return
+      }
+
+      // Generate AI response with streaming updates
+      await generateAIResponseStreaming(event.text, history, async (text, isComplete) => {
+        // Update the message with streamed content
+        await updateMessage(event.channel, messageTs, isComplete ? text : text)
+      })
     } catch (error) {
       console.error('AI generation error:', error)
-      await removeReaction(event.channel, event.ts, 'thinking_face')
       await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
     }
   }
