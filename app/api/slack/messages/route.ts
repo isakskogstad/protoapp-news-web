@@ -136,7 +136,7 @@ async function processMessage(msg: SlackMessage, isThread = false): Promise<{
   replyCount?: number
   user: { id: string; name: string; avatar: string | null }
   reactions: Array<{ name: string; count: number; users: string[] }>
-  files?: Array<{ id: string; name: string; mimetype: string; url_private?: string; thumb_360?: string }>
+  files?: Array<{ id: string; name: string; mimetype: string; url_private?: string; thumb_360?: string; thumb_480?: string; thumb_720?: string }>
   isThreadParent?: boolean
   isThreadReply?: boolean
   blocks?: SlackMessage['blocks']
@@ -179,6 +179,8 @@ async function processMessage(msg: SlackMessage, isThread = false): Promise<{
       mimetype: f.mimetype,
       url_private: f.url_private,
       thumb_360: f.thumb_360,
+      thumb_480: f.thumb_480,
+      thumb_720: f.thumb_720,
     })),
     isThreadParent: !isThread && (msg.reply_count || 0) > 0,
     isThreadReply: isThread,
@@ -358,8 +360,15 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
-    return NextResponse.json({ error: 'Slack not configured' }, { status: 500 })
+  if (!SLACK_CHANNEL_ID) {
+    return NextResponse.json({ error: 'Slack channel not configured' }, { status: 500 })
+  }
+
+  // Get user's Slack token from session (to edit as themselves)
+  const userSlackToken = (session.user as Record<string, unknown>)?.slackAccessToken as string | undefined
+
+  if (!userSlackToken) {
+    return NextResponse.json({ error: 'No Slack token. Please re-login.' }, { status: 401 })
   }
 
   try {
@@ -370,18 +379,17 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Timestamp and text are required' }, { status: 400 })
     }
 
-    const userName = session.user?.name || session.user?.email || 'Anonym'
-
+    // Send as user - no need for *userName:* prefix since it shows their name
     const response = await fetch('https://slack.com/api/chat.update', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${userSlackToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         channel: SLACK_CHANNEL_ID,
         ts: timestamp,
-        text: `*${userName}:* ${text.trim()}`,
+        text: text.trim(),
       }),
     })
 
@@ -405,8 +413,15 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
-    return NextResponse.json({ error: 'Slack not configured' }, { status: 500 })
+  if (!SLACK_CHANNEL_ID) {
+    return NextResponse.json({ error: 'Slack channel not configured' }, { status: 500 })
+  }
+
+  // Get user's Slack token from session (to delete as themselves)
+  const userSlackToken = (session.user as Record<string, unknown>)?.slackAccessToken as string | undefined
+
+  if (!userSlackToken) {
+    return NextResponse.json({ error: 'No Slack token. Please re-login.' }, { status: 401 })
   }
 
   try {
@@ -420,7 +435,7 @@ export async function DELETE(request: NextRequest) {
     const response = await fetch('https://slack.com/api/chat.delete', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${userSlackToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

@@ -12,6 +12,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@slack/socket-mode": "^2.0.5",
+    "@slack/web-api": "^7.13.0",
     "@supabase/supabase-js": "^2.93.1",
     "@tanstack/react-virtual": "^3.13.18",
     "@types/react-window": "^1.8.8",

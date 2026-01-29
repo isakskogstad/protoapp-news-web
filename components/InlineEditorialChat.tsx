@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
+import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight, Video } from 'lucide-react'
 import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
 import { Block, Attachment } from '@/lib/slack-types'
 import BlockKitRenderer from './BlockKitRenderer'
@@ -356,8 +356,15 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
 
   // Get file icon based on mimetype
   const getFileIcon = (mimetype: string) => {
-    if (mimetype.startsWith('image/')) return <ImageIcon className="w-4 h-4" />
+    if (mimetype?.startsWith('image/')) return <ImageIcon className="w-4 h-4" />
+    if (mimetype?.startsWith('video/')) return <Video className="w-4 h-4" />
     return <FileText className="w-4 h-4" />
+  }
+
+  // Helper to create proxied URL for Slack private files
+  const getProxiedUrl = (url: string | undefined) => {
+    if (!url) return null
+    return `/api/slack/file?url=${encodeURIComponent(url)}`
   }
 
   // Render file attachments
@@ -366,26 +373,53 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       <div className="flex flex-wrap gap-2 mt-2">
         {files.map((file) => {
           const isImage = file.mimetype?.startsWith('image/')
+          const isVideo = file.mimetype?.startsWith('video/')
           const thumbUrl = file.thumb_720 || file.thumb_480 || file.thumb_360
+          const proxiedThumbUrl = getProxiedUrl(thumbUrl)
+          const proxiedFullUrl = getProxiedUrl(file.url_private)
 
-          if (isImage && thumbUrl) {
+          // Render images with proxied thumbnail
+          if (isImage && proxiedThumbUrl) {
             return (
               <a
                 key={file.id}
-                href={file.url_private}
+                href={proxiedFullUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block max-w-[200px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-400 transition-colors"
               >
-                <img src={thumbUrl} alt={file.name} className="w-full h-auto" />
+                <img src={proxiedThumbUrl} alt={file.name} className="w-full h-auto" />
               </a>
             )
           }
 
+          // Render videos with <video> tag
+          if (isVideo && proxiedFullUrl) {
+            return (
+              <div
+                key={file.id}
+                className="max-w-[280px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+              >
+                <video
+                  src={proxiedFullUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full h-auto max-h-[200px]"
+                >
+                  Din webbläsare stöder inte video.
+                </video>
+                <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-[10px] text-gray-500 truncate">
+                  {file.name}
+                </div>
+              </div>
+            )
+          }
+
+          // Render other files as download links
           return (
             <a
               key={file.id}
-              href={file.url_private}
+              href={proxiedFullUrl || file.url_private || '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 transition-colors text-xs"

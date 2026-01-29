@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN
 const SLACK_CHANNEL_ID = process.env.SLACK_CHANNEL_ID
 
 export async function POST(request: NextRequest) {
@@ -12,9 +11,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+  // Get user's Slack access token from session
+  const userToken = (session.user as Record<string, unknown>)?.slackAccessToken as string | undefined
+  if (!userToken) {
     return NextResponse.json(
-      { error: 'Slack not configured' },
+      { error: 'Slack user token not found. Please sign out and sign in again.' },
+      { status: 401 }
+    )
+  }
+
+  if (!SLACK_CHANNEL_ID) {
+    return NextResponse.json(
+      { error: 'Slack channel not configured' },
       { status: 500 }
     )
   }
@@ -33,11 +41,11 @@ export async function POST(request: NextRequest) {
     // Clean emoji name (remove colons if present)
     const cleanEmoji = emoji.replace(/:/g, '')
 
-    // Add reaction using Slack API
+    // Add reaction using Slack API with user's token (so it shows as their reaction)
     const response = await fetch('https://slack.com/api/reactions.add', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${userToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -79,9 +87,18 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+  // Get user's Slack access token from session
+  const userToken = (session.user as Record<string, unknown>)?.slackAccessToken as string | undefined
+  if (!userToken) {
     return NextResponse.json(
-      { error: 'Slack not configured' },
+      { error: 'Slack user token not found. Please sign out and sign in again.' },
+      { status: 401 }
+    )
+  }
+
+  if (!SLACK_CHANNEL_ID) {
+    return NextResponse.json(
+      { error: 'Slack channel not configured' },
       { status: 500 }
     )
   }
@@ -100,11 +117,11 @@ export async function DELETE(request: NextRequest) {
     // Clean emoji name
     const cleanEmoji = emoji.replace(/:/g, '')
 
-    // Remove reaction using Slack API
+    // Remove reaction using Slack API with user's token (so it removes their reaction)
     const response = await fetch('https://slack.com/api/reactions.remove', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${userToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
