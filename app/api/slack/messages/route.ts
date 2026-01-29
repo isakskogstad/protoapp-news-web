@@ -289,8 +289,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
-    return NextResponse.json({ error: 'Slack not configured' }, { status: 500 })
+  if (!SLACK_CHANNEL_ID) {
+    return NextResponse.json({ error: 'Slack channel not configured' }, { status: 500 })
+  }
+
+  // Get user's Slack token from session (to send as themselves)
+  const userSlackToken = (session.user as Record<string, unknown>)?.slackAccessToken as string | undefined
+
+  if (!userSlackToken) {
+    return NextResponse.json({ error: 'No Slack token. Please re-login.' }, { status: 401 })
   }
 
   try {
@@ -301,13 +308,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message text is required' }, { status: 400 })
     }
 
-    const userName = session.user?.name || session.user?.email || 'Anonym'
-
-    // Always use bot token - user attribution is shown in the message content
-    // (either via sharedBy in blocks, or *userName:* prefix for text messages)
-    const messageText = blocks
-      ? text.trim()
-      : `*${userName}:* ${text.trim()}`
+    // Send as user - no need for *userName:* prefix since it shows their name
+    const messageText = text.trim()
 
     const payload: Record<string, unknown> = {
       channel: SLACK_CHANNEL_ID,
@@ -329,7 +331,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Authorization': `Bearer ${userSlackToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
