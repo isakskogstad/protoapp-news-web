@@ -649,6 +649,8 @@ export async function generateAIResponse(
 // }
 
 // Custom Supabase query tool for Claude
+// NOTE: Temporarily disabled while debugging basic chat
+/*
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
   name: 'query_database',
   description: `Kör en databasfråga mot LoopDesk-arkivet. Använd PostgreSQL-syntax. Begränsa alltid till max 20 rader med LIMIT.
@@ -740,7 +742,9 @@ WHERE kategori = 'konkurser' ORDER BY publicerad DESC LIMIT 10`,
     required: ['sql', 'explanation']
   }
 }
+*/
 
+/* Temporarily disabled while debugging basic chat
 // Execute a Supabase query from Claude
 async function executeSupabaseQuery(sql: string): Promise<{ data: unknown[] | null; error: string | null }> {
   // Safety checks
@@ -820,6 +824,7 @@ async function executeDirectQuery(sql: string): Promise<{ data: unknown[] | null
     return { data: null, error: err instanceof Error ? err.message : 'Query failed' }
   }
 }
+*/
 
 // Streaming version that calls back with progressive updates
 export async function generateAIResponseStreaming(
@@ -869,15 +874,13 @@ export async function generateAIResponseStreaming(
         max_tokens: 2000,
         system: SYSTEM_PROMPT + databaseContext,
         messages,
-        tools: [SUPABASE_QUERY_TOOL], // Only use custom database tool for now
+        // Tools temporarily disabled - will add back after basic chat works
+        // tools: [SUPABASE_QUERY_TOOL],
       })
 
       console.log(`[Loop-AI] Response stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`)
 
-      // Process response content
-      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = []
-      let hasCustomToolUse = false
-
+      // Process response content - extract text from response
       for (const block of response.content) {
         console.log(`[Loop-AI] Processing block type: ${block.type}`)
 
@@ -890,58 +893,12 @@ export async function generateAIResponseStreaming(
             lastUpdateTime = now
             await onUpdate(accumulatedText + ' ▌', false)
           }
-        } else if (block.type === 'tool_use') {
-          console.log(`[Loop-AI] Tool use: ${block.name}`)
-
-          if (block.name === 'query_database') {
-            hasCustomToolUse = true
-
-            // Execute Supabase query
-            const input = block.input as { sql: string; explanation: string }
-            console.log(`[Loop-AI] Query: ${input.explanation}`)
-            console.log(`[Loop-AI] SQL: ${input.sql}`)
-
-            await onUpdate(accumulatedText + `\n📊 _Kör databasfråga: ${input.explanation}_`, false)
-
-            const { data, error } = await executeSupabaseQuery(input.sql)
-
-            let resultContent: string
-            if (error) {
-              resultContent = `Fel: ${error}`
-              console.log(`[Loop-AI] Query error: ${error}`)
-            } else if (!data || data.length === 0) {
-              resultContent = 'Inga resultat hittades.'
-              console.log(`[Loop-AI] Query returned no results`)
-            } else {
-              resultContent = `Hittade ${data.length} resultat:\n${JSON.stringify(data, null, 2)}`
-              console.log(`[Loop-AI] Query returned ${data.length} results`)
-            }
-
-            toolResults.push({
-              type: 'tool_result',
-              tool_use_id: block.id,
-              content: resultContent
-            })
-          }
         }
       }
 
-      // If there were custom tool uses, add assistant message and tool results, then continue
-      if (hasCustomToolUse && toolResults.length > 0) {
-        messages.push({ role: 'assistant', content: response.content })
-        messages.push({ role: 'user', content: toolResults })
-        console.log(`[Loop-AI] Added tool results, continuing loop`)
-      } else {
-        // No more tool calls, we're done
-        continueLoop = false
-        console.log(`[Loop-AI] No more tool calls, exiting loop`)
-      }
-
-      // Check stop reason
-      if (response.stop_reason === 'end_turn' || response.stop_reason === 'stop_sequence') {
-        continueLoop = false
-        console.log(`[Loop-AI] Stop reason triggered: ${response.stop_reason}`)
-      }
+      // No tools enabled, so we're done after first response
+      continueLoop = false
+      console.log(`[Loop-AI] Response processed, stop_reason: ${response.stop_reason}`)
     }
 
     // Send final update without cursor
