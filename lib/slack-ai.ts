@@ -1,16 +1,16 @@
-import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from './supabase'
 
-// Lazy-loaded OpenAI client to avoid build-time errors
-let openaiClient: OpenAI | null = null
+// Lazy-loaded Anthropic client to avoid build-time errors
+let anthropicClient: Anthropic | null = null
 
-function getOpenAI(): OpenAI {
-  if (!openaiClient) {
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || '',
+function getAnthropic(): Anthropic {
+  if (!anthropicClient) {
+    anthropicClient = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
     })
   }
-  return openaiClient
+  return anthropicClient
 }
 
 // System prompt that defines LoopDesk bot's personality and capabilities
@@ -308,9 +308,8 @@ export async function generateAIResponse(
       }
     }
 
-    // Build input messages for GPT-5.2
-    const input = [
-      { role: 'system' as const, content: SYSTEM_PROMPT + databaseContext },
+    // Build messages for Claude (system prompt is separate)
+    const messages = [
       ...conversationHistory.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content
@@ -318,17 +317,19 @@ export async function generateAIResponse(
       { role: 'user' as const, content: userMessage }
     ]
 
-    // Call OpenAI GPT-4o (reliable, fast)
-    const client = getOpenAI()
+    // Call Claude Opus 4.5
+    const client = getAnthropic()
 
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o',
-      messages: input as OpenAI.ChatCompletionMessageParam[],
+    const response = await client.messages.create({
+      model: 'claude-opus-4-5-20251101',
       max_tokens: 1000,
-      temperature: 0.7,
+      system: SYSTEM_PROMPT + databaseContext,
+      messages,
     })
 
-    return response.choices[0]?.message?.content || 'Jag kunde inte generera ett svar. Försök igen.'
+    // Extract text from Claude response
+    const textBlock = response.content.find(block => block.type === 'text')
+    return textBlock && 'text' in textBlock ? textBlock.text : 'Jag kunde inte generera ett svar. Försök igen.'
 
   } catch (error) {
     console.error('AI generation error:', error)

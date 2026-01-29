@@ -150,9 +150,9 @@ async function handleEvent(event: {
       return
     }
 
-    // Check if OpenAI is configured
-    if (!process.env.OPENAI_API_KEY) {
-      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. OPENAI_API_KEY saknas i miljövariabler.', event.ts)
+    // Check if Anthropic is configured
+    if (!process.env.ANTHROPIC_API_KEY) {
+      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. ANTHROPIC_API_KEY saknas i miljövariabler.', event.ts)
       return
     }
 
@@ -181,9 +181,9 @@ async function handleEvent(event: {
 
   // Handle direct messages
   if (event.type === 'message' && event.channel?.startsWith('D') && event.text) {
-    // Check if OpenAI is configured
-    if (!process.env.OPENAI_API_KEY) {
-      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. OPENAI_API_KEY saknas i miljövariabler.', event.ts)
+    // Check if Anthropic is configured
+    if (!process.env.ANTHROPIC_API_KEY) {
+      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. ANTHROPIC_API_KEY saknas i miljövariabler.', event.ts)
       return
     }
 
@@ -250,7 +250,7 @@ export async function GET() {
     configured: {
       botToken: !!SLACK_BOT_TOKEN,
       signingSecret: !!SLACK_SIGNING_SECRET,
-      openaiKey: !!process.env.OPENAI_API_KEY,
+      anthropicKey: !!process.env.ANTHROPIC_API_KEY,
     }
   })
 }
