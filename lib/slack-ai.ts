@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from './supabase'
 
@@ -223,7 +224,8 @@ function extractKeywords(message: string): string[] {
 }
 
 // Query the database based on detected intent
-async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Promise<QueryResult | null> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Promise<QueryResult | null> {
   const supabase = createServerClient()
 
   // Calculate date range
@@ -526,7 +528,7 @@ async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Prom
 }
 
 // Format database results for the AI context
-function formatResultsForAI(result: QueryResult): string {
+export function formatResultsForAI(result: QueryResult): string {
   if (result.data.length === 0) {
     return `Inga resultat hittades.`
   }
@@ -833,17 +835,6 @@ export async function generateAIResponseStreaming(
   onUpdate: StreamCallback
 ): Promise<void> {
   try {
-    // Detect intent and query database (initial context)
-    const intent = detectQueryIntent(userMessage)
-    let databaseContext = ''
-
-    if (intent.type !== 'general') {
-      const result = await queryDatabase(intent)
-      if (result) {
-        databaseContext = `\n\n--- DATABASRESULTAT (automatisk sökning) ---\n${formatResultsForAI(result)}\n--- SLUT DATABASRESULTAT ---\n`
-      }
-    }
-
     // Build messages for Claude
     const messages: Anthropic.Messages.MessageParam[] = [
       ...conversationHistory.map(m => ({
@@ -869,13 +860,13 @@ export async function generateAIResponseStreaming(
       loopCount++
       console.log(`[Loop-AI] Loop ${loopCount}/${MAX_LOOPS}`)
 
-      console.log(`[Loop-AI] Calling Anthropic API with model claude-sonnet-4-20250514...`)
+      console.log(`[Loop-AI] Calling Anthropic API...`)
       console.log(`[Loop-AI] Messages count: ${messages.length}`)
 
-      // Minimal API call - no tools, no extra options
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
+        system: SYSTEM_PROMPT,
         messages: messages,
       })
 
