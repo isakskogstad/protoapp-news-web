@@ -15,130 +15,41 @@ function getAnthropic(): Anthropic {
 }
 
 // System prompt that defines Loop-AI's personality and capabilities
-const SYSTEM_PROMPT = `Du är Loop-AI, en redaktionsassistent för LoopDesk – en svensk nyhetsredaktion specialiserad på bolagshändelser och affärsnyheter.
+const SYSTEM_PROMPT = `Du är Loop-AI, en professionell redaktionsassistent för Impact Loop – en svensk nyhetsredaktion specialiserad på bolagshändelser och affärsnyheter.
 
 ## DIN ROLL
-Du är redaktionens högra hand: snabb, pålitlig och journalistiskt skarp. Du hjälper reportrar att hitta nyheter, skriva notiser, researcha bolag och hålla koll på marknaden.
+Du är en trevlig och professionell assistent som hjälper journalisterna på Impact Loop med research, faktakoll och nyhetsproduktion. Du svarar kortfattat, artigt och sakligt.
 
-## DATAKÄLLOR (Supabase)
-Du har direktåtkomst till följande databaser:
+## KOMMUNIKATIONSSTIL
+- Kortfattad och koncis
+- Professionell och artig
+- Inga emojis
+- Svara på svenska
+- Var ärlig om du inte vet något
 
-**ProtocolAnalysis** - AI-analyserade bolagsstämmoprotokoll
-- Fält: company_name, org_number, protocol_date, protocol_type, news_content (rubrik, notistext), signals, extracted_data, calculations
-- Protokolltyper: årsstämma, extra_bolagsstämma, styrelsemöte, per_capsulam
+## FORMATERING (VIKTIGT)
+Använd Slack mrkdwn-format, INTE HTML eller Markdown:
+- *fetstil* (inte **fetstil** eller <b>)
+- _kursiv_ (inte *kursiv* eller <i>)
+- ~genomstruken~
+- \`kod\`
+- > citat
+- • punktlistor (använd bullet-tecken, inte - eller *)
+- Inga HTML-taggar (<br>, <p>, etc.)
+- Inga ### rubriker - använd *Rubrik* istället
 
-**Kungorelser** - Kungörelser från Post- och Inrikes Tidningar
-- Fält: company_name, org_number, kategori, typ, rubrik, publicerad
-- Kategorier: konkurser, likvidationer, kallelser, fusioner, delningar
+## NÄR DU SKRIVER NOTISER
+- Rubrik: Max 70 tecken, aktivt verb
+- Ingress: Vem, vad, när, var
+- Brödtext: Viktigast först (inverterad pyramid)
+- Inkludera org.nummer (XXXXXX-XXXX) första gången ett bolag nämns
+- Saklig och neutral ton
 
-**LoopBrowse_Protokoll** - Bolagsregister
-- Fält: namn, orgnummer, vd, ordforande, storsta_agare, stad, anstallda, omsattning
-
-**Storage Buckets**
-- Protokoll/ - PDF-filer från bolagsstämmor
-
-## DINA FÖRMÅGOR
-
-### 📝 SKAPA NOTISER
-När du skriver nyhetsnotiser:
-- **Rubrik**: Max 70 tecken, aktivt verb, det viktigaste först
-- **Ingress**: Svara på vem, vad, när, var i första meningen
-- **Brödtext**: 3-5 korta stycken, viktigast först (inverterad pyramid)
-- **Ton**: Saklig, neutral, professionell – aldrig spekulativ
-- **Format**: Använd alltid org.nummer (XXXXXX-XXXX) första gången ett bolag nämns
-
-### 🔍 RESEARCH & ANALYS
-- Sök i arkivet efter specifika bolag, händelser eller mönster
-- Korskoppla data (t.ex. "vilka bolag har både nyemission och VD-byte?")
-- Identifiera trender och mönster över tid
-- Jämför bolag inom samma bransch eller region
-
-### 📊 SIGNALER ATT BEVAKA
-Flagga alltid för redaktionen när du hittar:
-- Stora nyemissioner (>10 MSEK)
-- VD- eller styrelseförändringar i noterade bolag
-- Konkurser i bolag med >50 anställda
-- Per capsulam-beslut (indikerar brådska)
-- Kontrollbalansräkningar
-- Ovanliga ägarförändringar
-
-### 🌐 WEBBSÖKNING (web_search) - Nyhetsartiklar & Extern Info
-Du har tillgång till webbsökning för att hitta EXTERNA nyheter och information.
-
-**Använd web_search för:**
-- 📰 Nyhetsartiklar från media (DI, SvD, Affärsvärlden, Breakit, etc.)
-- 📢 Pressmeddelanden och bolagsmeddelanden
-- 👤 Information om personer (VD:ar, styrelseledamöter, ägare)
-- 🏢 Branschanalys och marknadstrender
-- ✅ Verifiera och komplettera intern data
-- 🔍 Allt som inte finns i vår databas
-
-**Sök ALLTID på webben när användaren:**
-- Frågar om "nyheter", "artiklar", "vad skrivs om"
-- Vill veta mer om en person (bakgrund, karriär)
-- Frågar om bransch- eller marknadstrender
-- Behöver extern bekräftelse på information
-- Frågar om något aktuellt som kan ha ändrats
-
-**Sökstrategi:**
-1. Använd bolagsnamn + nyckelord: "H&M nyemission 2024"
-2. För personer: "Marcus Wallenberg styrelseuppdrag"
-3. För branscher: "fintech Sverige konkurs 2024"
-
-**VIKTIGT:** Ange ALLTID källa när du citerar webbresultat!
-
-## SVARSFORMAT
-
-**Kort fråga** → Kort svar (1-3 meningar)
-**Sök/lista** → Punktlista med bolagsnamn (org.nr)
-**Skriv notis** → Rubrik + ingress + brödtext i korrekt format
-**Analys** → Strukturerad sammanfattning med rubriker
-
-## NÄR ANVÄNDA VILKET VERKTYG
-
-**query_database** (Supabase) - Intern data:
-- Protokolldata, styrelseinfo, kapitalåtgärder
-- Kungörelser (konkurser, likvidationer)
-- Bolagsregister (VD, ordförande, ägare, stad)
-- Signaler och AI-analyserad data
-- Historisk data från vårt arkiv
-
-**web_search** - Extern data:
-- Nyhetsartiklar från media
-- Pressmeddelanden
-- Personbakgrund och karriär
-- Marknadsanalys och trender
-- Aktuell information utanför databasen
-
-**Kombinera verktygen!** T.ex: Hämta protokolldata från databasen, sök sedan på webben efter relaterade nyhetsartiklar.
-
-## REGLER
-1. Svara ALLTID på svenska
-2. Var koncis – reportrar har bråttom
-3. Inkludera ALLTID org.nummer vid första omnämnande
-4. Säg ärligt om du inte hittar information
-5. Skilja på fakta (från databas) och analys (din tolkning)
-6. Vid osäkerhet, föreslå vad reportern kan undersöka vidare
-7. Ange ALLTID källa för webbresultat
-
-## EXEMPEL PÅ BRA SVAR
-
-**Fråga**: "Skriv en notis om Techbolaget ABs nyemission"
-**Svar**:
-> **Techbolaget tar in 15 miljoner i nyemission**
->
-> Techbolaget AB (556789-1234) genomför en riktad nyemission på 15 miljoner kronor, enligt protokoll från extra bolagsstämma den 15 januari.
->
-> Emissionen riktas till befintliga ägare och teckningskursen är satt till 12 kronor per aktie. Pengarna ska enligt bolaget användas för att accelerera produktutvecklingen.
->
-> Utspädningen för befintliga aktieägare som inte deltar blir cirka 8 procent.
-
-**Fråga**: "Vilka konkurser kom idag?"
-**Svar**:
-> Dagens konkurser (3 st):
-> • **Bygg & Montage i Malmö AB** (556123-4567) – 12 anställda
-> • **Restaurang Smak AB** (559876-5432) – 4 anställda
-> • **IT-Konsult Norr AB** (556234-5678) – 8 anställda`
+## DATABAS
+Du har tillgång till verktyget query_database för att söka i Impact Loops arkiv:
+- protocols: Bolagsstämmoprotokoll med AI-analys
+- kungorelser: Kungörelser (konkurser, likvidationer, kallelser)
+- companies: Bolagsregister med VD, styrelse, ägare`
 
 interface SlackMessage {
   role: 'user' | 'assistant' | 'system'
@@ -651,11 +562,9 @@ export async function generateAIResponse(
 // }
 
 // Custom Supabase query tool for Claude
-// NOTE: Temporarily disabled while debugging basic chat
-/*
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
   name: 'query_database',
-  description: `Kör en databasfråga mot LoopDesk-arkivet. Använd PostgreSQL-syntax. Begränsa alltid till max 20 rader med LIMIT.
+  description: `Sök i Impact Loops databas. Returnerar data från protokoll, kungörelser och bolagsregister.
 
 ## TABELLER
 
@@ -732,22 +641,91 @@ WHERE kategori = 'konkurser' ORDER BY publicerad DESC LIMIT 10`,
   input_schema: {
     type: 'object' as const,
     properties: {
-      sql: {
+      query_type: {
         type: 'string',
-        description: 'SQL SELECT-fråga (endast läsning, max 20 rader)'
+        enum: ['protocols', 'kungorelser', 'companies'],
+        description: 'Vilken tabell att söka i'
       },
-      explanation: {
+      search_term: {
         type: 'string',
-        description: 'Kort förklaring av vad frågan gör (för loggning)'
+        description: 'Sökterm (bolagsnamn, org.nr, eller nyckelord)'
+      },
+      limit: {
+        type: 'number',
+        description: 'Max antal resultat (default 10)'
       }
     },
-    required: ['sql', 'explanation']
+    required: ['query_type']
   }
 }
-*/
 
-/* Temporarily disabled while debugging basic chat
-// Execute a Supabase query from Claude
+// Execute a simplified Supabase query
+async function executeSimpleQuery(
+  queryType: string,
+  searchTerm?: string,
+  limit: number = 10
+): Promise<{ data: unknown[] | null; error: string | null }> {
+  const supabase = createServerClient()
+
+  try {
+    switch (queryType) {
+      case 'protocols': {
+        let query = supabase
+          .from('ProtocolAnalysis')
+          .select('id, org_number, company_name, protocol_date, protocol_type, news_content, signals')
+          .order('protocol_date', { ascending: false })
+          .limit(limit)
+
+        if (searchTerm) {
+          query = query.or(`company_name.ilike.%${searchTerm}%,org_number.ilike.%${searchTerm}%`)
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+        return { data, error: null }
+      }
+
+      case 'kungorelser': {
+        let query = supabase
+          .from('Kungorelser')
+          .select('id, org_number, company_name, kategori, typ, rubrik, publicerad')
+          .order('publicerad', { ascending: false })
+          .limit(limit)
+
+        if (searchTerm) {
+          query = query.or(`company_name.ilike.%${searchTerm}%,org_number.ilike.%${searchTerm}%,rubrik.ilike.%${searchTerm}%`)
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+        return { data, error: null }
+      }
+
+      case 'companies': {
+        let query = supabase
+          .from('LoopBrowse_Protokoll')
+          .select('orgnummer, namn, vd, ordforande, storsta_agare, stad, anstallda, omsattning')
+          .limit(limit)
+
+        if (searchTerm) {
+          query = query.or(`namn.ilike.%${searchTerm}%,orgnummer.ilike.%${searchTerm}%`)
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+        return { data, error: null }
+      }
+
+      default:
+        return { data: null, error: 'Okänd frågetyp' }
+    }
+  } catch (err) {
+    console.error('Query error:', err)
+    return { data: null, error: err instanceof Error ? err.message : 'Databasfel' }
+  }
+}
+
+/* OLD SQL-based query - kept for reference
 async function executeSupabaseQuery(sql: string): Promise<{ data: unknown[] | null; error: string | null }> {
   // Safety checks
   const upperSql = sql.toUpperCase().trim()
@@ -861,23 +839,23 @@ export async function generateAIResponseStreaming(
       console.log(`[Loop-AI] Loop ${loopCount}/${MAX_LOOPS}`)
 
       console.log(`[Loop-AI] Calling Anthropic API...`)
-      console.log(`[Loop-AI] Messages count: ${messages.length}`)
 
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: messages,
+        tools: [SUPABASE_QUERY_TOOL],
       })
 
-      console.log(`[Loop-AI] API call successful, stop_reason: ${response.stop_reason}`)
+      console.log(`[Loop-AI] Response: stop_reason=${response.stop_reason}, blocks=${response.content.length}`)
 
-      console.log(`[Loop-AI] Response stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`)
+      // Collect tool results for this round
+      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = []
+      let hasToolUse = false
 
-      // Process response content - extract text from response
+      // Process response content
       for (const block of response.content) {
-        console.log(`[Loop-AI] Processing block type: ${block.type}`)
-
         if (block.type === 'text') {
           accumulatedText += block.text
 
@@ -885,14 +863,53 @@ export async function generateAIResponseStreaming(
           const now = Date.now()
           if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
             lastUpdateTime = now
-            await onUpdate(accumulatedText + ' ▌', false)
+            await onUpdate(accumulatedText + ' ...', false)
           }
+        } else if (block.type === 'tool_use' && block.name === 'query_database') {
+          hasToolUse = true
+          console.log(`[Loop-AI] Tool use: query_database`)
+
+          const input = block.input as { query_type: string; search_term?: string; limit?: number }
+          console.log(`[Loop-AI] Query: ${input.query_type}, search: ${input.search_term}`)
+
+          await onUpdate(accumulatedText + `\n\nSöker i databasen...`, false)
+
+          const { data, error } = await executeSimpleQuery(
+            input.query_type,
+            input.search_term,
+            input.limit || 10
+          )
+
+          let resultContent: string
+          if (error) {
+            resultContent = `Fel: ${error}`
+          } else if (!data || data.length === 0) {
+            resultContent = 'Inga resultat hittades.'
+          } else {
+            resultContent = JSON.stringify(data, null, 2)
+          }
+
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: block.id,
+            content: resultContent
+          })
         }
       }
 
-      // No tools enabled, so we're done after first response
-      continueLoop = false
-      console.log(`[Loop-AI] Response processed, stop_reason: ${response.stop_reason}`)
+      // If there were tool uses, continue the conversation
+      if (hasToolUse && toolResults.length > 0) {
+        messages.push({ role: 'assistant', content: response.content })
+        messages.push({ role: 'user', content: toolResults })
+        console.log(`[Loop-AI] Tool results added, continuing...`)
+      } else {
+        continueLoop = false
+      }
+
+      // Stop if model says it's done
+      if (response.stop_reason === 'end_turn') {
+        continueLoop = false
+      }
     }
 
     // Send final update without cursor
