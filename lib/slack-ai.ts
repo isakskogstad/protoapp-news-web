@@ -328,6 +328,9 @@ export async function generateAIResponse(
       input,
       reasoning: { effort: 'none' }, // Snabba svar utan deliberation
       max_output_tokens: 1000,
+      tools: [
+        { type: 'web_search' } // Aktiverar webbsökning för aktuell information
+      ],
     })
 
     // GPT-5.2 response format
