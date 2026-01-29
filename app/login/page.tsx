@@ -83,7 +83,7 @@ const ScrambleText = ({ text, active }: { text: string; active: boolean }) => {
     let iteration = 0
     // Reduced from 30ms to 80ms for better mobile performance
     const interval = setInterval(() => {
-      setDisplay(text.split("").map((letter, index) => {
+      setDisplay(text.split("").map((_letter, index) => {
         if (index < iteration) return text[index]
         return chars[Math.floor(Math.random() * chars.length)]
       }).join(""))

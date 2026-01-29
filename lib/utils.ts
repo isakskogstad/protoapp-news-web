@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getLogoUrl(orgNumber: string, logoUrl?: string): string {
+export function getLogoUrl(_orgNumber: string, logoUrl?: string): string {
   // Return provided logo URL if it exists and is valid
   if (logoUrl && !logoUrl.includes('undefined')) return logoUrl
 

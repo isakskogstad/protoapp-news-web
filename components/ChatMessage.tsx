@@ -51,7 +51,7 @@ export default function ChatMessage({
   const actionsRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const { html, links } = parseSlackMessage(message.text, users)
+  const { html, links: _links } = parseSlackMessage(message.text, users)
   const urls = extractUrls(message.text)
 
   // Check if this is a pending/failed message
@@ -65,7 +65,7 @@ export default function ChatMessage({
   const presence = userPresence?.[message.user.id]
   const isOnline = presence === 'active'
 
-  const handleReact = (emoji: string, name: string) => {
+  const handleReact = (_emoji: string, name: string) => {
     onReact(message.id, name)
     setShowEmojiPicker(false)
     setShowQuickReactions(false)

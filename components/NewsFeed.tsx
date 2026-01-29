@@ -182,6 +182,7 @@ function VirtualRow({
       const cleanup = dynamicRowHeight.observeRowElements([rowRef.current])
       return cleanup
     }
+    return undefined
   }, [dynamicRowHeight])
 
   if (!item) return null

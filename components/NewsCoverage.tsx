@@ -93,6 +93,7 @@ export default function NewsCoverage({ companyName }: NewsCoverageProps) {
       const timer = setTimeout(() => setIsVisible(true), 100)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [isLoading, articles.length])
 
   const fetchArticles = async () => {

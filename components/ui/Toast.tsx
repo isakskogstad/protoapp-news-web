@@ -157,6 +157,7 @@ function ToastItem({
       const timer = setTimeout(handleDismiss, toast.duration)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [toast.duration, handleDismiss])
 
   return (

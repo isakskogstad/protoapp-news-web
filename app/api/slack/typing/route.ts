@@ -21,7 +21,7 @@ function cleanupTyping() {
 }
 
 // POST - Set typing status
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

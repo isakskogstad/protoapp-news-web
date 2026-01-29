@@ -60,7 +60,8 @@ class RateLimitTracker {
   getAll(): RateLimitInfo[] {
     // Clean up expired entries
     const now = Date.now()
-    for (const [endpoint, info] of this.limits) {
+    const entries = Array.from(this.limits.entries())
+    for (const [endpoint, info] of entries) {
       const elapsed = (now - info.timestamp) / 1000
       if (elapsed >= info.retryAfter) {
         this.limits.delete(endpoint)

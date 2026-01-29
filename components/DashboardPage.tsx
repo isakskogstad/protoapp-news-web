@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   Search, Settings,
-  Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X, Menu
+  Activity, Bookmark, BookmarkCheck, Share2, Link2, Check, X
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
-import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
+import { getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
 import { createNewsNotificationMessage } from '@/lib/slack-blocks'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from './ThemeProvider'
@@ -692,7 +692,6 @@ function getTimelinePeriod(dateString: string): TimelinePeriod {
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
     // Under 1 hour: minutes
@@ -750,11 +749,10 @@ function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean })
 // Timeline item wrapper - wraps each news card with timeline dot
 function TimelineItemWrapper({
   children,
-  isLast,
   showDot = true
 }: {
   children: React.ReactNode
-  isLast: boolean
+  isLast?: boolean
   showDot?: boolean
 }) {
   return (

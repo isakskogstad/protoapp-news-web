@@ -17,7 +17,7 @@ interface AnnualReport {
 
 const SUPABASE_URL = 'https://rpjmsncjnhtnjnycabys.supabase.co'
 
-export default function ArsredovisningarModule({ orgNumber, companyName }: ArsredovisningarModuleProps) {
+export default function ArsredovisningarModule({ orgNumber, companyName: _companyName }: ArsredovisningarModuleProps) {
   const [reports, setReports] = useState<AnnualReport[]>([])
   const [loading, setLoading] = useState(true)
 

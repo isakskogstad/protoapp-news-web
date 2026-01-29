@@ -26,6 +26,7 @@ export default function WatchCompanyButton({ orgNumber, companyName, className =
       const timer = setTimeout(() => setAnimate(false), 300)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [animate])
 
   return (

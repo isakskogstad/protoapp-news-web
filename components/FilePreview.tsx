@@ -96,7 +96,6 @@ export function FileDropZone({
   onFilesSelected,
   children,
   disabled = false,
-  accept,
   multiple = false,
 }: FileDropZoneProps) {
   const handleDragOver = (e: React.DragEvent) => {

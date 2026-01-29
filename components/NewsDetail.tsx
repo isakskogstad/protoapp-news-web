@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { NewsItem, eventTypeConfig } from '@/lib/types'
 import { formatDate, getLogoUrl, detectEventType, formatOrgNumber } from '@/lib/utils'
-import { FileText, Clock, Building2, Download, Loader2, ChevronDown, ChevronUp, X, FileX, AlertCircle } from 'lucide-react'
+import { FileText, Clock, Building2, Download, ChevronDown, ChevronUp, X, FileX, AlertCircle } from 'lucide-react'
 import WatchCompanyButton from './WatchCompanyButton'
 import BolagsInfoCard from './BolagsInfoCard'
 import NyemissionFaktaruta from './NyemissionFaktaruta'
@@ -157,7 +157,6 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
   const [kungorelseExpanded, setKungorelseExpanded] = useState(false)
   // PDF availability: null = checking, true = exists, false = missing
   const [pdfExists, setPdfExists] = useState<boolean | null>(null)
-  const [pdfChecking, setPdfChecking] = useState(false)
 
   const expandedContentRef = useRef<HTMLDivElement>(null)
   const eventType = detectEventType(item)
@@ -204,15 +203,12 @@ export default function NewsDetail({ item, showNewsSidebar = true }: NewsDetailP
         return
       }
 
-      setPdfChecking(true)
       try {
         const response = await fetch(item.sourceUrl, { method: 'HEAD' })
         setPdfExists(response.ok)
       } catch {
         // Network error - assume PDF doesn't exist
         setPdfExists(false)
-      } finally {
-        setPdfChecking(false)
       }
     }
 

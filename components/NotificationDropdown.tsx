@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Bell, BellOff, X, Search, Check, Building2, Loader2 } from 'lucide-react'
+import { Bell, X, Search, Check, Building2, Loader2 } from 'lucide-react'
 import { useNotifications } from '@/lib/hooks/useNotifications'
 import { formatOrgNumber } from '@/lib/utils'
 

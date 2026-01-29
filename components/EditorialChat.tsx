@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import {
-  Hash,
   ChevronDown,
   Loader2,
   Settings,

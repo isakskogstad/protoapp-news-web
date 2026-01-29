@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, Smile, X, Pencil, Paperclip } from 'lucide-react'
 import EmojiPicker from './EmojiPicker'
 import MentionAutocomplete from './MentionAutocomplete'
-import FilePreview, { FileDropZone } from './FilePreview'
+import FilePreview from './FilePreview'
 import { ChatMessage as ChatMessageType } from '@/lib/slack-types'
 
 interface ChatInputProps {
@@ -177,7 +177,7 @@ export default function ChatInput({
   }
 
   // Handle mention selection
-  const handleMentionSelect = (userId: string, userName: string) => {
+  const handleMentionSelect = (userId: string, _userName: string) => {
     if (mentionQuery !== null) {
       const before = input.slice(0, mentionStartIndex)
       const after = input.slice(mentionStartIndex + mentionQuery.length + 1) // +1 for @

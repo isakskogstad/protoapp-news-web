@@ -91,6 +91,7 @@ export default function VirtualMessageList({
       element.addEventListener('scroll', handleScroll)
       return () => element.removeEventListener('scroll', handleScroll)
     }
+    return undefined
   }, [handleScroll])
 
   const virtualItems = virtualizer.getVirtualItems()

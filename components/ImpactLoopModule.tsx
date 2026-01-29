@@ -28,7 +28,6 @@ interface ImpactLoopModuleProps {
 
 export default function ImpactLoopModule({
   companyName,
-  orgNumber,
   maxItems = 5,
   className = ''
 }: ImpactLoopModuleProps) {

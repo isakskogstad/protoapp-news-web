@@ -1,6 +1,6 @@
 'use client'
 
-import { parseSlackMessage, parseSlackFormatting, parseEmoji } from '@/lib/slack-utils'
+import { parseSlackMessage, parseEmoji } from '@/lib/slack-utils'
 import { Block, TextObject, BlockElement, Attachment } from '@/lib/slack-types'
 import { ExternalLink, Building2 } from 'lucide-react'
 
@@ -102,7 +102,7 @@ function renderTextObject(text: TextObject | undefined, users: Record<string, st
   return parseEmoji(text.text)
 }
 
-function renderElement(element: BlockElement, users: Record<string, string> = {}) {
+function renderElement(element: BlockElement, _users: Record<string, string> = {}) {
   switch (element.type) {
     case 'button':
       const buttonStyle = element.style === 'primary'
@@ -322,7 +322,7 @@ function NewsCard({ blocks }: { blocks: Block[] }) {
   )
 }
 
-function AttachmentRenderer({ attachment, users }: { attachment: Attachment; users: Record<string, string> }) {
+function AttachmentRenderer({ attachment, users: _users }: { attachment: Attachment; users: Record<string, string> }) {
   const borderColor = attachment.color ? `#${attachment.color}` : '#e5e7eb'
 
   return (

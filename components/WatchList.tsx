@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, TrendingUp, TrendingDown, Minus, Plus, X, Search } from 'lucide-react'
+import { Eye, TrendingUp, Minus, Plus, X, Search } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 export interface WatchedCompany {
@@ -39,7 +39,7 @@ interface WatchListProps {
   onCountChange?: (count: number) => void
 }
 
-export default function WatchList({ companies: propCompanies, onAddCompany, onCountChange }: WatchListProps) {
+export default function WatchList({ companies: propCompanies, onCountChange }: WatchListProps) {
   const [companies, setCompanies] = useState<WatchedCompany[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')

@@ -207,11 +207,6 @@ export default function FollowCompanies() {
     })
   }
 
-  const updateWebhookUrl = (url: string) => {
-    saveSettings({ ...settings, slackWebhookUrl: url })
-    setTestResult(null) // Reset test result when URL changes
-  }
-
   const selectChannel = (channelId: string) => {
     const channel = channels.find(c => c.id === channelId)
     saveSettings({

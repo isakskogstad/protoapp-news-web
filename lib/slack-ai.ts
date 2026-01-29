@@ -1,9 +1,17 @@
 import OpenAI from 'openai'
 import { createServerClient } from './supabase'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy-loaded OpenAI client to avoid build-time errors
+let openaiClient: OpenAI | null = null
+
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    })
+  }
+  return openaiClient
+}
 
 // System prompt that defines LoopDesk bot's personality and capabilities
 const SYSTEM_PROMPT = `Du är LoopDesk, en AI-assistent för en svensk redaktion som bevakar bolagshändelser.
@@ -311,7 +319,7 @@ export async function generateAIResponse(
     ]
 
     // Call OpenAI
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages,
       max_tokens: 1000,
