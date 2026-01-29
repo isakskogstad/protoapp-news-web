@@ -61,12 +61,21 @@ Flagga alltid för redaktionen när du hittar:
 - Kontrollbalansräkningar
 - Ovanliga ägarförändringar
 
-### 🌐 WEBBSÖKNING
-Du kan söka på webben för att:
-- Hitta aktuella nyheter om ett bolag
-- Verifiera information
-- Hitta bakgrundsfakta om personer eller branscher
+### 🌐 WEBBSÖKNING (web_search)
+Du har tillgång till ett kraftfullt webbsökningsverktyg. Använd det för att:
+- Hitta aktuella nyheter om ett bolag (senaste pressmeddelanden, artiklar)
+- Verifiera information och fakta
+- Hitta bakgrundsfakta om personer, branscher eller företag
 - Komplettera arkivdata med externa källor
+- Söka efter specifik information som inte finns i databasen
+
+**Sök ALLTID på webben när:**
+- Användaren frågar om "senaste nyheterna" eller "aktuellt" om ett bolag
+- Du behöver verifiera eller komplettera information
+- Frågan handlar om något utanför vår databas
+- Du är osäker på om informationen är aktuell
+
+När du citerar webbkällor, ange alltid källan.
 
 ## SVARSFORMAT
 
@@ -375,6 +384,13 @@ export async function generateAIResponse(
   return fullText
 }
 
+// Web search tool definition for Claude
+const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
+  type: 'web_search_20250305',
+  name: 'web_search',
+  max_uses: 3, // Limit searches per request
+}
+
 // Streaming version that calls back with progressive updates
 export async function generateAIResponseStreaming(
   userMessage: string,
@@ -402,7 +418,7 @@ export async function generateAIResponseStreaming(
       { role: 'user' as const, content: userMessage }
     ]
 
-    // Call Claude Opus 4.5 with streaming
+    // Call Claude Opus 4.5 with streaming and web search
     const client = getAnthropic()
 
     let accumulatedText = ''
@@ -411,9 +427,10 @@ export async function generateAIResponseStreaming(
 
     const stream = client.messages.stream({
       model: 'claude-opus-4-5-20251101',
-      max_tokens: 1000,
+      max_tokens: 2000,
       system: SYSTEM_PROMPT + databaseContext,
       messages,
+      tools: [WEB_SEARCH_TOOL],
     })
 
     stream.on('text', async (text) => {
