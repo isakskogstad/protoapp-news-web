@@ -21,9 +21,10 @@ export const config = {
      * - /login
      * - /api/auth (NextAuth routes)
      * - /api/company (public company data)
+     * - /api/slack/events (Slack webhook - must be public)
      * - /_next (Next.js internals)
      * - /favicon.ico, etc.
      */
-    '/((?!login|api/auth|api/company|_next|favicon.ico).*)',
+    '/((?!login|api/auth|api/company|api/slack/events|_next|favicon.ico).*)',
   ],
 }
