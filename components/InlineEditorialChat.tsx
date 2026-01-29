@@ -484,7 +484,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
     const replies = threadReplies[msg.timestamp] || []
 
     return (
-      <div key={msg.id} className={`flex gap-2 group relative ${isReply ? 'ml-6 pl-3 border-l-2 border-gray-200 dark:border-gray-700' : ''}`}>
+      <div key={msg.id} className={`flex gap-1.5 group relative ${isReply ? 'ml-5 pl-2 border-l-2 border-gray-200 dark:border-gray-700' : ''}`}>
         {/* Avatar with presence indicator */}
         <div className="relative">
           <div className="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shrink-0 overflow-hidden">
@@ -572,7 +572,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           {hasReplies && !isReply && (
             <button
               onClick={() => toggleThread(msg.timestamp)}
-              className="flex items-center gap-1.5 mt-1.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+              className="flex items-center gap-1 mt-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
             >
               {isExpanded ? (
                 <ChevronDown className="w-3 h-3" />
@@ -587,7 +587,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
 
           {/* Expanded thread replies */}
           {isExpanded && replies.length > 0 && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-1.5 space-y-1.5">
               {replies.map(reply => renderMessage(reply, true))}
             </div>
           )}
@@ -678,7 +678,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       {/* Messages */}
       <div
         ref={scrollRef}
-        className={`overflow-y-auto space-y-3 mb-3 pr-1 ${maxHeight === '100%' ? 'flex-1 min-h-0' : ''}`}
+        className={`overflow-y-auto space-y-2 mb-2 pr-1 ${maxHeight === '100%' ? 'flex-1 min-h-0' : ''}`}
         style={maxHeight === '100%' ? {} : { maxHeight: maxHeightStyle }}
       >
         {loading && messages.length === 0 ? (
@@ -733,7 +733,7 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
       )}
 
       {/* Input */}
-      <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
         <div className="relative flex items-center gap-2">
           <input
             ref={fileInputRef}
