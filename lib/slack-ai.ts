@@ -124,10 +124,12 @@ interface QueryResult {
 
 // Detect what kind of query the user is asking
 function detectQueryIntent(message: string): {
-  type: 'search_protocols' | 'search_kungorelser' | 'search_company' | 'search_news' | 'general'
+  type: 'search_protocols' | 'search_kungorelser' | 'search_company' | 'search_news' | 'search_signals' | 'statistics' | 'general'
   keywords: string[]
   orgNumber?: string
+  companyName?: string
   timeframe?: 'today' | 'week' | 'month' | 'all'
+  signalType?: string
 } {
   const lower = message.toLowerCase()
 
@@ -135,31 +137,51 @@ function detectQueryIntent(message: string): {
   const orgMatch = message.match(/(\d{6}-?\d{4})/)
   const orgNumber = orgMatch ? orgMatch[1].replace('-', '') : undefined
 
+  // Extract company name if quoted
+  const companyMatch = message.match(/"([^"]+)"/) || message.match(/'([^']+)'/)
+  const companyName = companyMatch ? companyMatch[1] : undefined
+
   // Detect timeframe
   let timeframe: 'today' | 'week' | 'month' | 'all' = 'all'
-  if (lower.includes('idag') || lower.includes('i dag')) timeframe = 'today'
-  else if (lower.includes('vecka') || lower.includes('senaste 7')) timeframe = 'week'
-  else if (lower.includes('månad') || lower.includes('senaste 30')) timeframe = 'month'
+  if (lower.includes('idag') || lower.includes('i dag') || lower.includes('dagens')) timeframe = 'today'
+  else if (lower.includes('vecka') || lower.includes('senaste 7') || lower.includes('denna vecka')) timeframe = 'week'
+  else if (lower.includes('månad') || lower.includes('senaste 30') || lower.includes('denna månad')) timeframe = 'month'
 
-  // Detect query type
+  // Detect signal type
+  let signalType: string | undefined
+  if (lower.includes('nyemission') || lower.includes('emission')) signalType = 'emission'
+  else if (lower.includes('vd-byte') || lower.includes('ny vd') || lower.includes('vd avgår')) signalType = 'vd_byte'
+  else if (lower.includes('styrelse')) signalType = 'styrelseförändring'
+  else if (lower.includes('utdelning')) signalType = 'utdelning'
+  else if (lower.includes('per capsulam')) signalType = 'per_capsulam'
+
+  // Detect query type - more specific patterns first
+  if (lower.includes('statistik') || lower.includes('hur många') || lower.includes('antal') || lower.includes('sammanfatt')) {
+    return { type: 'statistics', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
+  }
+
+  if (signalType && (lower.includes('vilka') || lower.includes('lista') || lower.includes('bolag med'))) {
+    return { type: 'search_signals', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
+  }
+
   if (lower.includes('konkurs') || lower.includes('likvidation') || lower.includes('kungörelse')) {
-    return { type: 'search_kungorelser', keywords: extractKeywords(message), orgNumber, timeframe }
+    return { type: 'search_kungorelser', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
   }
 
   if (lower.includes('protokoll') || lower.includes('stämma') || lower.includes('emission') ||
       lower.includes('styrelse') || lower.includes('vd-byte') || lower.includes('utdelning')) {
-    return { type: 'search_protocols', keywords: extractKeywords(message), orgNumber, timeframe }
+    return { type: 'search_protocols', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
   }
 
   if (lower.includes('nyhet') || lower.includes('händelse') || lower.includes('senaste')) {
-    return { type: 'search_news', keywords: extractKeywords(message), orgNumber, timeframe }
+    return { type: 'search_news', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
   }
 
-  if (orgNumber || lower.includes('bolag') || lower.includes('företag') || lower.includes('vad vet')) {
-    return { type: 'search_company', keywords: extractKeywords(message), orgNumber, timeframe }
+  if (orgNumber || companyName || lower.includes('bolag') || lower.includes('företag') || lower.includes('vad vet')) {
+    return { type: 'search_company', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
   }
 
-  return { type: 'general', keywords: extractKeywords(message), orgNumber, timeframe }
+  return { type: 'general', keywords: extractKeywords(message), orgNumber, companyName, timeframe, signalType }
 }
 
 function extractKeywords(message: string): string[] {
@@ -194,15 +216,26 @@ async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Prom
       case 'search_protocols': {
         let query = supabase
           .from('ProtocolAnalysis')
-          .select('id, org_number, company_name, protocol_date, protocol_type, news_content, signals, created_at')
+          .select('id, org_number, company_name, protocol_date, protocol_type, news_content, signals, extracted_data, created_at')
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(15)
 
         if (intent.orgNumber) {
           const formattedOrg = intent.orgNumber.length === 10
             ? `${intent.orgNumber.slice(0, 6)}-${intent.orgNumber.slice(6)}`
             : intent.orgNumber
           query = query.eq('org_number', formattedOrg)
+        }
+
+        // Search by company name if provided (quoted or from keywords)
+        if (intent.companyName) {
+          query = query.ilike('company_name', `%${intent.companyName}%`)
+        } else if (intent.keywords.length > 0 && !intent.orgNumber) {
+          // Try to match company name from keywords
+          const searchTerm = intent.keywords.join(' ')
+          if (searchTerm.length >= 3) {
+            query = query.ilike('company_name', `%${searchTerm}%`)
+          }
         }
 
         if (startDate) {
@@ -245,41 +278,69 @@ async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Prom
       }
 
       case 'search_company': {
-        if (!intent.orgNumber) {
-          // Search by company name keywords
-          const searchTerm = intent.keywords.join(' ')
+        // First try org number if provided
+        if (intent.orgNumber) {
+          const formattedOrg = intent.orgNumber.length === 10
+            ? `${intent.orgNumber.slice(0, 6)}-${intent.orgNumber.slice(6)}`
+            : intent.orgNumber
+
           const { data, error } = await supabase
             .from('LoopBrowse_Protokoll')
             .select('*')
-            .ilike('namn', `%${searchTerm}%`)
-            .limit(5)
+            .eq('orgnummer', formattedOrg)
+            .single()
 
-          if (error) throw error
+          if (!error && data) {
+            // Also get recent protocols for this company
+            const { data: protocols } = await supabase
+              .from('ProtocolAnalysis')
+              .select('id, protocol_date, protocol_type, news_content, signals')
+              .eq('org_number', formattedOrg)
+              .order('protocol_date', { ascending: false })
+              .limit(5)
 
-          return {
-            type: 'companies',
-            data: data || [],
-            summary: `Hittade ${data?.length || 0} bolag som matchar "${searchTerm}"`
+            // Also get kungörelser
+            const { data: kungorelser } = await supabase
+              .from('Kungorelser')
+              .select('id, typ, kategori, rubrik, publicerad')
+              .eq('org_number', intent.orgNumber)
+              .order('publicerad', { ascending: false })
+              .limit(5)
+
+            return {
+              type: 'companies',
+              data: [{
+                ...data,
+                recent_protocols: protocols || [],
+                recent_kungorelser: kungorelser || []
+              }],
+              summary: `Hittade bolag: ${data.namn}`
+            }
           }
         }
 
-        // Search by org number
-        const formattedOrg = intent.orgNumber.length === 10
-          ? `${intent.orgNumber.slice(0, 6)}-${intent.orgNumber.slice(6)}`
-          : intent.orgNumber
+        // Search by company name (quoted or from keywords)
+        const searchTerm = intent.companyName || intent.keywords.join(' ')
+        if (!searchTerm || searchTerm.length < 2) {
+          return {
+            type: 'companies',
+            data: [],
+            summary: 'Ange bolagsnamn eller organisationsnummer för att söka'
+          }
+        }
 
         const { data, error } = await supabase
           .from('LoopBrowse_Protokoll')
           .select('*')
-          .eq('orgnummer', formattedOrg)
-          .single()
+          .ilike('namn', `%${searchTerm}%`)
+          .limit(10)
 
-        if (error && error.code !== 'PGRST116') throw error
+        if (error) throw error
 
         return {
           type: 'companies',
-          data: data ? [data] : [],
-          summary: data ? `Hittade bolag: ${data.namn}` : 'Inget bolag hittat'
+          data: data || [],
+          summary: `Hittade ${data?.length || 0} bolag som matchar "${searchTerm}"`
         }
       }
 
@@ -295,6 +356,11 @@ async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Prom
           query = query.gte('created_at', startDate)
         }
 
+        // Filter by company name if provided
+        if (intent.companyName) {
+          query = query.ilike('company_name', `%${intent.companyName}%`)
+        }
+
         const { data, error } = await query
         if (error) throw error
 
@@ -302,6 +368,123 @@ async function queryDatabase(intent: ReturnType<typeof detectQueryIntent>): Prom
           type: 'news',
           data: data || [],
           summary: `Hittade ${data?.length || 0} nyheter`
+        }
+      }
+
+      case 'search_signals': {
+        // Search for protocols with specific signals
+        let query = supabase
+          .from('ProtocolAnalysis')
+          .select('id, org_number, company_name, protocol_date, protocol_type, news_content, signals, extracted_data, created_at')
+          .order('created_at', { ascending: false })
+          .limit(15)
+
+        if (startDate) {
+          query = query.gte('protocol_date', startDate)
+        }
+
+        // Filter by company name if provided
+        if (intent.companyName) {
+          query = query.ilike('company_name', `%${intent.companyName}%`)
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+
+        // Filter by signal type in application layer (JSONB filtering)
+        let filteredData = data || []
+        if (intent.signalType && filteredData.length > 0) {
+          filteredData = filteredData.filter(item => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const signals = item.signals as any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const extracted = item.extracted_data as any
+
+            const detekterade = signals?.detekterade as Array<{ signal?: string }> | undefined
+
+            if (intent.signalType === 'emission') {
+              return detekterade?.some(s => s.signal?.toLowerCase().includes('emission')) ||
+                extracted?.kapitalåtgärder?.nyemission?.beslutad
+            }
+            if (intent.signalType === 'vd_byte') {
+              return detekterade?.some(s => s.signal?.toLowerCase().includes('vd'))
+            }
+            if (intent.signalType === 'styrelseförändring') {
+              return detekterade?.some(s => s.signal?.toLowerCase().includes('styrelse')) ||
+                (extracted?.styrelse?.tillträdande_ledamöter?.length || 0) > 0
+            }
+            if (intent.signalType === 'utdelning') {
+              return detekterade?.some(s => s.signal?.toLowerCase().includes('utdelning'))
+            }
+            if (intent.signalType === 'per_capsulam') {
+              return item.protocol_type?.toLowerCase().includes('per capsulam')
+            }
+            return true
+          })
+        }
+
+        return {
+          type: 'protocols',
+          data: filteredData,
+          summary: `Hittade ${filteredData.length} protokoll med ${intent.signalType || 'signaler'}`
+        }
+      }
+
+      case 'statistics': {
+        // Get statistics about the database
+        const stats: Record<string, unknown> = {}
+
+        // Count protocols
+        const { count: protocolCount } = await supabase
+          .from('ProtocolAnalysis')
+          .select('*', { count: 'exact', head: true })
+        stats.totalt_protokoll = protocolCount || 0
+
+        // Count kungörelser
+        const { count: kungorelseCount } = await supabase
+          .from('Kungorelser')
+          .select('*', { count: 'exact', head: true })
+        stats.totalt_kungorelser = kungorelseCount || 0
+
+        // Count companies
+        const { count: companyCount } = await supabase
+          .from('LoopBrowse_Protokoll')
+          .select('*', { count: 'exact', head: true })
+        stats.totalt_bolag = companyCount || 0
+
+        // Recent activity
+        if (startDate) {
+          const { count: recentProtocols } = await supabase
+            .from('ProtocolAnalysis')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', startDate)
+          stats.protokoll_perioden = recentProtocols || 0
+
+          const { count: recentKungorelser } = await supabase
+            .from('Kungorelser')
+            .select('*', { count: 'exact', head: true })
+            .gte('publicerad', startDate)
+          stats.kungorelser_perioden = recentKungorelser || 0
+        }
+
+        // Count by protocol type
+        const { data: protocolTypes } = await supabase
+          .from('ProtocolAnalysis')
+          .select('protocol_type')
+
+        if (protocolTypes) {
+          const typeCounts: Record<string, number> = {}
+          protocolTypes.forEach(p => {
+            const type = p.protocol_type || 'okänd'
+            typeCounts[type] = (typeCounts[type] || 0) + 1
+          })
+          stats.protokoll_per_typ = typeCounts
+        }
+
+        return {
+          type: 'companies',
+          data: [stats],
+          summary: 'Databasstatistik'
         }
       }
 
@@ -345,12 +528,56 @@ function formatResultsForAI(result: QueryResult): string {
 
     case 'companies':
       result.data.forEach((c: Record<string, unknown>, i: number) => {
+        // Check if this is statistics data
+        if (c.totalt_protokoll !== undefined) {
+          formatted += `**DATABASSTATISTIK**\n`
+          formatted += `• Totalt protokoll: ${c.totalt_protokoll}\n`
+          formatted += `• Totalt kungörelser: ${c.totalt_kungorelser}\n`
+          formatted += `• Totalt bolag: ${c.totalt_bolag}\n`
+          if (c.protokoll_perioden !== undefined) {
+            formatted += `• Protokoll denna period: ${c.protokoll_perioden}\n`
+            formatted += `• Kungörelser denna period: ${c.kungorelser_perioden}\n`
+          }
+          if (c.protokoll_per_typ) {
+            formatted += `\n**Per protokolltyp:**\n`
+            const types = c.protokoll_per_typ as Record<string, number>
+            Object.entries(types).forEach(([typ, count]) => {
+              formatted += `• ${typ}: ${count}\n`
+            })
+          }
+          return
+        }
+
+        // Regular company data
         formatted += `${i + 1}. **${c.namn}** (${c.orgnummer})\n`
         if (c.vd) formatted += `   VD: ${c.vd}\n`
         if (c.ordforande) formatted += `   Ordförande: ${c.ordforande}\n`
         if (c.storsta_agare) formatted += `   Största ägare: ${c.storsta_agare}\n`
         if (c.stad) formatted += `   Stad: ${c.stad}\n`
         if (c.anstallda) formatted += `   Anställda: ${c.anstallda}\n`
+        if (c.omsattning) formatted += `   Omsättning: ${c.omsattning}\n`
+
+        // Recent protocols
+        const protocols = c.recent_protocols as Array<Record<string, unknown>> | undefined
+        if (protocols && protocols.length > 0) {
+          formatted += `\n   **Senaste protokoll:**\n`
+          protocols.forEach(p => {
+            const news = p.news_content as Record<string, unknown> | null
+            formatted += `   • ${p.protocol_date} - ${p.protocol_type}`
+            if (news?.rubrik) formatted += `: ${news.rubrik}`
+            formatted += '\n'
+          })
+        }
+
+        // Recent kungörelser
+        const kungorelser = c.recent_kungorelser as Array<Record<string, unknown>> | undefined
+        if (kungorelser && kungorelser.length > 0) {
+          formatted += `\n   **Senaste kungörelser:**\n`
+          kungorelser.forEach(k => {
+            formatted += `   • ${k.publicerad} - ${k.kategori}: ${k.rubrik || k.typ}\n`
+          })
+        }
+
         formatted += '\n'
       })
       break
