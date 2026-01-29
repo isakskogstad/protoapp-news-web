@@ -68,6 +68,7 @@ export interface ProtocolAnalysis {
   extracted_data?: ExtractedData
   calculations?: AnalysisCalculations
   analyzed_at?: string
+  created_at?: string
   logo_url?: string
 }
 
@@ -146,9 +147,11 @@ export interface NewsItem {
   headline?: string
   noticeText?: string
   protocolType?: string
-  eventDate?: string  // Stämmodatum/mötesdatum - när händelsen ägde rum
+  eventDate?: string  // Stämmodatum/mötesdatum - när händelsen ägde rum/ska äga rum
+  isFutureEvent?: boolean  // true om eventDate är i framtiden (t.ex. kallelse till stämma)
+  registeredDate?: string  // När handlingen registrerades/publicerades (inlämning till BV eller PoIT)
   newsValue?: number
-  timestamp: string
+  timestamp: string  // När nyheten lades till i systemet (för sortering)
   logoUrl?: string
   signals?: AnalysisSignals
   extractedData?: ExtractedData

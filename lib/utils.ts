@@ -174,9 +174,13 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
       : undefined
   }
 
-  // Extract event date (stämmodatum) from extracted_data.metadata.datum
+  // Extract event date (stämmodatum) from extracted_data.metadata.datum or protocol_date
   const metadataData = analysis.extracted_data?.metadata as Record<string, unknown> | undefined
-  const eventDate = (metadataData?.datum as string) || undefined
+  const eventDate = (metadataData?.datum as string) || analysis.protocol_date || undefined
+
+  // For protocols, registeredDate is when it was analyzed/added to the system
+  // (approximation for when it was submitted to Bolagsverket)
+  const registeredDate = analysis.analyzed_at || analysis.created_at || undefined
 
   const item: NewsItem = {
     id: analysis.id,
@@ -187,8 +191,10 @@ export function protocolToNewsItem(analysis: ProtocolAnalysis): NewsItem {
     noticeText: analysis.news_content?.notistext,
     protocolType: analysis.protocol_type,
     eventDate,
+    isFutureEvent: false,  // Protocols are always from past events
+    registeredDate,
     newsValue: analysis.news_content?.nyckeldata?.nyhetsvärde || analysis.signals?.nyhetsvärde_total,
-    timestamp: analysis.analyzed_at || new Date().toISOString(),
+    timestamp: analysis.analyzed_at || analysis.created_at || new Date().toISOString(),
     logoUrl: analysis.logo_url,
     signals: analysis.signals,
     extractedData: analysis.extracted_data,
@@ -269,6 +275,26 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
   // For kungörelser, we don't have a direct PDF link but can link to PoIT
   // The kungorelsetext itself is the source content
   // Prefer AI-generated headline/notice_text if available
+
+  // Try to extract meeting date from stamma_data for kallelser
+  const stammaData = k as { stamma_data?: { datum?: string } }
+  const meetingDate = stammaData.stamma_data?.datum || ''
+  const typ = (k.typ || '').toLowerCase()
+  const isKallelse = typ.includes('kallelse') || typ.includes('stämma')
+  const hasFutureMeeting = Boolean(isKallelse && meetingDate && isFutureDate(meetingDate))
+
+  // For konkurser, use datum_konkursbeslut as eventDate
+  const amnesomrade = (k.amnesomrade || '').toLowerCase()
+  const isKonkurs = amnesomrade.includes('konkurs')
+
+  // Determine eventDate based on kungörelse type
+  let eventDate: string | undefined
+  if (hasFutureMeeting) {
+    eventDate = meetingDate  // Future meeting date for kallelser
+  } else if (isKonkurs) {
+    eventDate = k.datum_konkursbeslut || k.publicerad  // Konkurs decision date
+  }
+
   const item: NewsItem = {
     id: k.id,
     type: 'kungorelse',
@@ -277,15 +303,17 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
     headline: k.ai_headline || k.underrubrik || k.typ,
     noticeText: k.ai_notice_text || k.kungorelsetext,
     protocolType: k.amnesomrade,
-    newsValue: k.amnesomrade?.toLowerCase().includes('konkurs') ? 9 : 5,
+    eventDate,
+    isFutureEvent: hasFutureMeeting,  // true for kallelser with future meeting dates
+    registeredDate: k.publicerad,  // When published in PoIT
+    newsValue: isKonkurs ? 9 : 5,
     timestamp: k.publicerad || new Date().toISOString(),
     kungorelse: k,
     sourceType: 'kungorelse',
   }
 
   // Extract konkurs faktaruta from kungörelse
-  const amnesomrade = (k.amnesomrade || '').toLowerCase()
-  if (amnesomrade.includes('konkurs')) {
+  if (isKonkurs) {
     item.konkursFaktaruta = {
       bolagsnamn: k.company_name || '',
       beslutsdatum: k.datum_konkursbeslut || k.publicerad || '',
@@ -298,21 +326,13 @@ export function kungorelseToNewsItem(k: Kungorelse): NewsItem {
 
   // Extract kallelse faktaruta if kungörelse is about meeting invitation
   // ONLY if the meeting date is in the future
-  const typ = (k.typ || '').toLowerCase()
-  if (typ.includes('kallelse') || typ.includes('stämma')) {
-    // Try to extract date from stamma_data if available
-    const stammaData = k as { stamma_data?: { datum?: string } }
-    const meetingDate = stammaData.stamma_data?.datum || ''
-
-    // Only show kallelse faktaruta for future meetings
-    if (isFutureDate(meetingDate)) {
-      item.kallelseFaktaruta = {
-        bolagsnamn: k.company_name || '',
-        stammatyp: k.typ || 'Bolagsstämma',
-        datum: meetingDate,
-        tid: '',
-        plats: k.ort || '',
-      }
+  if (hasFutureMeeting) {
+    item.kallelseFaktaruta = {
+      bolagsnamn: k.company_name || '',
+      stammatyp: k.typ || 'Bolagsstämma',
+      datum: meetingDate,
+      tid: '',
+      plats: k.ort || '',
     }
   }
 

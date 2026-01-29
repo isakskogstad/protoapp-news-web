@@ -621,6 +621,38 @@ interface SmartTime {
   isToday: boolean    // Published today
 }
 
+// Format date as "29 jan -26" or "29 jan"
+function formatShortDate(dateString?: string, includeYear = true): string | null {
+  if (!dateString) return null
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return null
+    const day = date.getDate()
+    const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+    const month = months[date.getMonth()]
+    if (includeYear) {
+      const year = date.getFullYear().toString().slice(-2)
+      return `${day} ${month} -${year}`
+    }
+    return `${day} ${month}`
+  } catch {
+    return null
+  }
+}
+
+// Check if a date is in the future
+function isDateInFuture(dateString?: string): boolean {
+  if (!dateString) return false
+  try {
+    const date = new Date(dateString)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return date >= today
+  } catch {
+    return false
+  }
+}
+
 function formatSmartTime(dateString: string): SmartTime {
   try {
     const date = new Date(dateString)
@@ -746,26 +778,41 @@ function TimelineMarker({ label, isFirst }: { label: string; isFirst: boolean })
   )
 }
 
-// Timeline item wrapper - wraps each news card with timeline dot
+// Timeline item wrapper - wraps each news card with timeline dot and time label
 function TimelineItemWrapper({
   children,
+  timeText,
+  isRecent = false,
   showDot = true
 }: {
   children: React.ReactNode
+  timeText?: string
+  isRecent?: boolean
   isLast?: boolean
   showDot?: boolean
 }) {
   return (
     <div className="flex group/timeline">
-      {/* Timeline column - hidden on mobile, narrow fixed width on desktop (in left margin) */}
-      <div className="hidden md:flex md:w-14 shrink-0 justify-end pr-3 relative">
-        {/* Empty space for time label alignment */}
+      {/* Timeline column with time label - hidden on mobile, fixed width on desktop */}
+      <div className="hidden md:flex md:w-16 shrink-0 flex-col items-end pr-3 relative">
+        {/* Time label - vertically centered relative to the card */}
+        {timeText && (
+          <div className="absolute top-1/2 -translate-y-1/2 right-3">
+            <span className={`text-[10px] font-mono whitespace-nowrap ${
+              isRecent
+                ? 'font-bold text-[#1e40af] dark:text-[#58a6ff]'
+                : 'text-[#94a3b8] dark:text-[#6e7681]'
+            }`}>
+              {timeText}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Dot on the timeline - hidden on mobile, animated on card hover on desktop */}
-      <div className="hidden md:flex shrink-0 relative z-10 items-start">
+      <div className="hidden md:flex shrink-0 relative z-10 items-center" style={{ minHeight: '100%' }}>
         {showDot && (
-          <div className="w-2 h-2 mt-7 rounded-full bg-gray-300 dark:bg-[#30363d] border border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-150" />
+          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-[#30363d] border border-white dark:border-[#0d1117] transition-all duration-300 group-hover/timeline:bg-[#1e40af] dark:group-hover/timeline:bg-[#58a6ff] group-hover/timeline:scale-150" />
         )}
       </div>
 
@@ -905,8 +952,13 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
   const categoryColor = categoryColors[formattedCategory] || categoryColors[category] || 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
   const newsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`
 
-  // Get time with recency info for visual hierarchy
+  // Get time with recency info for visual hierarchy (used for mobile)
   const timeInfo = formatSmartTime(item.timestamp)
+
+  // Format dates for display
+  const registeredDateFormatted = formatShortDate(item.registeredDate)
+  const eventDateFormatted = formatShortDate(item.eventDate)
+  const isFutureEvent = item.isFutureEvent || isDateInFuture(item.eventDate)
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -975,7 +1027,14 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
         {/* Mobile: Stack vertically | Desktop: Side by side */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 pr-16 sm:pr-12">
           {/* Company info section - horizontal on mobile, vertical column on desktop */}
-          <div className="flex sm:flex-col items-start gap-3 sm:gap-0 sm:w-28 sm:shrink-0">
+          <div className="flex sm:flex-col items-start gap-3 sm:gap-0 sm:w-32 sm:shrink-0">
+            {/* Registered date - top of left column (desktop only) */}
+            {registeredDateFormatted && (
+              <p className="hidden sm:block text-[9px] text-[#94a3b8] dark:text-[#6e7681] mb-2">
+                <span className="font-medium">Registrerat:</span> {registeredDateFormatted}
+              </p>
+            )}
+
             {/* Logo */}
             <CompanyLogo
               orgNumber={item.orgNumber}
@@ -996,28 +1055,29 @@ const NewsItemCard = React.memo(function NewsItemCard({ item, onBookmarkChange }
                 <p className="text-[10px] sm:text-[9px] font-mono text-[#94a3b8] dark:text-[#6e7681] sm:mt-1">
                   {formatOrgNumber(item.orgNumber)}
                 </p>
-                {/* Time - inline on mobile */}
+                {/* Time - inline on mobile only */}
                 <span className="sm:hidden text-[10px] font-mono text-[#94a3b8] dark:text-[#6e7681]">
                   · {timeInfo.text}
                 </span>
               </div>
             </div>
 
-            {/* Category badge - visible on mobile inline, separate on desktop */}
+            {/* Category badge */}
             <span className={`shrink-0 sm:mt-3 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 sm:py-1 rounded-md ${categoryColor}`}>
               {formattedCategory}
             </span>
 
-            {/* Time - hidden on mobile, visible at bottom on desktop */}
-            <p className={`hidden sm:block mt-auto pt-3 font-mono ${
-              timeInfo.isRecent
-                ? 'text-[10px] font-bold text-[#1e40af] dark:text-[#58a6ff]'
-                : timeInfo.isToday
-                  ? 'text-[10px] font-medium text-[#64748b] dark:text-[#8b949e]'
-                  : 'text-[9px] text-[#94a3b8] dark:text-[#6e7681]'
-            }`}>
-              {timeInfo.text}
-            </p>
+            {/* Event date (Stämmodatum) with color coding */}
+            {eventDateFormatted && (
+              <p className={`hidden sm:block mt-2 text-[9px] ${
+                isFutureEvent
+                  ? 'text-emerald-600 dark:text-emerald-400'  // Green for future events (kallelser)
+                  : 'text-orange-600 dark:text-orange-400'    // Orange for past events (protokoll)
+              }`}>
+                <span className="font-medium">Stämmodatum:</span>{' '}
+                <span className="font-semibold">{eventDateFormatted}</span>
+              </p>
+            )}
           </div>
 
           {/* News content - Headline + Notice text */}
@@ -1349,6 +1409,7 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                   filteredItems.forEach((item, index) => {
                     const period = getTimelinePeriod(item.timestamp)
                     const isLastItem = index === filteredItems.length - 1
+                    const timeInfo = formatSmartTime(item.timestamp)
 
                     // Add period marker when period changes
                     if (period !== lastPeriod) {
@@ -1362,11 +1423,13 @@ export default function DashboardPage({ initialItems }: DashboardPageProps) {
                       lastPeriod = period
                     }
 
-                    // Add the news item wrapped in timeline
+                    // Add the news item wrapped in timeline with time label
                     elements.push(
                       <TimelineItemWrapper
                         key={item.id}
                         isLast={isLastItem}
+                        timeText={timeInfo.text}
+                        isRecent={timeInfo.isRecent}
                       >
                         <NewsItemCard
                           item={item}
