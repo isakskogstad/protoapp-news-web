@@ -869,15 +869,17 @@ export async function generateAIResponseStreaming(
       loopCount++
       console.log(`[Loop-AI] Loop ${loopCount}/${MAX_LOOPS}`)
 
-      console.log(`[Loop-AI] Calling Anthropic API...`)
+      console.log(`[Loop-AI] Calling Anthropic API with model claude-sonnet-4-20250514...`)
+      console.log(`[Loop-AI] Messages count: ${messages.length}`)
+
+      // Minimal API call - no tools, no extra options
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        system: SYSTEM_PROMPT + databaseContext,
-        messages,
-        tools: [], // Explicitly empty
+        max_tokens: 1024,
+        messages: messages,
       })
-      console.log(`[Loop-AI] API call successful`)
+
+      console.log(`[Loop-AI] API call successful, stop_reason: ${response.stop_reason}`)
 
       console.log(`[Loop-AI] Response stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`)
 
