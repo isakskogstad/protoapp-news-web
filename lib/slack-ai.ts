@@ -640,11 +640,13 @@ export async function generateAIResponse(
 }
 
 // Web search tool definition for Claude
-const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
-  type: 'web_search_20250305',
-  name: 'web_search',
-  max_uses: 3, // Limit searches per request
-}
+// NOTE: Temporarily disabled due to SDK compatibility issues
+// TODO: Re-enable when stable
+// const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
+//   type: 'web_search_20250305',
+//   name: 'web_search',
+//   max_uses: 3,
+// }
 
 // Custom Supabase query tool for Claude
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
@@ -856,22 +858,29 @@ export async function generateAIResponseStreaming(
     let loopCount = 0
     const MAX_LOOPS = 5
 
+    console.log(`[Loop-AI] Starting generation for: "${userMessage.slice(0, 50)}..."`)
+
     while (continueLoop && loopCount < MAX_LOOPS) {
       loopCount++
+      console.log(`[Loop-AI] Loop ${loopCount}/${MAX_LOOPS}`)
 
       const response = await client.messages.create({
         model: 'claude-opus-4-5-20251101',
         max_tokens: 2000,
         system: SYSTEM_PROMPT + databaseContext,
         messages,
-        tools: [WEB_SEARCH_TOOL, SUPABASE_QUERY_TOOL],
+        tools: [SUPABASE_QUERY_TOOL], // Only use custom database tool for now
       })
+
+      console.log(`[Loop-AI] Response stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`)
 
       // Process response content
       const toolResults: Anthropic.Messages.ToolResultBlockParam[] = []
-      let hasToolUse = false
+      let hasCustomToolUse = false
 
       for (const block of response.content) {
+        console.log(`[Loop-AI] Processing block type: ${block.type}`)
+
         if (block.type === 'text') {
           accumulatedText += block.text
 
@@ -882,9 +891,11 @@ export async function generateAIResponseStreaming(
             await onUpdate(accumulatedText + ' ▌', false)
           }
         } else if (block.type === 'tool_use') {
-          hasToolUse = true
+          console.log(`[Loop-AI] Tool use: ${block.name}`)
 
           if (block.name === 'query_database') {
+            hasCustomToolUse = true
+
             // Execute Supabase query
             const input = block.input as { sql: string; explanation: string }
             console.log(`[Loop-AI] Query: ${input.explanation}`)
@@ -897,10 +908,13 @@ export async function generateAIResponseStreaming(
             let resultContent: string
             if (error) {
               resultContent = `Fel: ${error}`
+              console.log(`[Loop-AI] Query error: ${error}`)
             } else if (!data || data.length === 0) {
               resultContent = 'Inga resultat hittades.'
+              console.log(`[Loop-AI] Query returned no results`)
             } else {
               resultContent = `Hittade ${data.length} resultat:\n${JSON.stringify(data, null, 2)}`
+              console.log(`[Loop-AI] Query returned ${data.length} results`)
             }
 
             toolResults.push({
@@ -912,27 +926,37 @@ export async function generateAIResponseStreaming(
         }
       }
 
-      // If there were tool uses, add assistant message and tool results, then continue
-      if (hasToolUse && toolResults.length > 0) {
+      // If there were custom tool uses, add assistant message and tool results, then continue
+      if (hasCustomToolUse && toolResults.length > 0) {
         messages.push({ role: 'assistant', content: response.content })
         messages.push({ role: 'user', content: toolResults })
+        console.log(`[Loop-AI] Added tool results, continuing loop`)
       } else {
         // No more tool calls, we're done
         continueLoop = false
+        console.log(`[Loop-AI] No more tool calls, exiting loop`)
       }
 
       // Check stop reason
       if (response.stop_reason === 'end_turn' || response.stop_reason === 'stop_sequence') {
         continueLoop = false
+        console.log(`[Loop-AI] Stop reason triggered: ${response.stop_reason}`)
       }
     }
 
     // Send final update without cursor
-    await onUpdate(accumulatedText, true)
+    if (accumulatedText.trim()) {
+      await onUpdate(accumulatedText, true)
+    } else {
+      await onUpdate('Jag kunde inte generera ett svar. Försök igen med en annan fråga.', true)
+    }
+
+    console.log(`[Loop-AI] Generation complete, text length: ${accumulatedText.length}`)
 
   } catch (error) {
-    console.error('AI generation error:', error)
-    await onUpdate('Ett fel uppstod när jag försökte svara. Försök igen om en stund.', true)
+    console.error('[Loop-AI] AI generation error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Okänt fel'
+    await onUpdate(`❌ Ett fel uppstod: ${errorMessage}`, true)
   }
 }
 
