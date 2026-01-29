@@ -318,24 +318,17 @@ export async function generateAIResponse(
       { role: 'user' as const, content: userMessage }
     ]
 
-    // Call GPT-5.2 with reasoning
-    // Using responses.create API for GPT-5.2
+    // Call OpenAI GPT-4o (reliable, fast)
     const client = getOpenAI()
 
-    // @ts-expect-error - GPT-5.2 uses responses.create API
-    const response = await client.responses.create({
-      model: 'gpt-5.2',
-      input,
-      reasoning: { effort: 'none' }, // Snabba svar utan deliberation
-      max_output_tokens: 1000,
-      tools: [
-        { type: 'web_search' } // Aktiverar webbsökning för aktuell information
-      ],
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: input as OpenAI.ChatCompletionMessageParam[],
+      max_tokens: 1000,
+      temperature: 0.7,
     })
 
-    // GPT-5.2 response format
-    // @ts-expect-error - GPT-5.2 response format
-    return response.output_text || 'Jag kunde inte generera ett svar. Försök igen.'
+    return response.choices[0]?.message?.content || 'Jag kunde inte generera ett svar. Försök igen.'
 
   } catch (error) {
     console.error('AI generation error:', error)
