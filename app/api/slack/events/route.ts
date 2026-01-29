@@ -150,40 +150,64 @@ async function handleEvent(event: {
       return
     }
 
+    // Check if OpenAI is configured
+    if (!process.env.OPENAI_API_KEY) {
+      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. OPENAI_API_KEY saknas i miljövariabler.', event.ts)
+      return
+    }
+
     // Show thinking reaction
     await addReaction(event.channel, event.ts, 'thinking_face')
 
-    // Get thread history if in a thread
-    const threadTs = event.thread_ts || event.ts
-    const history = event.thread_ts && botId
-      ? await getThreadHistory(event.channel, event.thread_ts, botId)
-      : []
+    try {
+      // Get thread history if in a thread
+      const threadTs = event.thread_ts || event.ts
+      const history = event.thread_ts && botId
+        ? await getThreadHistory(event.channel, event.thread_ts, botId)
+        : []
 
-    // Generate AI response
-    const response = await generateAIResponse(cleanText, history)
+      // Generate AI response
+      const response = await generateAIResponse(cleanText, history)
 
-    // Remove thinking reaction and reply
-    await removeReaction(event.channel, event.ts, 'thinking_face')
-    await postMessage(event.channel, response, threadTs)
+      // Remove thinking reaction and reply
+      await removeReaction(event.channel, event.ts, 'thinking_face')
+      await postMessage(event.channel, response, threadTs)
+    } catch (error) {
+      console.error('AI generation error:', error)
+      await removeReaction(event.channel, event.ts, 'thinking_face')
+      await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
+    }
   }
 
   // Handle direct messages
   if (event.type === 'message' && event.channel?.startsWith('D') && event.text) {
+    // Check if OpenAI is configured
+    if (!process.env.OPENAI_API_KEY) {
+      await postMessage(event.channel, '⚠️ AI är inte konfigurerad. OPENAI_API_KEY saknas i miljövariabler.', event.ts)
+      return
+    }
+
     // Show thinking reaction
     await addReaction(event.channel, event.ts, 'thinking_face')
 
-    // Get thread history if in a thread
-    const threadTs = event.thread_ts || event.ts
-    const history = event.thread_ts && botId
-      ? await getThreadHistory(event.channel, event.thread_ts, botId)
-      : []
+    try {
+      // Get thread history if in a thread
+      const threadTs = event.thread_ts || event.ts
+      const history = event.thread_ts && botId
+        ? await getThreadHistory(event.channel, event.thread_ts, botId)
+        : []
 
-    // Generate AI response
-    const response = await generateAIResponse(event.text, history)
+      // Generate AI response
+      const response = await generateAIResponse(event.text, history)
 
-    // Remove thinking reaction and reply
-    await removeReaction(event.channel, event.ts, 'thinking_face')
-    await postMessage(event.channel, response, threadTs)
+      // Remove thinking reaction and reply
+      await removeReaction(event.channel, event.ts, 'thinking_face')
+      await postMessage(event.channel, response, threadTs)
+    } catch (error) {
+      console.error('AI generation error:', error)
+      await removeReaction(event.channel, event.ts, 'thinking_face')
+      await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
+    }
   }
 }
 
@@ -226,6 +250,7 @@ export async function GET() {
     configured: {
       botToken: !!SLACK_BOT_TOKEN,
       signingSecret: !!SLACK_SIGNING_SECRET,
+      openaiKey: !!process.env.OPENAI_API_KEY,
     }
   })
 }
