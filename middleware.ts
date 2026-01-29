@@ -25,6 +25,6 @@ export const config = {
      * - /_next (Next.js internals)
      * - /favicon.ico, etc.
      */
-    '/((?!login|api/auth|api/company|api/slack/events|_next|favicon.ico).*)',
+    '/((?!login|api/auth|api/company|api/slack/events|api/slack/commands|_next|favicon.ico).*)',
   ],
 }
