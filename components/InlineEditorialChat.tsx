@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight, Video } from 'lucide-react'
+import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight, Video, Trash2, RefreshCw } from 'lucide-react'
 import { EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
 import { parseSlackMrkdwn } from '@/lib/slack-mrkdwn'
 import { Block, Attachment } from '@/lib/slack-types'
@@ -705,6 +705,26 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Chat toolbar */}
+      {messages.length > 0 && (
+        <div className="flex justify-end gap-1 mb-2">
+          <button
+            onClick={() => fetchMessages()}
+            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            title="Uppdatera"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setMessages([])}
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+            title="Rensa vy"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
