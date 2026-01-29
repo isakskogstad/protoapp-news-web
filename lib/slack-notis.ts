@@ -140,7 +140,7 @@ VIKTIGT:
 
   try {
     const response = await client.messages.create({
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }]
     })

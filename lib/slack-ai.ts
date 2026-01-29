@@ -870,12 +870,10 @@ export async function generateAIResponseStreaming(
       console.log(`[Loop-AI] Loop ${loopCount}/${MAX_LOOPS}`)
 
       const response = await client.messages.create({
-        model: 'claude-opus-4-5-20251101',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system: SYSTEM_PROMPT + databaseContext,
         messages,
-        // Tools temporarily disabled - will add back after basic chat works
-        // tools: [SUPABASE_QUERY_TOOL],
       })
 
       console.log(`[Loop-AI] Response stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`)
