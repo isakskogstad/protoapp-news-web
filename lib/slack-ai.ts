@@ -618,6 +618,127 @@ const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
   max_uses: 3, // Limit searches per request
 }
 
+// Custom Supabase query tool for Claude
+const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
+  name: 'query_database',
+  description: `Kör en databasfråga mot LoopDesk-arkivet. Tillgängliga tabeller:
+
+**ProtocolAnalysis** - AI-analyserade bolagsstämmoprotokoll
+- id, org_number (format: 556XXX-XXXX), company_name, protocol_date, protocol_type
+- news_content (JSONB: rubrik, notistext, nyckeldata)
+- signals (JSONB: detekterade[], nyhetsvärde_total)
+- extracted_data (JSONB: bolag, styrelse, kapitalåtgärder, befattningshavare)
+- calculations (JSONB: emission, utspädning, värdering)
+- created_at, analyzed_at
+
+**Kungorelser** - Kungörelser från Post- och Inrikes Tidningar
+- id, org_number, company_name, kategori (konkurser/likvidationer/kallelser/etc)
+- typ, rubrik, kungorelsetext, publicerad, amnesomrade
+- konkurs_data (JSONB), stamma_data (JSONB)
+- created_at
+
+**LoopBrowse_Protokoll** - Bolagsregister
+- orgnummer, namn, vd, ordforande, storsta_agare
+- stad, anstallda, omsattning, bransch
+
+Använd PostgreSQL-syntax. Begränsa alltid till max 20 rader med LIMIT.
+Exempel: SELECT company_name, protocol_date FROM "ProtocolAnalysis" WHERE protocol_type ILIKE '%emission%' ORDER BY protocol_date DESC LIMIT 10`,
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      sql: {
+        type: 'string',
+        description: 'SQL SELECT-fråga (endast läsning, max 20 rader)'
+      },
+      explanation: {
+        type: 'string',
+        description: 'Kort förklaring av vad frågan gör (för loggning)'
+      }
+    },
+    required: ['sql', 'explanation']
+  }
+}
+
+// Execute a Supabase query from Claude
+async function executeSupabaseQuery(sql: string): Promise<{ data: unknown[] | null; error: string | null }> {
+  // Safety checks
+  const upperSql = sql.toUpperCase().trim()
+
+  // Only allow SELECT queries
+  if (!upperSql.startsWith('SELECT')) {
+    return { data: null, error: 'Endast SELECT-frågor är tillåtna' }
+  }
+
+  // Block dangerous operations
+  const blockedKeywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'TRUNCATE', 'GRANT', 'REVOKE']
+  for (const keyword of blockedKeywords) {
+    if (upperSql.includes(keyword)) {
+      return { data: null, error: `Otillåten operation: ${keyword}` }
+    }
+  }
+
+  // Ensure LIMIT exists and is reasonable
+  if (!upperSql.includes('LIMIT')) {
+    sql = sql.replace(/;?\s*$/, ' LIMIT 20')
+  }
+
+  try {
+    const supabase = createServerClient()
+    const { data, error } = await supabase.rpc('execute_readonly_query', { query_text: sql })
+
+    if (error) {
+      // Fallback: try direct query on allowed tables
+      console.error('RPC error, trying direct query:', error)
+      return await executeDirectQuery(sql)
+    }
+
+    return { data: data as unknown[], error: null }
+  } catch (err) {
+    console.error('Query execution error:', err)
+    return { data: null, error: err instanceof Error ? err.message : 'Okänt fel' }
+  }
+}
+
+// Direct query fallback for common tables
+async function executeDirectQuery(sql: string): Promise<{ data: unknown[] | null; error: string | null }> {
+  const supabase = createServerClient()
+  const upperSql = sql.toUpperCase()
+
+  try {
+    // Detect which table and construct appropriate query
+    if (upperSql.includes('"PROTOCOLANALYSIS"') || upperSql.includes('PROTOCOLANALYSIS')) {
+      const { data, error } = await supabase
+        .from('ProtocolAnalysis')
+        .select('*')
+        .limit(20)
+      if (error) throw error
+      return { data, error: null }
+    }
+
+    if (upperSql.includes('"KUNGORELSER"') || upperSql.includes('KUNGORELSER')) {
+      const { data, error } = await supabase
+        .from('Kungorelser')
+        .select('*')
+        .limit(20)
+      if (error) throw error
+      return { data, error: null }
+    }
+
+    if (upperSql.includes('"LOOPBROWSE_PROTOKOLL"') || upperSql.includes('LOOPBROWSE_PROTOKOLL')) {
+      const { data, error } = await supabase
+        .from('LoopBrowse_Protokoll')
+        .select('*')
+        .limit(20)
+      if (error) throw error
+      return { data, error: null }
+    }
+
+    return { data: null, error: 'Kunde inte köra frågan - använd en av de tillgängliga tabellerna' }
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err.message : 'Query failed' }
+  }
+}
+
 // Streaming version that calls back with progressive updates
 export async function generateAIResponseStreaming(
   userMessage: string,
@@ -625,19 +746,19 @@ export async function generateAIResponseStreaming(
   onUpdate: StreamCallback
 ): Promise<void> {
   try {
-    // Detect intent and query database
+    // Detect intent and query database (initial context)
     const intent = detectQueryIntent(userMessage)
     let databaseContext = ''
 
     if (intent.type !== 'general') {
       const result = await queryDatabase(intent)
       if (result) {
-        databaseContext = `\n\n--- DATABASRESULTAT ---\n${formatResultsForAI(result)}\n--- SLUT DATABASRESULTAT ---\n`
+        databaseContext = `\n\n--- DATABASRESULTAT (automatisk sökning) ---\n${formatResultsForAI(result)}\n--- SLUT DATABASRESULTAT ---\n`
       }
     }
 
-    // Build messages for Claude (system prompt is separate)
-    const messages = [
+    // Build messages for Claude
+    const messages: Anthropic.Messages.MessageParam[] = [
       ...conversationHistory.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content
@@ -645,34 +766,86 @@ export async function generateAIResponseStreaming(
       { role: 'user' as const, content: userMessage }
     ]
 
-    // Call Claude Opus 4.5 with streaming and web search
     const client = getAnthropic()
-
     let accumulatedText = ''
     let lastUpdateTime = Date.now()
-    const UPDATE_INTERVAL_MS = 500 // Update Slack every 500ms to avoid rate limits
+    const UPDATE_INTERVAL_MS = 500
 
-    const stream = client.messages.stream({
-      model: 'claude-opus-4-5-20251101',
-      max_tokens: 2000,
-      system: SYSTEM_PROMPT + databaseContext,
-      messages,
-      tools: [WEB_SEARCH_TOOL],
-    })
+    // Tool call loop - handle multiple rounds of tool use
+    let continueLoop = true
+    let loopCount = 0
+    const MAX_LOOPS = 5
 
-    stream.on('text', async (text) => {
-      accumulatedText += text
+    while (continueLoop && loopCount < MAX_LOOPS) {
+      loopCount++
 
-      // Throttle updates to avoid Slack rate limits
-      const now = Date.now()
-      if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
-        lastUpdateTime = now
-        await onUpdate(accumulatedText + ' ▌', false) // Add cursor indicator
+      const response = await client.messages.create({
+        model: 'claude-opus-4-5-20251101',
+        max_tokens: 2000,
+        system: SYSTEM_PROMPT + databaseContext,
+        messages,
+        tools: [WEB_SEARCH_TOOL, SUPABASE_QUERY_TOOL],
+      })
+
+      // Process response content
+      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = []
+      let hasToolUse = false
+
+      for (const block of response.content) {
+        if (block.type === 'text') {
+          accumulatedText += block.text
+
+          // Update Slack with progress
+          const now = Date.now()
+          if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
+            lastUpdateTime = now
+            await onUpdate(accumulatedText + ' ▌', false)
+          }
+        } else if (block.type === 'tool_use') {
+          hasToolUse = true
+
+          if (block.name === 'query_database') {
+            // Execute Supabase query
+            const input = block.input as { sql: string; explanation: string }
+            console.log(`[Loop-AI] Query: ${input.explanation}`)
+            console.log(`[Loop-AI] SQL: ${input.sql}`)
+
+            await onUpdate(accumulatedText + `\n📊 _Kör databasfråga: ${input.explanation}_`, false)
+
+            const { data, error } = await executeSupabaseQuery(input.sql)
+
+            let resultContent: string
+            if (error) {
+              resultContent = `Fel: ${error}`
+            } else if (!data || data.length === 0) {
+              resultContent = 'Inga resultat hittades.'
+            } else {
+              resultContent = `Hittade ${data.length} resultat:\n${JSON.stringify(data, null, 2)}`
+            }
+
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: resultContent
+            })
+          }
+        }
       }
-    })
 
-    // Wait for the stream to complete
-    await stream.finalMessage()
+      // If there were tool uses, add assistant message and tool results, then continue
+      if (hasToolUse && toolResults.length > 0) {
+        messages.push({ role: 'assistant', content: response.content })
+        messages.push({ role: 'user', content: toolResults })
+      } else {
+        // No more tool calls, we're done
+        continueLoop = false
+      }
+
+      // Check stop reason
+      if (response.stop_reason === 'end_turn' || response.stop_reason === 'stop_sequence') {
+        continueLoop = false
+      }
+    }
 
     // Send final update without cursor
     await onUpdate(accumulatedText, true)
