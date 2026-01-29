@@ -308,25 +308,31 @@ export async function generateAIResponse(
       }
     }
 
-    // Build messages for OpenAI
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT + databaseContext },
+    // Build input messages for GPT-5.2
+    const input = [
+      { role: 'system' as const, content: SYSTEM_PROMPT + databaseContext },
       ...conversationHistory.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content
       })),
-      { role: 'user', content: userMessage }
+      { role: 'user' as const, content: userMessage }
     ]
 
-    // Call OpenAI
-    const response = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o',
-      messages,
-      max_tokens: 1000,
-      temperature: 0.7,
+    // Call GPT-5.2 with reasoning
+    // Using responses.create API for GPT-5.2
+    const client = getOpenAI()
+
+    // @ts-expect-error - GPT-5.2 uses responses.create API
+    const response = await client.responses.create({
+      model: 'gpt-5.2',
+      input,
+      reasoning: { effort: 'medium' }, // none, minimal, low, medium, high, xhigh
+      max_output_tokens: 1000,
     })
 
-    return response.choices[0]?.message?.content || 'Jag kunde inte generera ett svar. Försök igen.'
+    // GPT-5.2 response format
+    // @ts-expect-error - GPT-5.2 response format
+    return response.output_text || 'Jag kunde inte generera ett svar. Försök igen.'
 
   } catch (error) {
     console.error('AI generation error:', error)
