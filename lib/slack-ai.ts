@@ -621,28 +621,80 @@ const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
 // Custom Supabase query tool for Claude
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
   name: 'query_database',
-  description: `Kör en databasfråga mot LoopDesk-arkivet. Tillgängliga tabeller:
+  description: `Kör en databasfråga mot LoopDesk-arkivet. Använd PostgreSQL-syntax. Begränsa alltid till max 20 rader med LIMIT.
 
-**ProtocolAnalysis** - AI-analyserade bolagsstämmoprotokoll
-- id, org_number (format: 556XXX-XXXX), company_name, protocol_date, protocol_type
-- news_content (JSONB: rubrik, notistext, nyckeldata)
-- signals (JSONB: detekterade[], nyhetsvärde_total)
-- extracted_data (JSONB: bolag, styrelse, kapitalåtgärder, befattningshavare)
-- calculations (JSONB: emission, utspädning, värdering)
-- created_at, analyzed_at
+## TABELLER
 
-**Kungorelser** - Kungörelser från Post- och Inrikes Tidningar
-- id, org_number, company_name, kategori (konkurser/likvidationer/kallelser/etc)
-- typ, rubrik, kungorelsetext, publicerad, amnesomrade
-- konkurs_data (JSONB), stamma_data (JSONB)
-- created_at
+### ProtocolAnalysis - AI-analyserade bolagsstämmoprotokoll
+Kolumner: id, org_number, company_name, protocol_date, protocol_type, created_at, analyzed_at
 
-**LoopBrowse_Protokoll** - Bolagsregister
-- orgnummer, namn, vd, ordforande, storsta_agare
-- stad, anstallda, omsattning, bransch
+**news_content** (JSONB) - Genererad nyhetsnotis:
+- rubrik: string
+- notistext: string
+- nyckeldata: { nyhetsvärde: number, händelsetyp: string }
 
-Använd PostgreSQL-syntax. Begränsa alltid till max 20 rader med LIMIT.
-Exempel: SELECT company_name, protocol_date FROM "ProtocolAnalysis" WHERE protocol_type ILIKE '%emission%' ORDER BY protocol_date DESC LIMIT 10`,
+**signals** (JSONB) - Detekterade signaler:
+- detekterade: [{ signal: string, styrka: string, detaljer: string }]
+- nyhetsvärde_total: number (1-10)
+- varningsflaggor: string[]
+
+**extracted_data** (JSONB) - Extraherad protokolldata:
+- bolag: { namn, org_nummer, säte, aktiekapital, antal_aktier, kvotvärde }
+- metadata: { datum, plats, typ, ordförande, protokollförare, justerare }
+- styrelse:
+  - ordförande: string
+  - ledamöter: [{ namn, roll, personnummer }]
+  - suppleanter: [{ namn }]
+  - tillträdande_ledamöter: [{ namn, roll }]
+  - avgående_ledamöter: [{ namn, roll }]
+- befattningshavare:
+  - vd: { namn, personnummer }
+  - revisor: { namn, bolag }
+- kapitalåtgärder:
+  - nyemission: { beslutad, typ, antal_nya_aktier, teckningskurs_kr, emissionsbelopp_kr, villkor }
+  - fondemission: { beslutad, belopp }
+  - utdelning: { beslutad, belopp_per_aktie, total }
+  - bemyndigande: { beslutad, max_antal_aktier }
+- ägare: [{ namn, aktier, andel_procent, röster_procent }]
+- röstlängd: [{ namn, aktier, röster }]
+
+**calculations** (JSONB) - Beräknade värden:
+- emission: { emissionsbelopp_kr, pre_money_värdering, post_money_värdering }
+- utspädning: { utspädning_procent, nya_aktier, totalt_efter }
+- värdering: { implicit_värdering_msek, pris_per_aktie }
+- ägarförändring: { före: [], efter: [] }
+
+### Kungorelser - Kungörelser från Post- och Inrikes Tidningar
+Kolumner: id, org_number, company_name, kategori, typ, rubrik, kungorelsetext, publicerad, amnesomrade, created_at
+
+Kategorier: konkurser, likvidationer, kallelser, fusioner, delningar, registreringar
+
+**konkurs_data** (JSONB): { tingsratt, konkursforvaltare, datum_konkursbeslut }
+**stamma_data** (JSONB): { datum, tid, plats, arenden }
+
+### LoopBrowse_Protokoll - Bolagsregister med ~50k bolag
+Kolumner: orgnummer, namn, vd, ordforande, storsta_agare, stad, anstallda, omsattning, bransch
+
+## EXEMPEL
+
+-- Bolag med nyemission över 10 MSEK
+SELECT company_name, org_number,
+  extracted_data->'kapitalåtgärder'->'nyemission'->>'emissionsbelopp_kr' as belopp
+FROM "ProtocolAnalysis"
+WHERE (extracted_data->'kapitalåtgärder'->'nyemission'->>'emissionsbelopp_kr')::numeric > 10000000
+ORDER BY protocol_date DESC LIMIT 10
+
+-- Styrelseledamöter för ett bolag
+SELECT company_name, extracted_data->'styrelse' as styrelse
+FROM "ProtocolAnalysis" WHERE org_number = '556XXX-XXXX' LIMIT 1
+
+-- Bolag i Stockholm med VD
+SELECT namn, vd, ordforande, anstallda FROM "LoopBrowse_Protokoll"
+WHERE stad ILIKE '%stockholm%' AND vd IS NOT NULL LIMIT 10
+
+-- Senaste konkurserna
+SELECT company_name, publicerad, konkurs_data FROM "Kungorelser"
+WHERE kategori = 'konkurser' ORDER BY publicerad DESC LIMIT 10`,
   input_schema: {
     type: 'object' as const,
     properties: {
