@@ -45,11 +45,20 @@ Använd Slack mrkdwn-format, INTE HTML eller Markdown:
 - Inkludera org.nummer (XXXXXX-XXXX) första gången ett bolag nämns
 - Saklig och neutral ton
 
-## DATABAS
-Du har tillgång till verktyget query_database för att söka i Impact Loops arkiv:
+## VERKTYG
+
+*query_database* - Sök i Impact Loops arkiv:
 - protocols: Bolagsstämmoprotokoll med AI-analys
 - kungorelser: Kungörelser (konkurser, likvidationer, kallelser)
-- companies: Bolagsregister med VD, styrelse, ägare`
+- companies: Bolagsregister med VD, styrelse, ägare
+
+*web_search* - Sök på internet efter:
+- Nyhetsartiklar från media (DI, SvD, Breakit, etc.)
+- Pressmeddelanden
+- Information om personer och bolag
+- Aktuella händelser
+
+Använd web_search när användaren frågar om nyheter, artiklar, eller information som inte finns i databasen.`
 
 interface SlackMessage {
   role: 'user' | 'assistant' | 'system'
@@ -552,14 +561,12 @@ export async function generateAIResponse(
   return fullText
 }
 
-// Web search tool definition for Claude
-// NOTE: Temporarily disabled due to SDK compatibility issues
-// TODO: Re-enable when stable
-// const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
-//   type: 'web_search_20250305',
-//   name: 'web_search',
-//   max_uses: 3,
-// }
+// Web search tool for finding news articles and external info
+const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
+  type: 'web_search_20250305',
+  name: 'web_search',
+  max_uses: 5,
+}
 
 // Custom Supabase query tool for Claude
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
@@ -666,52 +673,56 @@ async function executeSimpleQuery(
   limit: number = 10
 ): Promise<{ data: unknown[] | null; error: string | null }> {
   const supabase = createServerClient()
+  console.log(`[DB Query] Type: ${queryType}, Search: ${searchTerm}, Limit: ${limit}`)
 
   try {
     switch (queryType) {
       case 'protocols': {
-        let query = supabase
+        const query = supabase
           .from('ProtocolAnalysis')
           .select('id, org_number, company_name, protocol_date, protocol_type, news_content, signals')
           .order('protocol_date', { ascending: false })
           .limit(limit)
 
         if (searchTerm) {
-          query = query.or(`company_name.ilike.%${searchTerm}%,org_number.ilike.%${searchTerm}%`)
+          query.ilike('company_name', `%${searchTerm}%`)
         }
 
         const { data, error } = await query
+        console.log(`[DB Query] Protocols result: ${data?.length || 0} rows, error: ${error?.message || 'none'}`)
         if (error) throw error
         return { data, error: null }
       }
 
       case 'kungorelser': {
-        let query = supabase
+        const query = supabase
           .from('Kungorelser')
           .select('id, org_number, company_name, kategori, typ, rubrik, publicerad')
           .order('publicerad', { ascending: false })
           .limit(limit)
 
         if (searchTerm) {
-          query = query.or(`company_name.ilike.%${searchTerm}%,org_number.ilike.%${searchTerm}%,rubrik.ilike.%${searchTerm}%`)
+          query.ilike('company_name', `%${searchTerm}%`)
         }
 
         const { data, error } = await query
+        console.log(`[DB Query] Kungorelser result: ${data?.length || 0} rows, error: ${error?.message || 'none'}`)
         if (error) throw error
         return { data, error: null }
       }
 
       case 'companies': {
-        let query = supabase
+        const query = supabase
           .from('LoopBrowse_Protokoll')
           .select('orgnummer, namn, vd, ordforande, storsta_agare, stad, anstallda, omsattning')
           .limit(limit)
 
         if (searchTerm) {
-          query = query.or(`namn.ilike.%${searchTerm}%,orgnummer.ilike.%${searchTerm}%`)
+          query.ilike('namn', `%${searchTerm}%`)
         }
 
         const { data, error } = await query
+        console.log(`[DB Query] Companies result: ${data?.length || 0} rows, error: ${error?.message || 'none'}`)
         if (error) throw error
         return { data, error: null }
       }
@@ -845,7 +856,7 @@ export async function generateAIResponseStreaming(
         max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: messages,
-        tools: [SUPABASE_QUERY_TOOL],
+        tools: [SUPABASE_QUERY_TOOL, WEB_SEARCH_TOOL],
       })
 
       console.log(`[Loop-AI] Response: stop_reason=${response.stop_reason}, blocks=${response.content.length}`)
