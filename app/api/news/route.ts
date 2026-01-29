@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
-import { ProtocolAnalysis, Kungorelse, NewsItem } from '@/lib/types'
+import { ProtocolAnalysis, Kungorelse } from '@/lib/types'
 
 // Cutoff date for kungörelser - only fetch from 2026-01-22 and later
 const KUNGORELSE_CUTOFF_DATE = '2026-01-22'

@@ -3,7 +3,7 @@ import { createServerClient } from '@/lib/supabase'
 import { protocolToNewsItem, kungorelseToNewsItem } from '@/lib/utils'
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const supabase = createServerClient()

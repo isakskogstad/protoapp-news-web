@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { Send, Loader2, MessageSquare, Smile, Paperclip, X, Image as ImageIcon, FileText, ExternalLink, Pin, MessageCircle, ChevronDown, ChevronRight, Video } from 'lucide-react'
-import { parseSlackMessage, EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
+import { EMOJI_MAP, QUICK_REACTIONS } from '@/lib/slack-utils'
+import { parseSlackMrkdwn } from '@/lib/slack-mrkdwn'
 import { Block, Attachment } from '@/lib/slack-types'
 import BlockKitRenderer from './BlockKitRenderer'
 
@@ -505,7 +506,6 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
 
   // Render a single message
   const renderMessage = (msg: ChatMessage, isReply = false) => {
-    const { html } = parseSlackMessage(msg.text, users)
     const hasRenderableBlocks = msg.blocks && msg.blocks.length > 0 &&
       msg.blocks.some(b => ['section', 'context', 'actions', 'header', 'divider', 'image'].includes(b.type))
     const hasAttachments = msg.attachments && msg.attachments.length > 0
@@ -561,10 +561,9 @@ export default function InlineEditorialChat({ maxHeight = 300 }: InlineEditorial
           ) : (
             <>
               {msg.text && (
-                <div
-                  className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words prose prose-xs dark:prose-invert max-w-none prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-strong:font-semibold prose-em:italic"
-                  dangerouslySetInnerHTML={{ __html: html }}
-                />
+                <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed break-words">
+                  {parseSlackMrkdwn(msg.text, users)}
+                </div>
               )}
               {hasAttachments && msg.attachments!.map((att, i) => renderAttachment(att, i))}
             </>

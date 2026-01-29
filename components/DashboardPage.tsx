@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { NewsItem } from '@/lib/types'
 import { formatRelativeTime, getLogoUrl, formatOrgNumber, truncateWords } from '@/lib/utils'
+import { createNewsNotificationMessage } from '@/lib/slack-blocks'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from './ThemeProvider'
 import { useNotifications } from '@/lib/hooks/useNotifications'
@@ -103,61 +104,11 @@ async function sendSlackNotification(item: NewsItem): Promise<void> {
   const settings = getFollowSettings()
   if (!settings?.slackChannelId && !settings?.slackWebhookUrl) return
 
-  const headline = item.headline || item.noticeText || 'Ny händelse'
-  const newsValueEmoji = item.newsValue && item.newsValue >= 7 ? ':rotating_light:' :
-                         item.newsValue && item.newsValue >= 4 ? ':bell:' : ':newspaper:'
+  // Get the base URL for generating links
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
-  const message = {
-    text: `${item.companyName}: ${headline}`,
-    blocks: [
-      {
-        type: 'header',
-        text: {
-          type: 'plain_text',
-          text: `${item.companyName}`,
-          emoji: true,
-        },
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `${newsValueEmoji} *${headline}*`,
-        },
-      },
-      ...(item.noticeText && item.noticeText !== headline ? [{
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: item.noticeText.length > 300 ? item.noticeText.substring(0, 300) + '...' : item.noticeText,
-        },
-      }] : []),
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `${item.protocolType || 'Protokoll'} • ${item.orgNumber || ''}`,
-          },
-        ],
-      },
-      {
-        type: 'actions',
-        elements: [
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: 'Öppna i LoopDesk',
-              emoji: true,
-            },
-            url: `${typeof window !== 'undefined' ? window.location.origin : ''}/news/${item.id}`,
-            action_id: 'open_news',
-          },
-        ],
-      },
-    ],
-  }
+  // Create rich Block Kit message using the utility function
+  const message = createNewsNotificationMessage(item, baseUrl)
 
   try {
     if (settings.slackChannelId) {
