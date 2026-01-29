@@ -273,12 +273,51 @@ export async function POST(request: NextRequest) {
 
 // Also handle GET for testing
 export async function GET() {
+  // Test Slack bot token by calling auth.test
+  let slackStatus = 'unknown'
+  let slackBotName = ''
+  let slackTeam = ''
+
+  if (SLACK_BOT_TOKEN) {
+    try {
+      const response = await fetch('https://slack.com/api/auth.test', {
+        headers: { Authorization: `Bearer ${SLACK_BOT_TOKEN}` }
+      })
+      const data = await response.json()
+      if (data.ok) {
+        slackStatus = 'connected'
+        slackBotName = data.user
+        slackTeam = data.team
+      } else {
+        slackStatus = `error: ${data.error}`
+      }
+    } catch (e) {
+      slackStatus = `fetch error: ${e instanceof Error ? e.message : 'unknown'}`
+    }
+  } else {
+    slackStatus = 'not configured'
+  }
+
+  // Test Anthropic key by checking if it's set (don't make an actual call)
+  const anthropicKeyLength = process.env.ANTHROPIC_API_KEY?.length || 0
+  const anthropicKeyPreview = process.env.ANTHROPIC_API_KEY
+    ? `${process.env.ANTHROPIC_API_KEY.slice(0, 10)}...`
+    : 'not set'
+
   return NextResponse.json({
     status: 'LoopDesk Slack Events API',
-    configured: {
-      botToken: !!SLACK_BOT_TOKEN,
-      signingSecret: !!SLACK_SIGNING_SECRET,
-      anthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    timestamp: new Date().toISOString(),
+    slack: {
+      tokenConfigured: !!SLACK_BOT_TOKEN,
+      signingSecretConfigured: !!SLACK_SIGNING_SECRET,
+      status: slackStatus,
+      botName: slackBotName,
+      team: slackTeam,
+    },
+    anthropic: {
+      keyConfigured: !!process.env.ANTHROPIC_API_KEY,
+      keyLength: anthropicKeyLength,
+      keyPreview: anthropicKeyPreview,
     }
   })
 }
