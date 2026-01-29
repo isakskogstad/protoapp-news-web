@@ -120,23 +120,35 @@ async function handleEvent(event: {
   thread_ts?: string
   bot_id?: string
 }): Promise<void> {
+  console.log(`[Slack Event] Received: type=${event.type}, channel=${event.channel}, bot_id=${event.bot_id || 'none'}`)
+  console.log(`[Slack Event] Text: "${event.text?.slice(0, 100) || 'none'}"`)
+
   // Ignore messages from bots (including ourselves)
-  if (event.bot_id) return
+  if (event.bot_id) {
+    console.log('[Slack Event] Ignoring bot message')
+    return
+  }
 
   const botId = await getBotUserId()
+  console.log(`[Slack Event] Our bot ID: ${botId}`)
 
   // Handle app_mention - someone @mentioned the bot
   if (event.type === 'app_mention' && event.text) {
+    console.log('[Slack Event] Processing app_mention')
+
     // Remove the bot mention from the text
     const cleanText = event.text.replace(/<@[A-Z0-9]+>/g, '').trim()
+    console.log(`[Slack Event] Clean text: "${cleanText}"`)
 
     if (!cleanText) {
+      console.log('[Slack Event] Empty text, sending default response')
       await postMessage(event.channel, 'Hej! Hur kan jag hjälpa dig? Fråga mig om bolag, protokoll, eller nyheter.', event.ts)
       return
     }
 
     // Check if Anthropic is configured
     if (!process.env.ANTHROPIC_API_KEY) {
+      console.log('[Slack Event] ERROR: ANTHROPIC_API_KEY not configured')
       await postMessage(event.channel, '⚠️ AI är inte konfigurerad. ANTHROPIC_API_KEY saknas i miljövariabler.', event.ts)
       return
     }
@@ -148,29 +160,39 @@ async function handleEvent(event: {
         ? await getThreadHistory(event.channel, event.thread_ts, botId)
         : []
 
+      console.log(`[Slack Event] Thread history: ${history.length} messages`)
+
       // Post initial message with typing indicator
+      console.log('[Slack Event] Posting initial message...')
       const messageTs = await postMessage(event.channel, '⏳ Tänker...', threadTs)
+      console.log(`[Slack Event] Initial message ts: ${messageTs}`)
 
       if (!messageTs) {
+        console.log('[Slack Event] ERROR: Failed to post initial message')
         await postMessage(event.channel, '❌ Kunde inte starta svar', threadTs)
         return
       }
 
       // Generate AI response with streaming updates
+      console.log('[Slack Event] Starting AI generation...')
       await generateAIResponseStreaming(cleanText, history, async (text, isComplete) => {
-        // Update the message with streamed content
+        console.log(`[Slack Event] AI update: complete=${isComplete}, length=${text.length}`)
         await updateMessage(event.channel, messageTs, isComplete ? text : text)
       })
+      console.log('[Slack Event] AI generation complete')
     } catch (error) {
-      console.error('AI generation error:', error)
+      console.error('[Slack Event] AI generation error:', error)
       await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
     }
   }
 
   // Handle direct messages
   if (event.type === 'message' && event.channel?.startsWith('D') && event.text) {
+    console.log('[Slack Event] Processing direct message')
+
     // Check if Anthropic is configured
     if (!process.env.ANTHROPIC_API_KEY) {
+      console.log('[Slack Event] ERROR: ANTHROPIC_API_KEY not configured')
       await postMessage(event.channel, '⚠️ AI är inte konfigurerad. ANTHROPIC_API_KEY saknas i miljövariabler.', event.ts)
       return
     }
@@ -182,55 +204,70 @@ async function handleEvent(event: {
         ? await getThreadHistory(event.channel, event.thread_ts, botId)
         : []
 
+      console.log(`[Slack Event] Thread history: ${history.length} messages`)
+
       // Post initial message with typing indicator
+      console.log('[Slack Event] Posting initial message...')
       const messageTs = await postMessage(event.channel, '⏳ Tänker...', threadTs)
+      console.log(`[Slack Event] Initial message ts: ${messageTs}`)
 
       if (!messageTs) {
+        console.log('[Slack Event] ERROR: Failed to post initial message')
         await postMessage(event.channel, '❌ Kunde inte starta svar', threadTs)
         return
       }
 
       // Generate AI response with streaming updates
+      console.log('[Slack Event] Starting AI generation...')
       await generateAIResponseStreaming(event.text, history, async (text, isComplete) => {
-        // Update the message with streamed content
+        console.log(`[Slack Event] AI update: complete=${isComplete}, length=${text.length}`)
         await updateMessage(event.channel, messageTs, isComplete ? text : text)
       })
+      console.log('[Slack Event] AI generation complete')
     } catch (error) {
-      console.error('AI generation error:', error)
+      console.error('[Slack Event] AI generation error:', error)
       await postMessage(event.channel, `❌ Ett fel uppstod: ${error instanceof Error ? error.message : 'Okänt fel'}`, event.ts)
     }
   }
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[Slack API] POST request received')
+
   const body = await request.text()
+  console.log(`[Slack API] Body length: ${body.length}`)
 
   // Verify request (optional but recommended)
   const isValid = await verifySlackRequest(request, body)
   if (!isValid) {
+    console.log('[Slack API] ERROR: Invalid signature')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
   const payload = JSON.parse(body)
+  console.log(`[Slack API] Payload type: ${payload.type}`)
 
   // Handle URL verification challenge
   if (payload.type === 'url_verification') {
+    console.log('[Slack API] URL verification challenge')
     return NextResponse.json({ challenge: payload.challenge })
   }
 
   // Handle events
   if (payload.type === 'event_callback') {
     const event = payload.event
+    console.log(`[Slack API] Event callback: ${event.type}`)
 
     // Respond immediately to avoid Slack retries
     // Process event in background
     handleEvent(event).catch(error => {
-      console.error('Error handling event:', error)
+      console.error('[Slack API] Error handling event:', error)
     })
 
     return NextResponse.json({ ok: true })
   }
 
+  console.log('[Slack API] Unknown payload type, returning ok')
   return NextResponse.json({ ok: true })
 }
 

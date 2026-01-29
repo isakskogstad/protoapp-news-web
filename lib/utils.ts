@@ -14,12 +14,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getLogoUrl(_orgNumber: string, logoUrl?: string): string {
+export function getLogoUrl(orgNumber: string, logoUrl?: string): string {
   // Return provided logo URL if it exists and is valid
   if (logoUrl && !logoUrl.includes('undefined')) return logoUrl
 
-  // Return empty string - component should handle fallback to initials
-  // This avoids 404 errors from non-existent bucket/files
+  // Generate fallback URL based on org number (same logic as Mac app)
+  // Format: company-assets/logos/{org_number_without_hyphens}.png
+  const cleanOrg = orgNumber.replace(/-/g, '')
+  if (cleanOrg) {
+    return `${SUPABASE_URL}/storage/v1/object/public/company-assets/logos/${cleanOrg}.png`
+  }
+
   return ''
 }
 
