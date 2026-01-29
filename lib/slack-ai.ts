@@ -58,6 +58,11 @@ Använd Slack mrkdwn-format, INTE HTML eller Markdown:
 - Information om personer och bolag
 - Aktuella händelser
 
+*create_reminder* - Skapa påminnelser:
+- Användaren kan be dig påminna om något
+- Ange tid i minuter (60 = 1 timme, 1440 = 1 dag)
+- Påminnelsen skickas i samma kanal/tråd
+
 Använd web_search när användaren frågar om nyheter, artiklar, eller information som inte finns i databasen.`
 
 interface SlackMessage {
@@ -568,6 +573,74 @@ const WEB_SEARCH_TOOL: Anthropic.Messages.WebSearchTool20250305 = {
   max_uses: 5,
 }
 
+// Reminder tool - schedules a message in Slack
+const REMINDER_TOOL: Anthropic.Messages.Tool = {
+  name: 'create_reminder',
+  description: `Skapa en påminnelse som skickas vid en specifik tidpunkt. Använd detta när användaren ber om att bli påmind om något.`,
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      message: {
+        type: 'string',
+        description: 'Påminnelsetexten som ska skickas'
+      },
+      delay_minutes: {
+        type: 'number',
+        description: 'Antal minuter tills påminnelsen ska skickas (t.ex. 30 för 30 minuter, 60 för 1 timme, 1440 för 1 dag)'
+      }
+    },
+    required: ['message', 'delay_minutes']
+  }
+}
+
+// Execute reminder creation via Slack scheduled message
+async function createReminder(
+  channelId: string,
+  threadTs: string | undefined,
+  message: string,
+  delayMinutes: number
+): Promise<{ success: boolean; error?: string; scheduled_time?: string }> {
+  const token = process.env.SLACK_BOT_TOKEN
+  if (!token) {
+    return { success: false, error: 'Slack token saknas' }
+  }
+
+  const postAt = Math.floor(Date.now() / 1000) + (delayMinutes * 60)
+  const scheduledDate = new Date(postAt * 1000)
+
+  try {
+    const response = await fetch('https://slack.com/api/chat.scheduleMessage', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel: channelId,
+        text: `Påminnelse: ${message}`,
+        post_at: postAt,
+        thread_ts: threadTs,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!data.ok) {
+      console.error('[Reminder] Slack error:', data.error)
+      return { success: false, error: data.error }
+    }
+
+    console.log(`[Reminder] Scheduled for ${scheduledDate.toISOString()}`)
+    return {
+      success: true,
+      scheduled_time: scheduledDate.toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' })
+    }
+  } catch (err) {
+    console.error('[Reminder] Error:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Okänt fel' }
+  }
+}
+
 // Custom Supabase query tool for Claude
 const SUPABASE_QUERY_TOOL: Anthropic.Messages.Tool = {
   name: 'query_database',
@@ -817,11 +890,18 @@ async function executeDirectQuery(sql: string): Promise<{ data: unknown[] | null
 }
 */
 
+// Context for tool execution
+interface ToolContext {
+  channelId?: string
+  threadTs?: string
+}
+
 // Streaming version that calls back with progressive updates
 export async function generateAIResponseStreaming(
   userMessage: string,
   conversationHistory: SlackMessage[] = [],
-  onUpdate: StreamCallback
+  onUpdate: StreamCallback,
+  toolContext?: ToolContext
 ): Promise<void> {
   try {
     // Build messages for Claude
@@ -853,10 +933,10 @@ export async function generateAIResponseStreaming(
 
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
+        max_tokens: 8192,
         system: SYSTEM_PROMPT,
         messages: messages,
-        tools: [SUPABASE_QUERY_TOOL, WEB_SEARCH_TOOL],
+        tools: [SUPABASE_QUERY_TOOL, WEB_SEARCH_TOOL, REMINDER_TOOL],
       })
 
       console.log(`[Loop-AI] Response: stop_reason=${response.stop_reason}, blocks=${response.content.length}`)
@@ -905,6 +985,43 @@ export async function generateAIResponseStreaming(
             tool_use_id: block.id,
             content: resultContent
           })
+        } else if (block.type === 'tool_use' && block.name === 'create_reminder') {
+          hasToolUse = true
+          console.log(`[Loop-AI] Tool use: create_reminder`)
+
+          const input = block.input as { message: string; delay_minutes: number }
+          console.log(`[Loop-AI] Reminder: "${input.message}" in ${input.delay_minutes} min`)
+
+          if (!toolContext?.channelId) {
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: 'Fel: Kan inte skapa påminnelse - kanal-ID saknas'
+            })
+          } else {
+            await onUpdate(accumulatedText + `\n\nSkapar påminnelse...`, false)
+
+            const result = await createReminder(
+              toolContext.channelId,
+              toolContext.threadTs,
+              input.message,
+              input.delay_minutes
+            )
+
+            if (result.success) {
+              toolResults.push({
+                type: 'tool_result',
+                tool_use_id: block.id,
+                content: `Påminnelse skapad! Skickas ${result.scheduled_time}`
+              })
+            } else {
+              toolResults.push({
+                type: 'tool_result',
+                tool_use_id: block.id,
+                content: `Fel: ${result.error}`
+              })
+            }
+          }
         }
       }
 

@@ -178,7 +178,7 @@ async function handleEvent(event: {
       await generateAIResponseStreaming(cleanText, history, async (text, isComplete) => {
         console.log(`[Slack Event] AI update: complete=${isComplete}, length=${text.length}`)
         await updateMessage(event.channel, messageTs, isComplete ? text : text)
-      })
+      }, { channelId: event.channel, threadTs: threadTs })
       console.log('[Slack Event] AI generation complete')
     } catch (error) {
       console.error('[Slack Event] AI generation error:', error)
@@ -222,7 +222,7 @@ async function handleEvent(event: {
       await generateAIResponseStreaming(event.text, history, async (text, isComplete) => {
         console.log(`[Slack Event] AI update: complete=${isComplete}, length=${text.length}`)
         await updateMessage(event.channel, messageTs, isComplete ? text : text)
-      })
+      }, { channelId: event.channel, threadTs: threadTs })
       console.log('[Slack Event] AI generation complete')
     } catch (error) {
       console.error('[Slack Event] AI generation error:', error)
