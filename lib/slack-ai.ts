@@ -326,7 +326,7 @@ export async function generateAIResponse(
     const response = await client.responses.create({
       model: 'gpt-5.2',
       input,
-      reasoning: { effort: 'medium' }, // none, minimal, low, medium, high, xhigh
+      reasoning: { effort: 'none' }, // Snabba svar utan deliberation
       max_output_tokens: 1000,
     })
 
